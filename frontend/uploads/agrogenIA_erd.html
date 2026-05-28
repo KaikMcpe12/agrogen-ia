@@ -1,0 +1,157 @@
+
+<div id="erd"></div>
+<style>
+#erd { padding: 8px 0; }
+</style>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+    primaryColor: dark ? '#2a2a3a' : '#EEEDFE',
+    primaryBorderColor: dark ? '#534AB7' : '#534AB7',
+    primaryTextColor: dark ? '#c2c0b6' : '#26215C',
+  },
+});
+const { svg } = await mermaid.render('erd-svg', `erDiagram
+  USERS {
+    uuid id PK
+    string nome
+    string cpf
+    string email
+    string senha_hash
+    enum tipo
+    string telefone
+    timestamp criado_em
+  }
+  FAZENDAS {
+    uuid id PK
+    uuid usuario_id FK
+    string nome
+    string municipio
+    decimal area_ha
+  }
+  ANIMAIS {
+    uuid id PK
+    uuid fazenda_id FK
+    string codigo
+    string nome
+    enum especie
+    enum sexo
+    date data_nascimento
+    decimal peso_kg
+    int condicao_corporal
+    enum status
+    int num_partos
+    string brinco_tatuagem
+  }
+  DADOS_GENETICOS {
+    uuid id PK
+    uuid animal_id FK
+    string raca
+    string linhagem
+    uuid pai_id
+    uuid mae_id
+    json dep
+  }
+  REPRODUTORES {
+    uuid id PK
+    string nome
+    enum especie
+    string raca
+    string empresa
+    enum tipo
+  }
+  INSEMINACOES {
+    uuid id PK
+    uuid animal_id FK
+    uuid reprodutor_id FK
+    uuid tecnico_id FK
+    datetime data_inseminacao
+    enum tipo_ia
+    string protocolo_hormonal
+    int condicao_corporal_momento
+    decimal temperatura_ambiente_c
+    int dias_pos_parto
+    text observacoes
+  }
+  DIAGNOSTICOS {
+    uuid id PK
+    uuid inseminacao_id FK
+    date data_diagnostico
+    enum resultado
+    text observacoes
+  }
+  ALERTAS {
+    uuid id PK
+    uuid animal_id FK
+    uuid inseminacao_id FK
+    date data_prevista
+    enum tipo
+    boolean resolvido
+  }
+  ANALISES_IA {
+    uuid id PK
+    uuid animal_id FK
+    uuid tecnico_id FK
+    decimal score_prenhez
+    json fatores_influentes
+    json parametros_entrada
+    timestamp criado_em
+  }
+  AUDIT_LOG {
+    uuid id PK
+    uuid usuario_id FK
+    string tabela
+    string operacao
+    json dados_anteriores
+    timestamp criado_em
+    string ip
+  }
+  USERS ||--o{ FAZENDAS : "possui"
+  FAZENDAS ||--o{ ANIMAIS : "contém"
+  ANIMAIS ||--|| DADOS_GENETICOS : "tem"
+  ANIMAIS ||--o{ INSEMINACOES : "participa"
+  REPRODUTORES ||--o{ INSEMINACOES : "usado em"
+  USERS ||--o{ INSEMINACOES : "realiza"
+  INSEMINACOES ||--o| DIAGNOSTICOS : "gera"
+  ANIMAIS ||--o{ ALERTAS : "dispara"
+  INSEMINACOES ||--o{ ALERTAS : "origina"
+  ANIMAIS ||--o{ ANALISES_IA : "analisado em"
+  USERS ||--o{ AUDIT_LOG : "registra"
+`);
+document.getElementById('erd').innerHTML = svg;
+
+document.querySelectorAll('#erd svg .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+
+document.querySelectorAll('#erd svg .row-rect-odd path, #erd svg .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>
