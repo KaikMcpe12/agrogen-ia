@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 
+#endpoint
 @app.post("/auth/register")
 def register_user(user: UserRegister):
 
