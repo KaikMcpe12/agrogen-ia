@@ -2,15 +2,15 @@ import client from "../client";
 import type { Animal, PaginatedResponse, ApiResponse, Especie, Sexo, StatusAnimal } from "@/types";
 
 export interface AnimaisParams {
-  fazenda_id?: string;
-  q?: string;
-  especie?: Especie;
-  sexo?: Sexo;
-  status?: StatusAnimal;
-  page?: number;
-  limit?: number;
-  sort?: string;
-  order?: "asc" | "desc";
+  fazenda_id?: string | undefined;
+  q?: string | undefined;
+  especie?: Especie | undefined;
+  sexo?: Sexo | undefined;
+  status?: StatusAnimal | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
+  sort?: string | undefined;
+  order?: "asc" | "desc" | undefined;
 }
 
 export const animaisApi = {
