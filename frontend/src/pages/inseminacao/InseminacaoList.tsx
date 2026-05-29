@@ -1,3 +1,192 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Plus, AlertCircle } from "lucide-react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { inseminacoesApi } from "@/lib/api/endpoints/inseminacoes";
+import { Modal03NewInseminacao } from "@/components/modals/Modal03NewInseminacao";
+import { Modal05Diagnostico } from "@/components/modals/Modal05Diagnostico";
+import type { Inseminacao } from "@/types";
+
+type Tab = "historico" | "pendentes";
+
+const TIPO_LABELS = { IA_CONVENCIONAL: "IA Conv.", IATF: "IATF", TE: "TE" };
+const RESULTADO_VARIANT = {
+  PENDENTE: "warn" as const,
+  PRENHA: "ok" as const,
+  VAZIA: "danger" as const,
+  CANCELADA: "ghost" as const,
+};
+const RESULTADO_LABELS = { PENDENTE: "Pendente", PRENHA: "Prenha", VAZIA: "Vazia", CANCELADA: "Cancelada" };
+
+function InseminacaoRow({ ins, onDiag }: { ins: Inseminacao; onDiag: () => void }) {
+  return (
+    <tr className="border-b border-line hover:bg-beige/50 transition-colors">
+      <td className="px-4 py-3">
+        <p className="text-[14px] font-medium text-ink">{ins.animal.nome}</p>
+        <p className="text-[11px] font-mono text-ink-4">{ins.animal.codigo}</p>
+      </td>
+      <td className="px-4 py-3 text-[13px] text-ink-2">
+        {new Date(ins.data_inseminacao).toLocaleDateString("pt-BR")}
+      </td>
+      <td className="px-4 py-3">
+        <span className="text-[12px] font-mono text-ink-3 bg-beige px-2 py-0.5 rounded-[6px]">
+          {TIPO_LABELS[ins.tipo]}
+        </span>
+      </td>
+      <td className="px-4 py-3 text-[13px] text-ink-2">{ins.reprodutor.nome}</td>
+      <td className="px-4 py-3">
+        <Badge variant={RESULTADO_VARIANT[ins.resultado]}>{RESULTADO_LABELS[ins.resultado]}</Badge>
+      </td>
+      <td className="px-4 py-3">
+        {ins.resultado === "PENDENTE" && (
+          <Button variant="secondary" size="sm" onClick={onDiag}>
+            Registrar diagnóstico
+          </Button>
+        )}
+      </td>
+    </tr>
+  );
+}
+
+function PendenteRow({ ins, onDiag }: { ins: Inseminacao; onDiag: () => void }) {
+  const isUrgent = ins.dias_decorridos > 30;
+  return (
+    <Card
+      padding="sm"
+      className={`cursor-pointer hover:border-warn transition-colors ${isUrgent ? "border-danger-bg bg-danger-bg/20" : ""}`}
+      onClick={onDiag}
+    >
+      <div className="flex items-center gap-3">
+        {isUrgent && <AlertCircle size={18} className="text-danger shrink-0" />}
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <p className="text-[14px] font-semibold text-ink">{ins.animal.nome}</p>
+            <span className="font-mono text-[11px] text-ink-4">{ins.animal.codigo}</span>
+            {isUrgent && <Badge variant="danger">Crítico</Badge>}
+          </div>
+          <p className="text-[12px] text-ink-3 mt-0.5">
+            Inseminação em {new Date(ins.data_inseminacao).toLocaleDateString("pt-BR")} ·{" "}
+            <strong className={isUrgent ? "text-danger" : "text-warn"}>{ins.dias_decorridos} dias decorridos</strong>
+          </p>
+        </div>
+        <Button variant={isUrgent ? "danger" : "secondary"} size="sm">Diagnóstico</Button>
+      </div>
+    </Card>
+  );
+}
+
 export function InseminacaoListPage() {
-  return <div className="p-8 text-ink">Inseminação — em breve</div>;
+  const [tab, setTab] = useState<Tab>("historico");
+  const [novaOpen, setNovaOpen] = useState(false);
+  const [diagOpen, setDiagOpen] = useState(false);
+  const [selectedIns, setSelectedIns] = useState<Inseminacao | null>(null);
+
+  const { data: historico, isLoading: histLoading } = useQuery({
+    queryKey: ["inseminacoes"],
+    queryFn: () => inseminacoesApi.listar({ limit: 20 }),
+    enabled: tab === "historico",
+  });
+
+  const { data: pendentes, isLoading: pendLoading } = useQuery({
+    queryKey: ["inseminacoes-pendentes"],
+    queryFn: () => inseminacoesApi.pendentes(),
+    enabled: tab === "pendentes",
+  });
+
+  const openDiag = (ins: Inseminacao) => { setSelectedIns(ins); setDiagOpen(true); };
+
+  const insHistorico = historico?.data ?? [];
+  const insPendentes = pendentes?.data ?? [];
+
+  return (
+    <>
+      <div className="max-w-[1440px] mx-auto px-4 py-6 flex flex-col gap-4">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-[22px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>
+              Inseminação
+            </h1>
+            <p className="text-[14px] text-ink-3 mt-0.5">Controle reprodutivo do rebanho</p>
+          </div>
+          <Button variant="primary" size="sm" onClick={() => setNovaOpen(true)}>
+            <Plus size={16} />
+            Nova Inseminação
+          </Button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-line">
+          {([["historico", "Histórico"], ["pendentes", `Diagnósticos Pendentes${insPendentes.length > 0 ? ` (${insPendentes.length})` : ""}`]] as const).map(([t, label]) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={[
+                "px-5 py-3 text-[14px] font-medium border-b-2 transition-colors",
+                tab === t
+                  ? "border-green-700 text-green-700"
+                  : "border-transparent text-ink-3 hover:text-ink",
+              ].join(" ")}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab: Histórico */}
+        {tab === "historico" && (
+          histLoading ? (
+            <div className="flex flex-col gap-3">
+              {[...Array(4)].map((_, i) => <Card key={i} className="h-14 animate-pulse bg-beige">{null}</Card>)}
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-[18px] border border-line bg-surface">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-beige border-b border-line">
+                    {["Animal", "Data", "Tipo", "Reprodutor", "Resultado", "Ação"].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-[12px] font-semibold text-ink-2 uppercase tracking-[0.04em]">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {insHistorico.map((ins) => (
+                    <InseminacaoRow key={ins.id} ins={ins} onDiag={() => openDiag(ins)} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+
+        {/* Tab: Pendentes */}
+        {tab === "pendentes" && (
+          pendLoading ? (
+            <div className="flex flex-col gap-3">
+              {[...Array(3)].map((_, i) => <Card key={i} className="h-16 animate-pulse bg-beige">{null}</Card>)}
+            </div>
+          ) : insPendentes.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-4xl mb-3">✅</p>
+              <p className="text-[15px] font-semibold text-ink">Nenhum diagnóstico pendente</p>
+              <p className="text-[14px] text-ink-3 mt-1">Todos os diagnósticos estão em dia.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {insPendentes.map((ins) => (
+                <PendenteRow key={ins.id} ins={ins} onDiag={() => openDiag(ins)} />
+              ))}
+            </div>
+          )
+        )}
+      </div>
+
+      <Modal03NewInseminacao open={novaOpen} onClose={() => setNovaOpen(false)} />
+      <Modal05Diagnostico open={diagOpen} onClose={() => setDiagOpen(false)} inseminacao={selectedIns} />
+    </>
+  );
 }

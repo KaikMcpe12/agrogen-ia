@@ -24,19 +24,19 @@ export const inseminacoesApi = {
     reprodutor_id: string;
     data_inseminacao: string;
     tipo: TipoInseminacao;
-    protocolo_descricao?: string;
+    protocolo_descricao?: string | undefined;
     condicao_corporal_momento: number;
-    temperatura_ambiente_c?: number;
-    observacoes?: string;
+    temperatura_ambiente_c?: number | undefined;
+    observacoes?: string | undefined;
   }) => client.post<ApiResponse<{ id: string; resultado: string; alerta_criado?: { id: string } }>>("/inseminacoes", body).then((r) => r.data),
 
   registrarDiagnostico: (inseminacaoId: string, body: {
     data_diagnostico: string;
     metodo: string;
     resultado: "PRENHA" | "VAZIA" | "INCONCLUSIVO";
-    data_parto_prevista?: string;
-    veterinario_id?: string;
-    observacoes?: string;
+    data_parto_prevista?: string | undefined;
+    veterinario_id?: string | undefined;
+    observacoes?: string | undefined;
   }) =>
     client.post<ApiResponse<{ id: string; resultado: string; animal_status_atualizado: string; alerta_resolvido: boolean }>>(
       `/inseminacoes/${inseminacaoId}/diagnostico`,

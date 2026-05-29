@@ -57,12 +57,12 @@ export interface PaginatedResponse<T> {
 
 export interface DadosGeneticos {
   raca_principal: string;
-  raca_pai?: string;
-  raca_mae?: string;
-  dep_peso_desmame?: number;
-  dep_fertilidade?: number;
-  dep_acuracia?: number;
-  coeficiente_endogamia?: number;
+  raca_pai?: string | undefined;
+  raca_mae?: string | undefined;
+  dep_peso_desmame?: number | undefined;
+  dep_fertilidade?: number | undefined;
+  dep_acuracia?: number | undefined;
+  coeficiente_endogamia?: number | undefined;
 }
 
 export interface UltimoEvento {
