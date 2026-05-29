@@ -1,0 +1,59 @@
+import client from "../client";
+import type { Pesagem, Parto, EventoSanitario, Ocorrencia, PaginatedResponse, ApiResponse, ResumoPesagens, EstagioPesagem, TipoParto, TipoSanitario, ViaSanitaria, CategoriaOcorrencia } from "@/types";
+
+interface PesagensResponse {
+  success: boolean;
+  data: Pesagem[];
+  resumo: ResumoPesagens;
+  meta: PaginatedResponse<Pesagem>["meta"];
+}
+
+export const diarioApi = {
+  pesagens: (animalId: string) =>
+    client.get<PesagensResponse>(`/diario/${animalId}/pesagens`).then((r) => r.data),
+
+  criarPesagem: (animalId: string, body: { data: string; peso_kg: number; estagio: EstagioPesagem; observacao?: string }) =>
+    client.post<ApiResponse<{ id: string; gmd_calculado?: number }>>(`/diario/${animalId}/pesagens`, body).then((r) => r.data),
+
+  partos: (animalId: string) =>
+    client.get<PaginatedResponse<Parto>>(`/diario/${animalId}/partos`).then((r) => r.data),
+
+  criarParto: (animalId: string, body: {
+    data_parto: string;
+    tipo_parto: TipoParto;
+    num_crias: number;
+    num_crias_vivas: number;
+    peso_total_crias_kg?: number;
+    houve_distorcia: boolean;
+    houve_obito_matriz: boolean;
+    inseminacao_id?: string;
+  }) =>
+    client.post<ApiResponse<{ id: string }>>(`/diario/${animalId}/partos`, body).then((r) => r.data),
+
+  sanitario: (animalId: string) =>
+    client.get<PaginatedResponse<EventoSanitario>>(`/diario/${animalId}/sanitario`).then((r) => r.data),
+
+  criarEventoSanitario: (animalId: string, body: {
+    tipo: TipoSanitario;
+    produto: string;
+    principio_ativo?: string;
+    data_aplicacao: string;
+    dose?: string;
+    via?: ViaSanitaria;
+    lote_produto?: string;
+    proxima_dose?: string;
+  }) =>
+    client.post<ApiResponse<{ id: string }>>(`/diario/${animalId}/sanitario`, body).then((r) => r.data),
+
+  ocorrencias: (animalId: string) =>
+    client.get<PaginatedResponse<Ocorrencia>>(`/diario/${animalId}/ocorrencias`).then((r) => r.data),
+
+  criarOcorrencia: (animalId: string, body: {
+    data: string;
+    categoria: CategoriaOcorrencia;
+    titulo: string;
+    descricao: string;
+    resolvida: boolean;
+  }) =>
+    client.post<ApiResponse<{ id: string }>>(`/diario/${animalId}/ocorrencias`, body).then((r) => r.data),
+};
