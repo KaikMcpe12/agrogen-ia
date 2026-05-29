@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { InstallPWAPrompt } from "@/components/InstallPWAPrompt";
 import { useQuery } from "@tanstack/react-query";
 import { alertasApi } from "@/lib/api/endpoints/alertas";
 
@@ -20,6 +21,7 @@ function AppLayout() {
         <Outlet />
       </main>
       <BottomNav />
+      <InstallPWAPrompt />
     </div>
   );
 }
