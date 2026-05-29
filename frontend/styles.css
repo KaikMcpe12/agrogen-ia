@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+/* ── Google Fonts ─────────────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+/* ── Design Tokens (light) ────────────────────────────────────── */
+@theme {
+  /* Greens */
+  --color-green-900: #1b4332;
+  --color-green-800: #245742;
+  --color-green-700: #2d6a4f;
+  --color-green-600: #40916c;
+  --color-green-100: #d8e9df;
+
+  /* Terra */
+  --color-terra-900: #5c3a1f;
+  --color-terra-700: #8b5e3c;
+  --color-terra-500: #b98e6a;
+  --color-terra-200: #e2d1bd;
+
+  /* Neutral */
+  --color-beige: #f5efe6;
+  --color-beige-dark: #eae0ce;
+  --color-amber: #d4a017;
+  --color-amber-soft: #f5e2a0;
+  --color-amber-bg: #fbf4dc;
+
+  /* Semantic */
+  --color-ok: #15803d;
+  --color-ok-bg: #dcfce7;
+  --color-warn: #b45309;
+  --color-warn-bg: #fef3c7;
+  --color-danger: #b91c1c;
+  --color-danger-bg: #fee2e2;
+
+  /* Ink (text) */
+  --color-ink: #1a1a1a;
+  --color-ink-2: #3a3a3a;
+  --color-ink-3: #6b6b6b;
+  --color-ink-4: #9ca39d;
+
+  /* Lines & Surfaces */
+  --color-line: #e6e3dc;
+  --color-line-2: #d8d3c7;
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+
+  /* Typography */
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(27, 67, 50, 0.06);
+  --shadow-md: 0 4px 14px rgba(27, 67, 50, 0.08);
+  --shadow-lg: 0 12px 40px rgba(27, 67, 50, 0.12);
+}
+
+/* ── Dark Mode Overrides ──────────────────────────────────────── */
+[data-theme="dark"] {
+  --color-bg: #0f1a14;
+  --color-surface: #18241d;
+  --color-beige: #1f2c25;
+  --color-beige-dark: #25342b;
+
+  --color-ink: #f0ede4;
+  --color-ink-2: #d5d1c5;
+  --color-ink-3: #9da89f;
+  --color-ink-4: #6b7a6f;
+
+  --color-line: #2a3a30;
+  --color-line-2: #34453a;
+
+  --color-green-100: #2a3f33;
+  --color-terra-200: #3a2f22;
+  --color-amber-bg: #3d3318;
+  --color-amber-soft: #6b560f;
+  --color-danger-bg: #3d1b1b;
+  --color-warn-bg: #3d2f12;
+  --color-ok-bg: #173524;
+}
+
+/* ── Base Reset ───────────────────────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: var(--font-body);
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    color: var(--color-ink);
+  }
+
+  code,
+  pre,
+  kbd,
+  samp {
+    font-family: var(--font-mono);
+  }
+
+  /* Minimum 44px touch target for all interactive elements */
+  button,
+  a,
+  [role="button"] {
+    min-height: 44px;
+    cursor: pointer;
+  }
+
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    font-family: var(--font-body);
+  }
+}
