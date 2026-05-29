@@ -1,0 +1,18 @@
+from enum import Enum
+
+class EspecieAnimal(str, Enum):
+    BOVINO = "BOVINO"
+    OVINO = "OVINO"
+    CAPRINO = "CAPRINO"
+
+class SexoAnimal(str, Enum):
+    MACHO = "MACHO"
+    FEMEA = "FEMEA"
+
+class StatusAnimal(str, Enum):
+    ATIVA = "ATIVA"
+    PRENHA = "PRENHA"
+    EM_REPOUSO = "EM_REPOUSO"
+    DESCARTADA = "DESCARTADA"
+    REPRODUTOR_ATIVO = "REPRODUTOR_ATIVO"
+    EM_MONITORAMENTO = "EM_MONITORAMENTO"
