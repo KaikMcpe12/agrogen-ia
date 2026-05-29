@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 
@@ -5,12 +6,20 @@ from sqlalchemy.orm import Session
 def register_user(user: UserRegister, db: Session = Depends(get_db)):
 
     # valida tipo
+=======
+from fastapi import HTTPException
+
+@app.post("/auth/register")
+def register_user(user: UserRegister):
+
+>>>>>>> ca417ad98b40b7590ea22425cc5b32d8c9726726
     if user.tipo_usuario not in ["admin", "comum"]:
         raise HTTPException(
             status_code=400,
             detail="tipo_usuario deve ser 'admin' ou 'comum'"
         )
 
+<<<<<<< HEAD
     # verifica email
     if db.query(User).filter(User.email == user.email).first():
         raise HTTPException(status_code=400, detail="Email já existe")
@@ -40,3 +49,9 @@ def register_user(user: UserRegister, db: Session = Depends(get_db)):
             "tipo_usuario": new_user.tipo_usuario
         }
     }
+=======
+    return {
+        "mensagem": "Usuário cadastrado com sucesso",
+        "usuario": user
+    }
+>>>>>>> ca417ad98b40b7590ea22425cc5b32d8c9726726

@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AgroGen IA — Documento PDF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  /* ============ TOKENS (same as app) ============ */
+  :root {
+    --green-900:#1B4332;--green-800:#245742;--green-700:#2D6A4F;--green-600:#40916C;--green-100:#D8E9DF;
+    --terra-900:#5C3A1F;--terra-700:#8B5E3C;--terra-500:#B98E6A;--terra-200:#E2D1BD;
+    --beige:#F5EFE6;--beige-dark:#EAE0CE;--bg:#FAFAFA;--surface:#FFFFFF;
+    --amber:#D4A017;--amber-soft:#F5E2A0;--amber-bg:#FBF4DC;
+    --danger:#B91C1C;--danger-bg:#FEE2E2;--warn:#B45309;--warn-bg:#FEF3C7;
+    --ok:#15803D;--ok-bg:#DCFCE7;
+    --ink:#1A1A1A;--ink-2:#3A3A3A;--ink-3:#6B6B6B;--ink-4:#9CA39D;
+    --line:#E6E3DC;--line-2:#D8D3C7;
+    --shadow-sm:0 1px 2px rgba(27,67,50,.06);--shadow-md:0 4px 14px rgba(27,67,50,.08);--shadow-lg:0 12px 40px rgba(27,67,50,.12);
+    --r-sm:8px;--r-md:12px;--r-lg:18px;--r-xl:24px;
+    --font-display:'Sora',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:var(--font-body);background:#fff;color:var(--ink);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  h1,h2,h3,h4{font-family:var(--font-display);margin:0;color:var(--ink);letter-spacing:-.01em;}
+  h1{font-size:24px;font-weight:700;} h2{font-size:20px;font-weight:700;} h3{font-size:16px;font-weight:600;} h4{font-size:13px;font-weight:600;}
+  p{margin:0;}
+
+  /* PAGE SHEETS - each page-sheet becomes its own A4 landscape sheet */
+  .page-sheet{
+    width:297mm; min-height:200mm; padding:14mm 16mm;
+    background:#fff; box-shadow:0 4px 20px rgba(0,0,0,.06);
+    margin:14px auto; page-break-after:always; break-after:page;
+    position:relative;
+  }
+  .page-sheet:last-child{page-break-after:auto;break-after:auto;}
+
+  /* Doc cover */
+  .cover{
+    background:linear-gradient(135deg,var(--green-900) 0%,var(--green-700) 50%,var(--terra-700) 100%);
+    color:#fff;padding:50mm 24mm;
+    min-height:200mm;
+    display:flex;flex-direction:column;justify-content:space-between;
+    position:relative;overflow:hidden;
+  }
+  .cover::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(circle at 80% 20%,rgba(212,160,23,.25),transparent 50%),radial-gradient(circle at 20% 80%,rgba(212,160,23,.15),transparent 50%);
+  }
+  .cover>*{position:relative;z-index:1;}
+  .cover .brand{display:flex;align-items:center;gap:14px;}
+  .cover .mark{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#fff,#F5E2A0);display:grid;place-items:center;color:var(--green-900);font-size:24px;font-weight:800;font-family:var(--font-display);}
+  .cover .brand-text{font-family:var(--font-display);font-weight:700;font-size:28px;letter-spacing:-.02em;}
+  .cover .brand-text .ia{color:var(--amber-soft);}
+  .cover h1{font-family:var(--font-display);font-size:60px;font-weight:800;line-height:1;letter-spacing:-.02em;margin-top:40px;color:#fff;}
+  .cover h1 .accent{color:var(--amber-soft);}
+  .cover .lead{font-size:18px;opacity:.9;max-width:680px;margin-top:18px;line-height:1.45;}
+  .cover .meta-line{display:flex;gap:50px;margin-top:60px;}
+  .cover .meta-line .item .lbl{font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:.06em;}
+  .cover .meta-line .item .val{font-family:var(--font-display);font-weight:700;font-size:18px;margin-top:4px;color:var(--amber-soft);}
+  .cover .ftr{font-size:12px;opacity:.7;display:flex;justify-content:space-between;align-items:flex-end;}
+  .cover .ftr .right{text-align:right;}
+
+  /* Section header on each page */
+  .sheet-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-bottom:10px;border-bottom:2px solid var(--green-900);margin-bottom:18px;
+  }
+  .sheet-head .brand{display:flex;align-items:center;gap:8px;}
+  .sheet-head .brand .mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--green-900),var(--green-600));display:grid;place-items:center;color:var(--amber-soft);}
+  .sheet-head .brand .name{font-family:var(--font-display);font-weight:700;font-size:14px;}
+  .sheet-head .brand .name .ia{color:var(--amber);}
+  .sheet-head .page-label{font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--ink-3);}
+  .sheet-head .pg-num{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);}
+  
+  .sheet-title{margin-bottom:14px;}
+  .sheet-title .kicker{font-family:var(--font-display);font-size:11px;font-weight:600;color:var(--green-700);text-transform:uppercase;letter-spacing:.08em;}
+  .sheet-title h2{font-size:22px;font-weight:700;margin-top:2px;}
+  .sheet-title .sub{font-size:13px;color:var(--ink-3);margin-top:2px;}
+
+  /* CARDS */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;}
+  .card-title{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .card-title h3{font-size:14px;}
+
+  /* Stats */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+  .stat-card{padding:14px;}
+  .stat-card .stat-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .stat-card .label{color:var(--ink-3);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;}
+  .stat-card .icon-pill{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;}
+  .stat-card .num{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1;}
+  .stat-card .meta{font-size:11px;color:var(--ink-3);margin-top:4px;}
+  .trend-up{color:var(--ok);font-weight:600;} .trend-down{color:var(--danger);font-weight:600;}
+
+  /* badges */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;}
+  .badge-bovino{background:var(--green-100);color:var(--green-900);}
+  .badge-ovino{background:#DCEAFB;color:#1E4A8C;}
+  .badge-caprino{background:var(--terra-200);color:var(--terra-900);}
+  .badge-ok{background:var(--ok-bg);color:var(--ok);}
+  .badge-warn{background:var(--warn-bg);color:var(--warn);}
+  .badge-danger{background:var(--danger-bg);color:var(--danger);}
+  .badge-amber{background:var(--amber-bg);color:var(--warn);}
+  .badge-ghost{background:var(--beige);color:var(--ink-2);}
+
+  /* tables */
+  .table-wrap{overflow:hidden;border-radius:12px;border:1px solid var(--line);background:#fff;}
+  table.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+  .tbl th,.tbl td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);}
+  .tbl th{background:var(--beige);font-weight:600;color:var(--ink-2);font-size:10px;text-transform:uppercase;letter-spacing:.04em;}
+  .tbl tbody tr:last-child td{border-bottom:0;}
+  .tbl .id-mono{font-family:var(--font-mono);font-size:10px;color:var(--ink-3);}
+
+  /* dash grid */
+  .dash-grid{display:grid;grid-template-columns:1.7fr 1fr;gap:12px;margin-bottom:14px;}
+  .chart-wrap{position:relative;height:160px;}
+
+  /* timeline */
+  .timeline{display:flex;flex-direction:column;gap:8px;}
+  .timeline-item{display:flex;gap:8px;align-items:flex-start;}
+  .timeline-dot{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;}
+  .timeline-content .text{font-size:12px;color:var(--ink);}
+  .timeline-content .time{font-size:10px;color:var(--ink-3);margin-top:1px;}
+
+  /* AI */
+  .ai-tab-card{padding:14px;border:1.5px solid var(--line);border-radius:14px;display:flex;gap:10px;align-items:center;flex:1;}
+  .ai-tab-card.active{border-color:var(--green-700);background:var(--green-100);}
+  .ai-tab-card .ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--amber-bg);color:var(--warn);}
+  .ai-tab-card .ttl{font-weight:600;font-size:13px;}
+  .ai-tab-card .sub{font-size:11px;color:var(--ink-3);}
+
+  .gauge-wrap{display:flex;flex-direction:column;align-items:center;padding:8px;}
+  .gauge{position:relative;width:180px;height:180px;}
+  .gauge svg{transform:rotate(-90deg);}
+  .gauge-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .gauge-num .v{font-family:var(--font-display);font-size:42px;font-weight:700;line-height:1;}
+  .gauge-num .pct{font-size:14px;color:var(--ink-3);font-weight:600;}
+  .gauge-num .lbl{font-size:10px;color:var(--ink-3);margin-top:2px;}
+
+  .factor-list{display:flex;flex-direction:column;gap:6px;}
+  .factor{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--beige);border-radius:8px;font-size:12px;}
+  .recommendation{background:var(--amber-bg);border:1px solid var(--amber-soft);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start;}
+  .recommendation .ttl{font-weight:600;color:var(--warn);margin-bottom:2px;font-size:12px;}
+  .recommendation .txt{color:var(--ink-2);font-size:12px;}
+
+  /* form-row utility */
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .form-row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .col{display:flex;flex-direction:column;gap:8px;}
+  .row{display:flex;gap:10px;align-items:center;}
+
+  /* wizard stepper */
+  .stepper{display:flex;align-items:center;gap:0;margin-bottom:18px;}
+  .step-item{display:flex;align-items:center;gap:8px;flex:1;}
+  .step-circle{width:28px;height:28px;border-radius:50%;background:var(--beige);color:var(--ink-3);display:grid;place-items:center;font-weight:700;font-size:12px;border:2px solid var(--line);flex-shrink:0;}
+  .step-item.active .step-circle{background:var(--green-900);color:#fff;border-color:var(--green-900);}
+  .step-item.done .step-circle{background:var(--green-100);color:var(--green-900);border-color:var(--green-700);}
+  .step-label{font-size:11px;font-weight:500;color:var(--ink-3);}
+  .step-item.active .step-label{color:var(--ink);font-weight:600;}
+  .step-line{flex:1;height:2px;background:var(--line);margin:0 6px;}
+  .step-item.done + .step-line{background:var(--green-700);}
+
+  /* animal pick */
+  .animal-pick{display:flex;gap:10px;padding:10px;background:var(--beige);border-radius:10px;border:1px solid var(--line);align-items:center;}
+  .animal-pick .ava{width:38px;height:38px;border-radius:10px;background:var(--surface);display:grid;place-items:center;font-size:18px;flex-shrink:0;}
+  .animal-pick .info .name{font-weight:600;font-size:13px;}
+  .animal-pick .info .meta{font-size:11px;color:var(--ink-3);margin-top:2px;}
+
+  /* Avatar/profile */
+  .avatar-lg{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--green-900),var(--terra-700));color:#fff;display:grid;place-items:center;font-family:var(--font-display);font-size:28px;font-weight:700;margin:0 auto 10px;}
+
+  /* toggle pill display */
+  .toggle-pill{padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);text-align:center;font-weight:500;font-size:12px;color:var(--ink-2);}
+  .toggle-pill.active{border-color:var(--green-700);background:var(--green-100);color:var(--green-900);}
+
+  /* radio-cards */
+  .radio-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .radio-card{border:1.5px solid var(--line);border-radius:10px;padding:10px;text-align:center;background:var(--surface);}
+  .radio-card.active{border-color:var(--green-700);background:var(--green-100);}
+  .radio-card .emoji{font-size:22px;}
+  .radio-card .label{font-weight:600;font-size:12px;margin-top:2px;}
+
+  /* utility */
+  .text-muted{color:var(--ink-3);} .text-sm{font-size:12px;} .text-xs{font-size:11px;}
+  .section-block{border-top:1px solid var(--line);padding-top:12px;margin-top:12px;}
+  .section-block:first-child{border-top:0;padding-top:0;margin-top:0;}
+  .section-title{font-family:var(--font-display);font-weight:600;font-size:12px;color:var(--green-900);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+  .filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:12px;}
+  .filter-row .input,.filter-row .select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:12px;min-width:140px;}
+  .filter-row .grow{flex:1;}
+
+  /* Buttons-as-static */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-weight:600;font-size:12px;line-height:1;}
+  .btn-primary{background:var(--green-900);color:#fff;}
+  .btn-amber{background:var(--amber);color:#2A1F00;}
+  .btn-secondary{background:#fff;border:1px solid var(--line);color:var(--ink-2);}
+  .btn-danger{background:var(--danger);color:#fff;}
+
+  /* Doc footer at bottom of each sheet */
+  .doc-foot{
+    position:absolute;left:16mm;right:16mm;bottom:8mm;
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:10px;color:var(--ink-3);
+    padding-top:6px;border-top:1px solid var(--line);
+  }
+
+  /* TOC */
+  .toc{margin-top:18px;}
+  .toc-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line);}
+  .toc-item .n{width:46px;height:46px;border-radius:12px;background:var(--green-100);color:var(--green-900);display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:18px;flex-shrink:0;}
+  .toc-item .name{font-family:var(--font-display);font-weight:700;font-size:18px;}
+  .toc-item .desc{color:var(--ink-3);font-size:13px;margin-top:2px;}
+  .toc-item .pg{font-family:var(--font-mono);color:var(--ink-3);font-size:13px;margin-left:auto;}
+
+  /* print rules */
+  @page{size:A4 landscape;margin:0;}
+  @media print{
+    body{background:#fff;}
+    .page-sheet{box-shadow:none;margin:0 auto;break-after:page;page-break-after:always;}
+    .page-sheet:last-child{break-after:auto;page-break-after:auto;}
+  }
+</style>
+</head>
+<body>
+
+<!-- =================== COVER =================== -->
+<section class="page-sheet cover">
+  <div>
+    <div class="brand">
+      <div class="mark">AG</div>
+      <div class="brand-text">AgroGen <span class="ia">IA</span></div>
+    </div>
+  </div>
+  <div>
+    <div style="font-size:13px;font-family:var(--font-mono);opacity:.7;letter-spacing:.1em;text-transform:uppercase;">Plataforma de Inseminação Artificial · v1.0</div>
+    <h1>Genética inteligente<br/>para o <span class="accent">sertão que produz</span>.</h1>
+    <p class="lead">Sistema de coleta de dados genéticos e monitoramento de inseminação artificial com Inteligência Artificial — para bovinos, ovinos e caprinos do semiárido cearense.</p>
+    <div class="meta-line">
+      <div class="item"><div class="lbl">Espécies</div><div class="val">Bovino · Ovino · Caprino</div></div>
+      <div class="item"><div class="lbl">Análises IA</div><div class="val">3 modelos integrados</div></div>
+      <div class="item"><div class="lbl">Conformidade</div><div class="val">LGPD · GPL v3.0</div></div>
+    </div>
+  </div>
+  <div class="ftr">
+    <div><strong>Hackathon Expoagro Crateús 2026</strong><br/>Prefeitura Municipal de Crateús · CE</div>
+    <div class="right">Documento de design da plataforma<br/>Gerado em <span id="cover-date"></span></div>
+  </div>
+</section>
+
+<!-- =================== TOC =================== -->
+<section class="page-sheet">
+  <div class="sheet-head">
+    <div class="brand"><div class="mark"><i data-lucide="dna" style="width:16px;height:16px;"></i></div><div class="name">AgroGen <span class="ia">IA</span></div></div>
+    <div class="page-label">Índice</div>
+    <div class="pg-num">02 / 09</div>
+  </div>
+  <div class="sheet-title">
+    <div class="kicker">Sumário</div>
+    <h2>Visão geral das telas e módulos</h2>
+    <div class="sub">Plataforma web responsiva organizada em 7 módulos funcionais conectados por navegação SPA.</div>
+  </div>
+  <div class="toc">
+    <div class="toc-item"><div class="n">01</div><div><div class="name">Login & Cadastro</div><div class="desc">Acesso à plataforma — split-screen com identidade visual sertaneja</div></div><div class="pg">pág. 03</div></div>
+    <div class="toc-item"><div class="n">02</div><div><div class="name">Dashboard principal</div><div class="desc">KPIs do rebanho, desempenho reprodutivo, alertas e atividades</div></div><div class="pg">pág. 04</div></div>
+    <div class="toc-item"><div class="n">03</div><div><div class="name">Módulo Animais</div><div class="desc">Listagem com filtros + formulário completo de cadastro genético</div></div><div class="pg">pág. 05</div></div>
+    <div class="toc-item"><div class="n">04</div><div><div class="name">Inseminação</div><div class="desc">Wizard de 4 passos para registro de evento de IA / IATF / TE</div></div><div class="pg">pág. 06</div></div>
+    <div class="toc-item"><div class="n">05</div><div><div class="name">Análise com IA</div><div class="desc">Predição de prenhez, padrões de fertilidade e seleção genética</div></div><div class="pg">pág. 07</div></div>
+    <div class="toc-item"><div class="n">06</div><div><div class="name">Relatórios</div><div class="desc">Documento executivo com KPIs, gráficos e tabela detalhada</div></div><div class="pg">pág. 08</div></div>
+    <div class="toc-item"><div class="n">07</div><div><div class="name">Perfil & LGPD</div><div class="desc">Dados pessoais, fazendas, preferências e direitos do titular</div></div><div class="pg">pág. 09</div></div>
+  </div>
+  <div class="doc-foot"><span><strong>AgroGen IA</strong> · Documento de design</span><span>02</span></div>
+</section>
+
+<!-- 6 capture targets injected dynamically below -->
+<div id="captures"></div>
+
+<!-- Load app modules to drive a temporary live app, then capture -->
+<script src="app/data.js"></script>
+<script src="app/components.js"></script>
+<script src="app/pages.js"></script>
+<script src="app/main.js"></script>
+
+<script>
+/* ============================================================
+   PRINT GENERATOR — render each page into its own sheet
+   ============================================================ */
+
+document.getElementById('cover-date').textContent = new Date().toLocaleDateString('pt-BR');
+
+// Hide the original login/app shells (they're not used here, but main.js will try
+// to bind listeners) — but main.js requires #login-screen / #app-shell elements.
+// Provide minimal stubs.
+const stub = document.createElement('div');
+stub.innerHTML = `
+  <div id="login-screen" class="hidden" style="display:none;">
+    <button class="login-tab" data-tab="signin"></button>
+    <button class="login-tab" data-tab="signup"></button>
+    <form id="form-signin"></form>
+    <form id="form-signup"></form>
+    <a id="forgot-link"></a>
+  </div>
+  <div id="app-shell" style="display:none;">
+    <span id="avatar-initials"></span>
+    <span id="menu-user-name"></span>
+    <span id="menu-user-role"></span>
+    <div id="theme-toggle"></div>
+    <button id="hamburger-btn"></button>
+    <div id="drawer"></div>
+    <div id="drawer-overlay"></div>
+    <div id="avatar-btn"></div>
+    <div id="avatar-menu"></div>
+    <nav id="main-nav"></nav>
+    <main id="page-root"></main>
+  </div>
+  <div id="toast-wrap" style="display:none;"></div>
+  <div id="modal-root"></div>
+`;
+document.body.appendChild(stub);
+
+// Override navigate to no-op (we render manually)
+window.__renderAt = function(page, container) {
+  // temporarily make #page-root point to our container
+  const origRoot = document.getElementById('page-root');
+  const fakeRoot = container;
+  fakeRoot.id = 'page-root';
+  origRoot.id = '__origRoot';
+  AppState.currentPage = page;
+  if (page === 'animais') AppState.animaisSubpage = 'list';
+  if (page === 'inseminacao') AppState.insemSubpage = 'wizard';
+  try { renderPage(); } catch(e){ console.warn('render', page, e); }
+  // restore
+  fakeRoot.id = '';
+  origRoot.id = 'page-root';
+};
+
+// Auto-login (sets currentUser etc)
+window.addEventListener('load', () => {
+  // wait for fonts + chart.js
+  document.fonts && document.fonts.ready.then(buildSheets);
+  setTimeout(buildSheets, 600); // fallback
+});
+
+let built = false;
+async function buildSheets(){
+  if (built) return; built = true;
+  // Sign-in to get a current user (without UI redirect)
+  AppState.currentUser = { nome: 'Maria Cavalcante', email: 'maria@agrogen.ce.gov.br', telefone: '(88) 9 9123-4567', cpf: '123.456.789-12', tipo: 'Técnico Agropecuário' };
+
+  // Capture: Login screen replica
+  buildLoginSheet();
+
+  // Capture: Dashboard
+  buildAppSheet('Dashboard principal', 'Visão geral do rebanho e desempenho reprodutivo', '03', '04 / 09', 'dashboard', { compact: true });
+
+  // Capture: Animais (list + a snapshot of the form too on the same page)
+  buildAnimaisSheet();
+
+  // Capture: Inseminação - mostrar wizard com passo 4 preenchido (review)
+  buildInseminacaoSheet();
+
+  // Capture: IA
+  buildAISheet();
+
+  // Capture: Relatorios
+  buildRelatoriosSheet();
+
+  // Capture: Perfil
+  buildPerfilSheet();
+
+  // Replace lucide icons
+  setTimeout(() => { lucide.createIcons(); window.__readyToPrint = true; }, 400);
+}
+
+/* --------- Builders --------- */
+
+function buildLoginSheet(){
+  const sheet = makeSheet('Login & Cadastro', 'Acesso à plataforma', '03 / 09', 'pag-login');
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <div class="sheet-title">
+      <div class="kicker">Tela 01</div>
+      <h2>Login & Cadastro</h2>
+      <div class="sub">Split-screen com hero motivacional à esquerda e formulário à direita. Suporta entrar e criar conta com validação inline.</div>
+    </div>
+    <div class="form-row" style="grid-template-columns:1.1fr 1fr;gap:16px;align-items:stretch;">
+      <div style="background:linear-gradient(135deg,var(--green-900) 0%,var(--green-700) 50%,var(--terra-700) 100%);color:#fff;border-radius:18px;padding:24px;position:relative;overflow:hidden;min-height:340px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div style="position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(212,160,23,.25),transparent 50%),radial-gradient(circle at 20% 80%,rgba(212,160,23,.15),transparent 50%);"></div>
+        <div style="position:relative;z-index:1;display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#fff,#F5E2A0);color:var(--green-900);display:grid;place-items:center;font-weight:700;font-size:14px;">AG</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:18px;">AgroGen <span style="color:var(--amber-soft);">IA</span></div>
+        </div>
+        <div style="position:relative;z-index:1;">
+          <div style="font-family:var(--font-display);font-size:32px;font-weight:700;line-height:1.05;letter-spacing:-.02em;">Genética inteligente para o <span style="color:var(--amber-soft);">sertão que produz</span>.</div>
+          <p style="font-size:13px;opacity:.85;margin-top:14px;max-width:420px;">Plataforma de coleta de dados genéticos e monitoramento de inseminação artificial com IA para bovinos, ovinos e caprinos.</p>
+          <div style="display:flex;gap:28px;margin-top:24px;">
+            <div><div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--amber-soft);">+62%</div><div style="font-size:11px;opacity:.8;">Taxa de prenhez</div></div>
+            <div><div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--amber-soft);">3 espécies</div><div style="font-size:11px;opacity:.8;">Bovino · Ovino · Caprino</div></div>
+            <div><div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--amber-soft);">100%</div><div style="font-size:11px;opacity:.8;">Offline-ready</div></div>
+          </div>
+        </div>
+        <div style="position:relative;z-index:1;font-size:11px;opacity:.7;">Hackathon Expoagro Crateús 2026 · Prefeitura Municipal de Crateús/CE</div>
+      </div>
+      <div class="card" style="padding:24px;display:flex;flex-direction:column;justify-content:center;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+          <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--green-900),var(--green-600));color:var(--amber-soft);display:grid;place-items:center;"><i data-lucide="dna" style="width:18px;height:18px;"></i></div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:16px;">AgroGen <span style="color:var(--amber);">IA</span></div>
+        </div>
+        <div style="display:flex;background:var(--beige);border-radius:10px;padding:3px;margin-bottom:18px;">
+          <div style="flex:1;text-align:center;padding:8px;background:#fff;border-radius:8px;font-weight:600;font-size:12px;color:var(--green-900);box-shadow:var(--shadow-sm);">Entrar</div>
+          <div style="flex:1;text-align:center;padding:8px;font-weight:600;font-size:12px;color:var(--ink-3);">Criar conta</div>
+        </div>
+        <h3 style="font-size:16px;margin-bottom:4px;">Bem-vindo de volta</h3>
+        <div class="text-sm text-muted" style="margin-bottom:16px;">Entre para acompanhar seu rebanho.</div>
+        <label style="font-size:11px;font-weight:500;color:var(--ink-2);">E-mail</label>
+        <div style="padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;margin:4px 0 12px;font-size:13px;color:var(--ink-3);">maria@agrogen.ce.gov.br</div>
+        <label style="font-size:11px;font-weight:500;color:var(--ink-2);">Senha</label>
+        <div style="padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;margin:4px 0 12px;font-size:13px;color:var(--ink-3);">••••••••••</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:11px;">
+          <span style="color:var(--ink-2);">☑ Lembrar-me</span>
+          <span style="color:var(--green-700);">Esqueci minha senha</span>
+        </div>
+        <div class="btn btn-primary" style="padding:11px;justify-content:center;font-size:13px;">Entrar →</div>
+        <p style="text-align:center;font-size:10px;color:var(--ink-3);margin-top:12px;">Ao continuar, você concorda com a Política de Privacidade conforme LGPD (Lei 13.709/2018).</p>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;">
+      <div class="card" style="padding:12px;"><div class="text-xs text-muted">VARIANTE</div><div style="font-weight:600;font-size:13px;margin-top:2px;">Tela de cadastro</div><div class="text-xs text-muted" style="margin-top:4px;">7 campos: nome, CPF, e-mail, telefone, tipo de usuário (3 opções), senha + confirmar.</div></div>
+      <div class="card" style="padding:12px;"><div class="text-xs text-muted">VALIDAÇÃO</div><div style="font-weight:600;font-size:13px;margin-top:2px;">Inline · borda vermelha</div><div class="text-xs text-muted" style="margin-top:4px;">Mensagens de erro aparecem ao perder foco; campo obrigatório destacado.</div></div>
+      <div class="card" style="padding:12px;"><div class="text-xs text-muted">FLUXO</div><div style="font-weight:600;font-size:13px;margin-top:2px;">Login → Dashboard</div><div class="text-xs text-muted" style="margin-top:4px;">Após autenticar, redireciona ao painel principal com nome do usuário no header.</div></div>
+    </div>
+  `;
+  sheet.appendChild(body);
+  appendFoot(sheet, '03');
+}
+
+function buildAppSheet(title, subtitle, kicker, pgnum, page, opts={}){
+  const sheet = makeSheet(title, '', pgnum, 'pag-'+page);
+  const tw = document.createElement('div');
+  tw.className = 'sheet-title';
+  tw.innerHTML = `<div class="kicker">Tela ${kicker}</div><h2>${title}</h2><div class="sub">${subtitle}</div>`;
+  sheet.appendChild(tw);
+  const holder = document.createElement('div');
+  holder.style.cssText = 'position:relative;';
+  sheet.appendChild(holder);
+  __renderAt(page, holder);
+  // Tame the captured page: remove the original .page-head buttons & inner page padding
+  holder.querySelectorAll('.page').forEach(p => { p.style.padding = '0'; p.style.maxWidth='none'; });
+  holder.querySelectorAll('.no-print').forEach(n => n.remove());
+  // strip interactive buttons in head row (we leave the title only)
+  appendFoot(sheet, pgnum.split('/')[0].trim());
+}
+
+function buildAnimaisSheet(){
+  const sheet = makeSheet('Módulo Animais', '', '05 / 09', 'pag-animais');
+  sheet.insertAdjacentHTML('beforeend', `
+    <div class="sheet-title"><div class="kicker">Tela 03</div><h2>Módulo Animais</h2><div class="sub">Listagem com filtros, paginação e badges por espécie · formulário completo agrupado em 3 seções (Identificação, Genética, Reprodutivo).</div></div>
+  `);
+  const holder = document.createElement('div');
+  sheet.appendChild(holder);
+  __renderAt('animais', holder);
+  holder.querySelectorAll('.page').forEach(p => { p.style.padding='0'; p.style.maxWidth='none'; });
+  // Compress: only keep first 8 rows visible to fit page
+  const rows = holder.querySelectorAll('tbody tr');
+  rows.forEach((r,i)=>{ if(i>=7) r.remove(); });
+  // remove pagination buttons
+  const pg = holder.querySelector('#animais-pag'); if (pg) pg.innerHTML = '<span class="text-xs text-muted">… 8 de 15 animais · paginação 1 2</span>';
+  appendFoot(sheet, '05');
+}
+
+function buildInseminacaoSheet(){
+  const sheet = makeSheet('Módulo Inseminação', '', '06 / 09', 'pag-insem');
+  sheet.insertAdjacentHTML('beforeend', `
+    <div class="sheet-title"><div class="kicker">Tela 04</div><h2>Wizard de Inseminação</h2><div class="sub">Fluxo de 4 passos: selecionar animal → reprodutor/sêmen → dados do evento → revisão e confirmação.</div></div>
+  `);
+  // Simulate step 4 (review) - prepare draft
+  const a = AppState.animais.find(x => x.id === 'BOV-001');
+  AppState.insemDraft.animalId = 'BOV-001';
+  AppState.insemDraft.tipo = 'IATF';
+  AppState.insemDraft.reprodutor = 'Trovão (BOV-002)';
+  AppState.insemDraft.palheta = 'P-238 · Lote 04';
+  AppState.insemDraft.tecnico = 'João Silva';
+  AppState.insemDraft.data = new Date().toISOString().slice(0,16);
+  AppState.insemDraft.fase = 'Protocolo IATF 9 dias — CIDR + Benzoato de estradiol';
+  AppState.insemDraft.condicao = 4;
+  AppState.insemDraft.temperatura = 29.5;
+  AppState.insemDraft.observacoes = 'Procedimento sem intercorrências. Cio com sinais claros, muco filante presente.';
+  AppState.insemStep = 4;
+  const holder = document.createElement('div');
+  sheet.appendChild(holder);
+  __renderAt('inseminacao', holder);
+  holder.querySelectorAll('.page').forEach(p => { p.style.padding='0'; p.style.maxWidth='none'; });
+  // Also append a mini summary of history below
+  const hist = document.createElement('div');
+  hist.style.marginTop = '14px';
+  hist.innerHTML = `
+    <h4 style="margin-bottom:8px;">Histórico de inseminações (extrato)</h4>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead><tr><th>Animal</th><th>Reprodutor</th><th>Data</th><th>Técnico</th><th>Resultado</th></tr></thead>
+        <tbody>${AppState.inseminacoes.slice(0,5).map(i => {
+          const an = AppState.animais.find(x=>x.id===i.animalId);
+          const badge = i.resultado==='Prenha'?'badge-ok':i.resultado==='Falha'?'badge-danger':'badge-warn';
+          return `<tr><td><strong>${an?.nome||i.animalId}</strong></td><td>${i.reprodutor}</td><td>${new Date(i.data).toLocaleDateString('pt-BR')}</td><td>${i.tecnico}</td><td><span class="badge ${badge}">${i.resultado}</span></td></tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>`;
+  sheet.appendChild(hist);
+  appendFoot(sheet, '06');
+}
+
+function buildAISheet(){
+  const sheet = makeSheet('Análise com IA', '', '07 / 09', 'pag-ia');
+  sheet.insertAdjacentHTML('beforeend', `
+    <div class="sheet-title"><div class="kicker">Tela 05</div><h2>Análise com IA</h2><div class="sub">Três modelos integrados: predição individual de prenhez, padrões de fertilidade do rebanho e recomendação de seleção genética.</div></div>
+  `);
+  // Render the three tab cards
+  const tabs = document.createElement('div');
+  tabs.style.cssText = 'display:flex;gap:8px;margin-bottom:14px;';
+  tabs.innerHTML = `
+    <div class="ai-tab-card active"><div class="ico"><i data-lucide="gauge" style="width:18px;height:18px;"></i></div><div><div class="ttl">Predição de prenhez</div><div class="sub">Probabilidade individual</div></div></div>
+    <div class="ai-tab-card"><div class="ico"><i data-lucide="chart-spline" style="width:18px;height:18px;"></i></div><div><div class="ttl">Padrões de fertilidade</div><div class="sub">Análise do rebanho</div></div></div>
+    <div class="ai-tab-card"><div class="ico"><i data-lucide="git-fork" style="width:18px;height:18px;"></i></div><div><div class="ttl">Seleção genética</div><div class="sub">Cruzamentos recomendados</div></div></div>
+  `;
+  sheet.appendChild(tabs);
+  // Show the prediction result for Mimosa
+  const animal = AppState.animais.find(x => x.id === 'BOV-003');
+  const result = preverPrenhez(animal, AppState.inseminacoes);
+  const factors = fatoresPrenhez(animal, result);
+  const rec = recomendacaoIA(animal, result.score);
+  const out = document.createElement('div');
+  out.className = 'card';
+  out.style.padding = '14px';
+  out.innerHTML = `
+    <div class="animal-pick" style="margin-bottom:14px;">
+      <div class="ava">${ESPECIE_EMOJI[animal.especie]}</div>
+      <div class="info">
+        <div class="name">${animal.nome} <span class="id-mono" style="color:var(--ink-3);">${animal.id}</span></div>
+        <div class="meta">${renderBadgeEspecie(animal.especie)} · ${animal.raca} · CC ${animal.condicaoCorporal}/5 · ${AppState.inseminacoes.filter(i=>i.animalId===animal.id).length} eventos no histórico</div>
+      </div>
+    </div>
+    <div class="form-row" style="grid-template-columns:0.8fr 1.2fr;gap:14px;">
+      <div style="background:var(--beige);border-radius:14px;padding:12px;">
+        <div id="gauge-pdf"></div>
+      </div>
+      <div>
+        <h4 style="margin-bottom:8px;">Fatores que influenciaram</h4>
+        <div class="factor-list">
+          ${factors.map(f => `<div class="factor"><i data-lucide="${f.tipo==='pos'?'check-circle-2':f.tipo==='neg'?'x-circle':'alert-triangle'}" style="width:14px;height:14px;color:${f.tipo==='pos'?'var(--ok)':f.tipo==='neg'?'var(--danger)':'var(--amber)'};"></i><div>${f.txt}</div></div>`).join('')}
+        </div>
+        <div class="recommendation" style="margin-top:10px;">
+          <i data-lucide="lightbulb" style="width:14px;height:14px;color:var(--warn);margin-top:2px;"></i>
+          <div><div class="ttl">Recomendação da IA</div><div class="txt">${rec}</div></div>
+        </div>
+      </div>
+    </div>
+  `;
+  sheet.appendChild(out);
+  // small recap of other two AI modes
+  const recap = document.createElement('div');
+  recap.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;';
+  recap.innerHTML = `
+    <div class="card" style="padding:12px;"><h4 style="margin-bottom:4px;">Padrões de fertilidade</h4><div class="text-sm text-muted">Identifica raça com maior/menor taxa, técnico de melhor desempenho, melhores meses para inseminação e CC ideal. Inclui ranking das matrizes do rebanho.</div></div>
+    <div class="card" style="padding:12px;"><h4 style="margin-bottom:4px;">Seleção genética</h4><div class="text-sm text-muted">Score genético por cruzamento sugerido com base em objetivos (ganho de peso, precocidade, resistência ao calor, leite, prolificidade). Detecta consanguinidade.</div></div>
+  `;
+  sheet.appendChild(recap);
+  appendFoot(sheet, '07');
+  // draw gauge after attach
+  setTimeout(() => renderGaugePrenhez(result.score, out.querySelector('#gauge-pdf')), 50);
+}
+
+function buildRelatoriosSheet(){
+  const sheet = makeSheet('Relatórios', '', '08 / 09', 'pag-rel');
+  sheet.insertAdjacentHTML('beforeend', `
+    <div class="sheet-title"><div class="kicker">Tela 06</div><h2>Módulo Relatórios</h2><div class="sub">Documento executivo com KPIs, distribuição de resultados, taxa por raça e tabela detalhada. Exportável em PDF e CSV.</div></div>
+  `);
+  // KPIs
+  const insems = AppState.inseminacoes;
+  const resolvidas = insems.filter(i => i.resultado !== 'Aguardando');
+  const prenhas = insems.filter(i => i.resultado === 'Prenha').length;
+  const taxa = resolvidas.length ? Math.round(prenhas/resolvidas.length*100) : 0;
+  const kpis = document.createElement('div');
+  kpis.className = 'stat-grid';
+  kpis.innerHTML = `
+    <div class="card stat-card"><div class="stat-head"><span class="label">Inseminações</span><div class="icon-pill" style="background:var(--green-100);color:var(--green-900);"><i data-lucide="syringe" style="width:14px;height:14px;"></i></div></div><div class="num">${insems.length}</div><div class="meta">últimos 6 meses</div></div>
+    <div class="card stat-card"><div class="stat-head"><span class="label">Taxa de prenhez</span><div class="icon-pill" style="background:var(--ok-bg);color:var(--ok);"><i data-lucide="trending-up" style="width:14px;height:14px;"></i></div></div><div class="num">${taxa}%</div><div class="meta">${prenhas} prenhas · ${resolvidas.length-prenhas} falhas</div></div>
+    <div class="card stat-card"><div class="stat-head"><span class="label">Nascimentos previstos</span><div class="icon-pill" style="background:var(--amber-bg);color:var(--warn);"><i data-lucide="calendar-clock" style="width:14px;height:14px;"></i></div></div><div class="num">${prenhas}</div><div class="meta">próximos 9-11 meses</div></div>
+    <div class="card stat-card"><div class="stat-head"><span class="label">Custo por prenhez</span><div class="icon-pill" style="background:var(--terra-200);color:var(--terra-900);"><i data-lucide="circle-dollar-sign" style="width:14px;height:14px;"></i></div></div><div class="num">R$ ${prenhas ? Math.round(insems.length*120/prenhas) : 0}</div><div class="meta">médio estimado</div></div>
+  `;
+  sheet.appendChild(kpis);
+  // Charts row
+  const chartRow = document.createElement('div');
+  chartRow.className = 'dash-grid';
+  chartRow.innerHTML = `
+    <div class="card" style="padding:12px;">
+      <h4 style="margin-bottom:6px;">Distribuição de resultados</h4>
+      <div style="height:170px;position:relative;"><canvas id="rep-pie-pdf"></canvas></div>
+    </div>
+    <div class="card" style="padding:12px;">
+      <h4 style="margin-bottom:6px;">Taxa por raça</h4>
+      <div style="height:170px;position:relative;"><canvas id="rep-bar-pdf"></canvas></div>
+    </div>
+  `;
+  sheet.appendChild(chartRow);
+  // table
+  const tbl = document.createElement('div');
+  tbl.innerHTML = `
+    <h4 style="margin:8px 0;">Eventos detalhados</h4>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead><tr><th>Animal</th><th>Espécie</th><th>Raça</th><th>Data</th><th>Reprodutor</th><th>Técnico</th><th>Resultado</th></tr></thead>
+        <tbody>${insems.slice(0,7).map(i => {
+          const an = AppState.animais.find(x=>x.id===i.animalId) || {};
+          const bg = i.resultado==='Prenha'?'background:rgba(21,128,61,.06);':i.resultado==='Falha'?'background:rgba(185,28,28,.06);':'background:rgba(212,160,23,.06);';
+          const badge = i.resultado==='Prenha'?'badge-ok':i.resultado==='Falha'?'badge-danger':'badge-warn';
+          return `<tr style="${bg}"><td><strong>${an.nome||i.animalId}</strong></td><td>${an.especie?renderBadgeEspecie(an.especie):'—'}</td><td>${an.raca||'—'}</td><td>${new Date(i.data).toLocaleDateString('pt-BR')}</td><td>${i.reprodutor}</td><td>${i.tecnico}</td><td><span class="badge ${badge}">${i.resultado}</span></td></tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>`;
+  sheet.appendChild(tbl);
+  appendFoot(sheet, '08');
+  setTimeout(() => {
+    const aguar = insems.length - resolvidas.length;
+    const falhas = resolvidas.length - prenhas;
+    new Chart(document.getElementById('rep-pie-pdf'), {
+      type:'doughnut',
+      data:{labels:['Prenha','Falha','Aguardando'],datasets:[{data:[prenhas,falhas,aguar],backgroundColor:['#15803D','#B91C1C','#D4A017'],borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#3A3A3A',font:{size:10}}}},cutout:'60%',animation:false}
+    });
+    const racas = {};
+    resolvidas.forEach(i => { const a = AppState.animais.find(x=>x.id===i.animalId); if (!a) return; racas[a.raca] = racas[a.raca] || {total:0,prenha:0}; racas[a.raca].total++; if (i.resultado==='Prenha') racas[a.raca].prenha++; });
+    const lbl = Object.keys(racas); const data = lbl.map(r => Math.round(racas[r].prenha/racas[r].total*100));
+    new Chart(document.getElementById('rep-bar-pdf'), {
+      type:'bar',
+      data:{labels:lbl,datasets:[{data,backgroundColor:'rgba(45,106,79,.85)',borderRadius:6}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},animation:false,scales:{x:{ticks:{color:'#3A3A3A',font:{size:10}},grid:{color:'#E6E3DC'}},y:{beginAtZero:true,max:100,ticks:{color:'#3A3A3A',font:{size:10},callback:v=>v+'%'},grid:{color:'#E6E3DC'}}}}
+    });
+  }, 80);
+}
+
+function buildPerfilSheet(){
+  const sheet = makeSheet('Perfil & LGPD', '', '09 / 09', 'pag-perfil');
+  const u = AppState.currentUser;
+  const initials = u.nome.split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
+  sheet.insertAdjacentHTML('beforeend', `
+    <div class="sheet-title"><div class="kicker">Tela 07</div><h2>Perfil do Produtor & LGPD</h2><div class="sub">Dados pessoais, fazendas associadas, preferências de notificação e direitos do titular (Lei nº 13.709/2018).</div></div>
+    <div class="form-row" style="grid-template-columns:1fr 1.6fr;gap:14px;align-items:start;">
+      <div class="card" style="text-align:center;padding:18px;">
+        <div class="avatar-lg">${initials}</div>
+        <h3>${u.nome}</h3>
+        <div class="text-sm text-muted">${u.email}</div>
+        <div style="margin-top:10px;"><span class="badge badge-bovino">${u.tipo}</span></div>
+        <div class="section-block" style="text-align:left;">
+          <div class="section-title">Dados de contato</div>
+          <div class="text-xs text-muted">CPF</div><div style="font-family:var(--font-mono);font-weight:600;">***.***.***-12</div>
+          <div class="text-xs text-muted" style="margin-top:6px;">Telefone</div><div style="font-weight:600;">${u.telefone}</div>
+        </div>
+      </div>
+      <div class="col" style="gap:10px;">
+        <div class="card">
+          <div class="section-title">Fazendas associadas</div>
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead><tr><th>Nome</th><th>Município</th><th>Área (ha)</th><th>Espécies</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Fazenda Boa Esperança</strong></td><td>Crateús/CE</td><td>320</td><td>${renderBadgeEspecie('Bovino')} ${renderBadgeEspecie('Caprino')}</td></tr>
+                <tr><td><strong>Sítio Vale Verde</strong></td><td>Independência/CE</td><td>85</td><td>${renderBadgeEspecie('Ovino')} ${renderBadgeEspecie('Caprino')}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title">Preferências de notificação</div>
+          <div class="col" style="gap:6px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Alertas de ciclo reprodutivo</span><span style="color:var(--ok);font-weight:600;">● ativo</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Diagnósticos vencidos</span><span style="color:var(--ok);font-weight:600;">● ativo</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Novos resultados de IA</span><span style="color:var(--ok);font-weight:600;">● ativo</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Boletim mensal por e-mail</span><span style="color:var(--ink-3);font-weight:600;">○ inativo</span></div>
+          </div>
+        </div>
+        <div class="card" style="border:1px solid var(--warn-bg);">
+          <div class="section-title" style="color:var(--warn);"><i data-lucide="shield" style="width:12px;height:12px;"></i> Meus dados (LGPD)</div>
+          <p class="text-sm text-muted" style="margin-bottom:8px;">Conforme a Lei nº 13.709/2018, você pode exportar ou excluir seus dados a qualquer momento.</p>
+          <div class="row" style="flex-wrap:wrap;gap:6px;">
+            <div class="btn btn-secondary"><i data-lucide="download" style="width:12px;height:12px;"></i> Exportar dados (JSON)</div>
+            <div class="btn btn-danger"><i data-lucide="trash-2" style="width:12px;height:12px;"></i> Solicitar exclusão</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+  appendFoot(sheet, '09');
+}
+
+/* --- Helpers --- */
+function makeSheet(name, sub, pgnum, anchor){
+  const sheet = document.createElement('section');
+  sheet.className = 'page-sheet';
+  if (anchor) sheet.id = anchor;
+  sheet.innerHTML = `
+    <div class="sheet-head">
+      <div class="brand"><div class="mark"><i data-lucide="dna" style="width:16px;height:16px;"></i></div><div class="name">AgroGen <span class="ia">IA</span></div></div>
+      <div class="page-label">${name}</div>
+      <div class="pg-num">${pgnum}</div>
+    </div>
+  `;
+  document.getElementById('captures').appendChild(sheet);
+  return sheet;
+}
+
+function appendFoot(sheet, n){
+  const f = document.createElement('div');
+  f.className = 'doc-foot';
+  f.innerHTML = `<span><strong>AgroGen IA</strong> · Plataforma de Inseminação Artificial · Dados tratados conforme LGPD</span><span>${n}</span>`;
+  sheet.appendChild(f);
+}
+
+// Auto-print
+window.addEventListener('load', () => {
+  // wait for build + fonts
+  const tryPrint = () => {
+    if (!window.__readyToPrint) return setTimeout(tryPrint, 200);
+    setTimeout(() => { window.print(); }, 500);
+  };
+  setTimeout(tryPrint, 800);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AgroGen IA — Figma Design Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+/* ============ DESIGN TOKENS (same as platform) ============ */
+:root {
+  --green-900:#1B4332;--green-800:#245742;--green-700:#2D6A4F;--green-600:#40916C;--green-100:#D8E9DF;
+  --terra-900:#5C3A1F;--terra-700:#8B5E3C;--terra-500:#B98E6A;--terra-200:#E2D1BD;
+  --beige:#F5EFE6;--beige-dark:#EAE0CE;--bg:#FAFAFA;--surface:#FFFFFF;
+  --amber:#D4A017;--amber-soft:#F5E2A0;--amber-bg:#FBF4DC;
+  --danger:#B91C1C;--danger-bg:#FEE2E2;--warn:#B45309;--warn-bg:#FEF3C7;
+  --ok:#15803D;--ok-bg:#DCFCE7;
+  --ink:#1A1A1A;--ink-2:#3A3A3A;--ink-3:#6B6B6B;--ink-4:#9CA39D;
+  --line:#E6E3DC;--line-2:#D8D3C7;
+  --shadow-sm:0 1px 2px rgba(27,67,50,.06);--shadow-md:0 4px 14px rgba(27,67,50,.08);--shadow-lg:0 12px 40px rgba(27,67,50,.12);
+  --font-display:'Sora',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;
+}
+[data-theme="dark"] {
+  --bg:#0F1A14;--surface:#18241D;--beige:#1F2C25;--beige-dark:#25342B;
+  --ink:#F0EDE4;--ink-2:#D5D1C5;--ink-3:#9DA89F;--ink-4:#6B7A6F;
+  --line:#2A3A30;--line-2:#34453A;--green-100:#2A3F33;--terra-200:#3A2F22;
+  --amber-bg:#3D3318;--danger-bg:#3D1B1B;--warn-bg:#3D2F12;--ok-bg:#173524;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  background: #ECE7DA;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Canvas layout */
+.board {
+  padding: 60px 50px 120px;
+  max-width: none;
+  min-height: 100vh;
+}
+.board-header {
+  background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 60%, #8B5E3C 100%);
+  color: #fff;
+  border-radius: 24px;
+  padding: 48px 56px;
+  margin-bottom: 60px;
+  max-width: 1400px;
+  position: relative;
+  overflow: hidden;
+}
+.board-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 90% 10%, rgba(212,160,23,.3), transparent 50%);
+}
+.board-header > * { position: relative; z-index: 1; }
+.board-header h1 {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -.02em;
+  line-height: 1.05;
+}
+.board-header h1 .accent { color: #F5E2A0; }
+.board-header p {
+  font-size: 16px;
+  opacity: .9;
+  margin: 16px 0 0;
+  max-width: 720px;
+}
+.board-header .meta {
+  display: flex; gap: 40px; margin-top: 28px; flex-wrap: wrap;
+}
+.board-header .meta .item .lbl { font-size: 11px; opacity: .7; text-transform: uppercase; letter-spacing: .08em; }
+.board-header .meta .item .val { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: #F5E2A0; margin-top: 4px; }
+
+.import-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px 28px;
+  margin-bottom: 56px;
+  max-width: 1400px;
+  border-left: 6px solid #D4A017;
+  display: flex; gap: 20px; align-items: flex-start;
+}
+.import-card .icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: var(--amber-bg); color: var(--warn);
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.import-card h3 { margin: 0 0 6px; font-family: var(--font-display); font-size: 18px; }
+.import-card p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.import-card ol { margin: 10px 0 0 18px; padding: 0; color: var(--ink-2); font-size: 14px; }
+.import-card ol li { margin-bottom: 4px; }
+.import-card code {
+  background: var(--beige); padding: 2px 6px; border-radius: 4px;
+  font-family: var(--font-mono); font-size: 12px;
+}
+
+/* Section header */
+.section-header {
+  display: flex; align-items: baseline; gap: 18px;
+  margin: 80px 0 32px;
+  max-width: 1400px;
+}
+.section-header .num {
+  font-family: var(--font-mono); font-size: 14px; color: var(--ink-3);
+  background: #fff; padding: 4px 10px; border-radius: 6px;
+}
+.section-header h2 {
+  font-family: var(--font-display); font-size: 32px; font-weight: 700;
+  margin: 0; letter-spacing: -.02em;
+}
+.section-header .sub { color: var(--ink-3); font-size: 15px; margin-left: auto; }
+
+/* Frame row layouts */
+.frame-row {
+  display: flex; flex-wrap: wrap; gap: 48px;
+  align-items: flex-start;
+}
+.frame-row.row-tight { gap: 32px; }
+
+/* A Figma-style frame: title above, white box below */
+.frame {
+  display: flex; flex-direction: column; gap: 12px;
+  flex-shrink: 0;
+}
+.frame-label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  letter-spacing: .01em;
+  padding-left: 4px;
+  display: flex; align-items: center; gap: 10px;
+}
+.frame-label .pill {
+  font-family: var(--font-mono); font-size: 10px;
+  padding: 2px 6px; border-radius: 4px;
+  background: #fff; color: var(--ink-3);
+  border: 1px solid var(--line);
+}
+.frame-label .pill.dark { background: #18241D; color: #F0EDE4; border-color: #34453A; }
+.frame-label .pill.mobile { background: #DCEAFB; color: #1E4A8C; border-color: transparent; }
+.frame-label .pill.state { background: var(--amber-bg); color: var(--warn); border-color: transparent; }
+
+.frame-body {
+  background: var(--bg);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 30px rgba(0,0,0,.08);
+  position: relative;
+}
+.frame-body.dark { background: #0F1A14; }
+
+/* Frame size variants */
+.frame.size-desktop > .frame-body { width: 1440px; min-height: 900px; }
+.frame.size-tablet > .frame-body { width: 1024px; min-height: 768px; }
+.frame.size-mobile > .frame-body { width: 390px; min-height: 800px; }
+.frame.size-card > .frame-body { width: 480px; min-height: 320px; }
+.frame.size-component > .frame-body { width: 720px; min-height: 200px; padding: 32px; }
+
+/* ============ PLATFORM CSS (compact, full fidelity) ============ */
+h1,h2,h3,h4 { font-family: var(--font-display); margin: 0; color: var(--ink); letter-spacing:-.01em; }
+h1 { font-size: 28px; font-weight: 700; }
+h2 { font-size: 22px; font-weight: 700; }
+h3 { font-size: 17px; font-weight: 600; }
+h4 { font-size: 14px; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--green-700); text-decoration: none; }
+
+/* layout */
+.app { min-height: 100%; display: flex; flex-direction: column; }
+.page { padding: 28px 24px 40px; width: 100%; }
+.page-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+.page-head .title { display: flex; flex-direction: column; gap: 4px; }
+.page-head .subtitle { color: var(--ink-3); font-size: 14px; }
+
+/* Header */
+.header { background: var(--surface); border-bottom: 1px solid var(--line); }
+.header-inner { padding: 12px 24px; display: flex; align-items: center; gap: 24px; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--green-900), var(--green-600)); display: grid; place-items: center; color: var(--amber-soft); }
+.logo-text { font-family: var(--font-display); font-weight: 700; font-size: 17px; letter-spacing: -.02em; }
+.logo-text .ia { color: var(--amber); }
+.nav { display: flex; align-items: center; gap: 2px; flex: 1; }
+.nav a { padding: 8px 14px; border-radius: 8px; color: var(--ink-2); font-size: 14px; font-weight: 500; }
+.nav a.active { color: var(--green-900); background: var(--green-100); }
+[data-theme="dark"] .nav a.active { color: var(--green-100); }
+.header-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.icon-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; color: var(--ink-2); }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--terra-700), var(--terra-500)); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+
+/* cards */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 20px; box-shadow: var(--shadow-sm); }
+.card-title { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.card-title h3 { font-size: 15px; font-weight: 600; }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border-radius: 10px; border: 1px solid transparent; font-weight: 600; font-size: 14px; line-height: 1; background: transparent; color: var(--ink); white-space: nowrap; font-family: inherit; }
+.btn-primary { background: var(--green-900); color: #fff; border-color: var(--green-900); }
+.btn-amber { background: var(--amber); color: #2A1F00; border-color: var(--amber); }
+.btn-secondary { background: var(--surface); border-color: var(--line); color: var(--ink-2); }
+.btn-ghost { background: transparent; color: var(--ink-2); }
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-sm { padding: 6px 10px; font-size: 13px; border-radius: 8px; }
+.btn-lg { padding: 14px 24px; font-size: 15px; }
+.btn[disabled], .btn.disabled { opacity: .5; }
+.btn.hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.btn.focus { outline: 3px solid color-mix(in srgb, var(--green-700) 35%, transparent); outline-offset: 1px; }
+
+/* forms */
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+label { font-size: 13px; font-weight: 500; color: var(--ink-2); }
+label .req { color: var(--danger); }
+.input, .select, textarea.input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); font-family: inherit; font-size: 14px; }
+.input.focus { border-color: var(--green-700); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green-700) 18%, transparent); }
+.input.error { border-color: var(--danger); }
+.field-error { font-size: 12px; color: var(--danger); margin-top: 2px; }
+.input.placeholder { color: var(--ink-4); }
+.section-block { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 16px; }
+.section-block:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+.section-title { font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--green-900); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+[data-theme="dark"] .section-title { color: var(--green-100); }
+
+/* radios / pills */
+.radio-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.radio-card { border: 1.5px solid var(--line); border-radius: 12px; padding: 14px; text-align: center; background: var(--surface); }
+.radio-card.active { border-color: var(--green-700); background: var(--green-100); }
+.radio-card .emoji { font-size: 26px; }
+.radio-card .label { font-weight: 600; font-size: 13px; margin-top: 4px; }
+.toggle-group { display: flex; gap: 8px; }
+.toggle-pill { flex: 1; padding: 10px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--surface); text-align: center; font-weight: 500; font-size: 14px; color: var(--ink-2); }
+.toggle-pill.active { border-color: var(--green-700); background: var(--green-100); color: var(--green-900); }
+
+/* badges */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.badge-bovino { background: var(--green-100); color: var(--green-900); }
+.badge-ovino { background: #DCEAFB; color: #1E4A8C; }
+.badge-caprino { background: var(--terra-200); color: var(--terra-900); }
+.badge-ok { background: var(--ok-bg); color: var(--ok); }
+.badge-warn { background: var(--warn-bg); color: var(--warn); }
+.badge-danger { background: var(--danger-bg); color: var(--danger); }
+.badge-amber { background: var(--amber-bg); color: var(--warn); }
+.badge-ghost { background: var(--beige); color: var(--ink-2); }
+
+/* table */
+.table-wrap { overflow: hidden; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); }
+table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.tbl th { background: var(--beige); font-weight: 600; color: var(--ink-2); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.tbl tbody tr:last-child td { border-bottom: 0; }
+.tbl .id-mono { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+.row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.row-actions .icon-btn { width: 30px; height: 30px; }
+
+/* stats */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
+.stat-card { padding: 18px; }
+.stat-card .stat-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.stat-card .label { color: var(--ink-3); font-size: 13px; font-weight: 500; }
+.stat-card .icon-pill { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; }
+.stat-card .num { font-family: var(--font-display); font-size: 32px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+.stat-card .meta { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+.trend-up { color: var(--ok); font-weight: 600; }
+.trend-down { color: var(--danger); font-weight: 600; }
+
+/* dash */
+.dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 22px; }
+.chart-card { padding: 20px; }
+.chart-card .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.chart-wrap { position: relative; height: 280px; }
+
+/* timeline */
+.timeline { display: flex; flex-direction: column; gap: 12px; }
+.timeline-item { display: flex; gap: 10px; align-items: flex-start; }
+.timeline-dot { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0; }
+.timeline-content .text { font-size: 13.5px; color: var(--ink); }
+.timeline-content .time { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+
+/* AI */
+.ai-tabs { display: flex; gap: 8px; margin-bottom: 22px; }
+.ai-tab { padding: 14px 18px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface); display: flex; align-items: center; gap: 12px; flex: 1; }
+.ai-tab.active { border-color: var(--green-700); background: var(--green-100); }
+.ai-tab .ico { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--amber-bg); color: var(--warn); }
+.ai-tab .ttl { font-weight: 600; font-size: 14px; }
+.ai-tab .sub { font-size: 12px; color: var(--ink-3); }
+
+.ai-loader { display: flex; flex-direction: column; align-items: center; padding: 60px 0; gap: 16px; }
+.ai-spinner { width: 56px; height: 56px; border: 3px solid var(--green-100); border-top-color: var(--green-700); border-radius: 50%; }
+.ai-loader-text { color: var(--ink-2); font-weight: 500; text-align: center; }
+.ai-loader-text .mono { color: var(--ink-3); font-family: var(--font-mono); font-size: 12px; margin-top: 6px; display: block; }
+
+.gauge-wrap { display: flex; flex-direction: column; align-items: center; padding: 20px; }
+.gauge { position: relative; width: 240px; height: 240px; }
+.gauge svg { transform: rotate(-90deg); }
+.gauge .circle-bg { fill: none; stroke: var(--line); stroke-width: 18; }
+.gauge .circle-fg { fill: none; stroke-width: 18; stroke-linecap: round; }
+.gauge-num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.gauge-num .v { font-family: var(--font-display); font-size: 56px; font-weight: 700; color: var(--ink); line-height: 1; }
+.gauge-num .pct { font-size: 18px; color: var(--ink-3); font-weight: 600; }
+.gauge-num .lbl { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+
+.factor-list { display: flex; flex-direction: column; gap: 8px; }
+.factor { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--beige); border-radius: 10px; font-size: 14px; }
+.factor.pos .ico-c { color: var(--ok); }
+.factor.neg .ico-c { color: var(--danger); }
+.factor.warn .ico-c { color: var(--amber); }
+
+.recommendation { background: var(--amber-bg); border: 1px solid var(--amber-soft); border-radius: 14px; padding: 16px; display: flex; gap: 12px; align-items: flex-start; }
+.recommendation .ttl { font-weight: 600; color: var(--warn); margin-bottom: 4px; font-size: 14px; }
+.recommendation .txt { color: var(--ink-2); font-size: 14px; }
+
+/* stepper */
+.stepper { display: flex; align-items: center; gap: 0; margin-bottom: 24px; }
+.step-item { display: flex; align-items: center; gap: 10px; flex: 1; }
+.step-circle { width: 34px; height: 34px; border-radius: 50%; background: var(--beige); color: var(--ink-3); display: grid; place-items: center; font-weight: 700; font-size: 14px; border: 2px solid var(--line); flex-shrink: 0; }
+.step-item.active .step-circle { background: var(--green-900); color: #fff; border-color: var(--green-900); }
+.step-item.done .step-circle { background: var(--green-100); color: var(--green-900); border-color: var(--green-700); }
+.step-label { font-size: 13px; font-weight: 500; color: var(--ink-3); }
+.step-item.active .step-label { color: var(--ink); font-weight: 600; }
+.step-line { flex: 1; height: 2px; background: var(--line); margin: 0 8px; }
+.step-item.done + .step-line { background: var(--green-700); }
+
+/* condition scale */
+.cc-scale { display: flex; align-items: center; gap: 14px; }
+.cc-scale input[type=range] { flex: 1; accent-color: var(--green-700); }
+.cc-display { width: 56px; height: 56px; border-radius: 14px; background: var(--green-100); color: var(--green-900); display: grid; place-items: center; font-family: var(--font-display); font-size: 24px; font-weight: 700; }
+
+/* animal pick */
+.animal-pick { display: flex; gap: 14px; padding: 14px; background: var(--beige); border-radius: 12px; border: 1px solid var(--line); align-items: center; }
+.animal-pick .ava { width: 48px; height: 48px; border-radius: 12px; background: var(--surface); display: grid; place-items: center; font-size: 22px; flex-shrink: 0; }
+.animal-pick .info .name { font-weight: 600; font-size: 15px; }
+.animal-pick .info .meta { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+
+/* filter row */
+.filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-bottom: 18px; }
+.filter-row .input, .filter-row .select { width: auto; min-width: 180px; }
+.filter-row .grow { flex: 1; min-width: 200px; }
+
+/* footer */
+.lgpd-footer { background: var(--beige); border-top: 1px solid var(--line); padding: 18px 24px; text-align: center; font-size: 12px; color: var(--ink-3); }
+
+/* mobile header */
+.mobile-status { background: var(--green-900); color: #fff; padding: 6px 18px; display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; }
+.mobile-nav-drawer { padding: 20px; background: var(--surface); height: 100%; display: flex; flex-direction: column; gap: 6px; }
+.mobile-nav-drawer a { padding: 12px 14px; border-radius: 10px; color: var(--ink-2); font-weight: 500; }
+.mobile-nav-drawer a.active { background: var(--green-100); color: var(--green-900); }
+
+/* toast */
+.toast { min-width: 280px; padding: 14px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px; }
+.toast.success { border-left: 4px solid var(--ok); }
+.toast.error { border-left: 4px solid var(--danger); }
+.toast.warn { border-left: 4px solid var(--amber); }
+
+/* modal */
+.modal { background: var(--surface); border-radius: 16px; border: 1px solid var(--line); box-shadow: var(--shadow-lg); overflow: hidden; }
+.modal-head { padding: 18px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.modal-body { padding: 20px; }
+.modal-foot { padding: 14px 20px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 8px; background: var(--beige); }
+
+/* tokens display */
+.token-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+.swatch { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #fff; }
+.swatch .chip { height: 80px; display: flex; align-items: flex-end; padding: 10px; color: #fff; font-family: var(--font-mono); font-size: 11px; }
+.swatch .chip.dark-text { color: #1A1A1A; }
+.swatch .info { padding: 10px 12px; }
+.swatch .name { font-weight: 600; font-size: 13px; }
+.swatch .hex { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+
+.type-row { display: flex; align-items: baseline; gap: 24px; padding: 14px 0; border-bottom: 1px dashed var(--line); }
+.type-row .label { width: 120px; flex-shrink: 0; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+.type-row .specs { width: 200px; flex-shrink: 0; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+.type-row .sample { color: var(--ink); }
+
+.spacing-bar { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
+.spacing-bar .bar { background: var(--green-700); height: 28px; border-radius: 4px; }
+.spacing-bar .label { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); width: 80px; }
+
+/* helpers */
+.row { display: flex; gap: 12px; align-items: center; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+.text-muted { color: var(--ink-3); }
+.text-sm { font-size: 13px; }
+.text-xs { font-size: 12px; }
+.grow { flex: 1; }
+
+/* component grid */
+.comp-grid { display: flex; flex-wrap: wrap; gap: 16px; }
+
+/* login hero (for login frame) */
+.login-screen { display: grid; grid-template-columns: 1.1fr 1fr; min-height: 100%; height: 900px; }
+.login-hero { background: linear-gradient(135deg, var(--green-900) 0%, var(--green-700) 50%, var(--terra-700) 100%); padding: 56px; color: #FFF; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+.login-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 80% 20%, rgba(212,160,23,.25), transparent 50%), radial-gradient(circle at 20% 80%, rgba(212,160,23,.15), transparent 50%); }
+.login-hero > * { position: relative; z-index: 1; }
+.login-hero .tagline { font-family: var(--font-display); font-size: 42px; font-weight: 700; line-height: 1.1; margin-top: 80px; max-width: 480px; letter-spacing: -.02em; }
+.login-hero .tagline .accent { color: var(--amber-soft); }
+.login-hero .subline { font-size: 16px; opacity: .85; margin-top: 18px; max-width: 460px; }
+.login-hero .stats { display: flex; gap: 36px; margin-top: 48px; }
+.login-hero .stat .num { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--amber-soft); }
+.login-hero .stat .lbl { font-size: 13px; opacity: .8; }
+.login-hero .footer-c { font-size: 12px; opacity: .7; }
+.login-form-wrap { display: grid; place-items: center; padding: 40px; background: var(--bg); }
+.login-form { max-width: 380px; width: 100%; }
+.login-tabs { display: flex; background: var(--beige); border-radius: 12px; padding: 4px; margin-bottom: 28px; }
+.login-tab { flex: 1; padding: 10px; border: 0; background: transparent; font-weight: 600; font-size: 14px; color: var(--ink-3); border-radius: 8px; font-family: inherit; }
+.login-tab.active { background: var(--surface); color: var(--green-900); box-shadow: var(--shadow-sm); }
+
+/* avatar pages */
+.avatar-lg { width: 96px; height: 96px; border-radius: 50%; background: linear-gradient(135deg,var(--green-900),var(--terra-700)); color: #fff; display: grid; place-items: center; font-family: var(--font-display); font-size: 34px; font-weight: 700; margin: 0 auto 14px; }
+</style>
+</head>
+<body>
+<div class="board">
+
+<!-- =========== BOARD HEADER =========== -->
+<header class="board-header">
+  <h1>AgroGen <span class="accent">IA</span> · Design Board</h1>
+  <p>Conjunto completo de todas as telas, estados, variações e componentes da plataforma — organizados em frames isolados para importação direta no Figma via plugin <strong>html.to.design</strong>.</p>
+  <div class="meta">
+    <div class="item"><div class="lbl">Frames</div><div class="val" id="frame-count">—</div></div>
+    <div class="item"><div class="lbl">Telas únicas</div><div class="val">7 módulos</div></div>
+    <div class="item"><div class="lbl">Componentes</div><div class="val">14 famílias</div></div>
+    <div class="item"><div class="lbl">Estados</div><div class="val">Light · Dark · Mobile · Hover · Focus · Error · Empty · Loading</div></div>
+  </div>
+</header>
+
+<!-- =========== IMPORT INSTRUCTIONS =========== -->
+<div class="import-card">
+  <div class="icon" style="font-size: 24px;">🎨</div>
+  <div>
+    <h3>Como importar este board no Figma</h3>
+    <p>O Figma não aceita arquivos <code>.fig</code> gerados externamente, mas este board foi construído para importação 100% editável via plugin oficial gratuito:</p>
+    <ol>
+      <li>Abra o Figma → Plugins → Procure <strong>"html.to.design"</strong> e instale</li>
+      <li>Crie uma nova página em branco e rode o plugin → opção <code>Import from URL</code> (cole a URL pública deste arquivo) OU <code>Import from file</code> (faça upload do HTML)</li>
+      <li>O plugin importa cada frame como camadas nativas — textos editáveis, vetores, autolayout e cores como estilos</li>
+    </ol>
+  </div>
+</div>
+
+<!-- =========== SECTION 01: DESIGN TOKENS =========== -->
+<div class="section-header">
+  <span class="num">01</span>
+  <h2>Design Tokens</h2>
+  <span class="sub">Fundação visual — cores, tipografia, espaçamentos, raios</span>
+</div>
+
+<div class="frame-row">
+  <div class="frame">
+    <div class="frame-label">Paleta de cores · Primárias <span class="pill">tokens</span></div>
+    <div class="frame-body" style="width: 1024px; padding: 32px;">
+      <div class="token-grid">
+        <div class="swatch"><div class="chip" style="background:#1B4332;">#1B4332</div><div class="info"><div class="name">Green 900</div><div class="hex">--green-900</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#245742;">#245742</div><div class="info"><div class="name">Green 800</div><div class="hex">--green-800</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#2D6A4F;">#2D6A4F</div><div class="info"><div class="name">Green 700</div><div class="hex">--green-700</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#40916C;">#40916C</div><div class="info"><div class="name">Green 600</div><div class="hex">--green-600</div></div></div>
+        <div class="swatch"><div class="chip dark-text" style="background:#D8E9DF;">#D8E9DF</div><div class="info"><div class="name">Green 100</div><div class="hex">--green-100</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#5C3A1F;">#5C3A1F</div><div class="info"><div class="name">Terra 900</div><div class="hex">--terra-900</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#8B5E3C;">#8B5E3C</div><div class="info"><div class="name">Terra 700</div><div class="hex">--terra-700</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#B98E6A;">#B98E6A</div><div class="info"><div class="name">Terra 500</div><div class="hex">--terra-500</div></div></div>
+        <div class="swatch"><div class="chip dark-text" style="background:#E2D1BD;">#E2D1BD</div><div class="info"><div class="name">Terra 200</div><div class="hex">--terra-200</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#D4A017;">#D4A017</div><div class="info"><div class="name">Amber</div><div class="hex">--amber</div></div></div>
+        <div class="swatch"><div class="chip dark-text" style="background:#F5E2A0;">#F5E2A0</div><div class="info"><div class="name">Amber Soft</div><div class="hex">--amber-soft</div></div></div>
+        <div class="swatch"><div class="chip dark-text" style="background:#F5EFE6;">#F5EFE6</div><div class="info"><div class="name">Beige</div><div class="hex">--beige</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Paleta · Semântica e neutros <span class="pill">tokens</span></div>
+    <div class="frame-body" style="width: 1024px; padding: 32px;">
+      <div class="token-grid">
+        <div class="swatch"><div class="chip" style="background:#15803D;">#15803D</div><div class="info"><div class="name">OK / Prenha</div><div class="hex">--ok</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#B45309;">#B45309</div><div class="info"><div class="name">Warning</div><div class="hex">--warn</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#B91C1C;">#B91C1C</div><div class="info"><div class="name">Danger / Falha</div><div class="hex">--danger</div></div></div>
+        <div class="swatch"><div class="chip dark-text" style="background:#DCFCE7;">#DCFCE7</div><div class="info"><div class="name">OK BG</div><div class="hex">--ok-bg</div></div></div>
+        <div class="swatch"><div class="chip dark-text" style="background:#FEF3C7;">#FEF3C7</div><div class="info"><div class="name">Warn BG</div><div class="hex">--warn-bg</div></div></div>
+        <div class="swatch"><div class="chip dark-text" style="background:#FEE2E2;">#FEE2E2</div><div class="info"><div class="name">Danger BG</div><div class="hex">--danger-bg</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#1A1A1A;">#1A1A1A</div><div class="info"><div class="name">Ink</div><div class="hex">--ink</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#3A3A3A;">#3A3A3A</div><div class="info"><div class="name">Ink 2</div><div class="hex">--ink-2</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#6B6B6B;">#6B6B6B</div><div class="info"><div class="name">Ink 3</div><div class="hex">--ink-3</div></div></div>
+        <div class="swatch"><div class="chip dark-text" style="background:#9CA39D;">#9CA39D</div><div class="info"><div class="name">Ink 4</div><div class="hex">--ink-4</div></div></div>
+        <div class="swatch"><div class="chip dark-text" style="background:#E6E3DC;">#E6E3DC</div><div class="info"><div class="name">Line</div><div class="hex">--line</div></div></div>
+        <div class="swatch"><div class="chip dark-text" style="background:#FAFAFA;">#FAFAFA</div><div class="info"><div class="name">Background</div><div class="hex">--bg</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Tipografia · Sora (display) + Inter (corpo) <span class="pill">tokens</span></div>
+    <div class="frame-body" style="width: 1024px; padding: 36px;">
+      <div class="type-row">
+        <div class="label">H1 Display</div>
+        <div class="specs">Sora · 28px · 700</div>
+        <div class="sample" style="font-family: var(--font-display); font-size: 28px; font-weight: 700; letter-spacing: -.01em;">Genética inteligente para o sertão</div>
+      </div>
+      <div class="type-row">
+        <div class="label">H2 Display</div>
+        <div class="specs">Sora · 22px · 700</div>
+        <div class="sample" style="font-family: var(--font-display); font-size: 22px; font-weight: 700;">Padrões de fertilidade</div>
+      </div>
+      <div class="type-row">
+        <div class="label">H3 Title</div>
+        <div class="specs">Sora · 17px · 600</div>
+        <div class="sample" style="font-family: var(--font-display); font-size: 17px; font-weight: 600;">Identificação genética</div>
+      </div>
+      <div class="type-row">
+        <div class="label">Stat Number</div>
+        <div class="specs">Sora · 32px · 700</div>
+        <div class="sample" style="font-family: var(--font-display); font-size: 32px; font-weight: 700;">74%</div>
+      </div>
+      <div class="type-row">
+        <div class="label">Body</div>
+        <div class="specs">Inter · 14px · 400</div>
+        <div class="sample" style="font-size: 14px;">Texto padrão para descrições e parágrafos.</div>
+      </div>
+      <div class="type-row">
+        <div class="label">Body Small</div>
+        <div class="specs">Inter · 13px · 400</div>
+        <div class="sample" style="font-size: 13px;">Subtítulos, labels e metainformação.</div>
+      </div>
+      <div class="type-row">
+        <div class="label">Label</div>
+        <div class="specs">Inter · 13px · 500</div>
+        <div class="sample" style="font-size: 13px; font-weight: 500;">Nome do animal</div>
+      </div>
+      <div class="type-row">
+        <div class="label">Caption</div>
+        <div class="specs">Inter · 12px · 400</div>
+        <div class="sample" style="font-size: 12px; color: var(--ink-3);">Caption — há 2 horas</div>
+      </div>
+      <div class="type-row">
+        <div class="label">Mono ID</div>
+        <div class="specs">JetBrains · 12px · 400</div>
+        <div class="sample" style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);">BOV-001 · OVI-201 · CAP-303</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Espaçamentos + Raios + Sombras <span class="pill">tokens</span></div>
+    <div class="frame-body" style="width: 720px; padding: 36px;">
+      <h3 style="margin-bottom: 14px;">Spacing scale</h3>
+      <div class="spacing-bar"><div class="label">4 / xs</div><div class="bar" style="width: 4px;"></div></div>
+      <div class="spacing-bar"><div class="label">8 / sm</div><div class="bar" style="width: 8px;"></div></div>
+      <div class="spacing-bar"><div class="label">12 / md</div><div class="bar" style="width: 12px;"></div></div>
+      <div class="spacing-bar"><div class="label">16 / base</div><div class="bar" style="width: 16px;"></div></div>
+      <div class="spacing-bar"><div class="label">20 / lg</div><div class="bar" style="width: 20px;"></div></div>
+      <div class="spacing-bar"><div class="label">24 / xl</div><div class="bar" style="width: 24px;"></div></div>
+      <div class="spacing-bar"><div class="label">32 / 2xl</div><div class="bar" style="width: 32px;"></div></div>
+      <div class="spacing-bar"><div class="label">48 / 3xl</div><div class="bar" style="width: 48px;"></div></div>
+
+      <h3 style="margin-top: 24px; margin-bottom: 14px;">Border radius</h3>
+      <div class="row" style="gap: 18px;">
+        <div style="text-align: center;"><div style="width: 60px; height: 60px; background: var(--green-100); border-radius: 8px;"></div><div class="text-xs text-muted" style="margin-top: 6px;">8 · sm</div></div>
+        <div style="text-align: center;"><div style="width: 60px; height: 60px; background: var(--green-100); border-radius: 12px;"></div><div class="text-xs text-muted" style="margin-top: 6px;">12 · md</div></div>
+        <div style="text-align: center;"><div style="width: 60px; height: 60px; background: var(--green-100); border-radius: 18px;"></div><div class="text-xs text-muted" style="margin-top: 6px;">18 · lg</div></div>
+        <div style="text-align: center;"><div style="width: 60px; height: 60px; background: var(--green-100); border-radius: 24px;"></div><div class="text-xs text-muted" style="margin-top: 6px;">24 · xl</div></div>
+        <div style="text-align: center;"><div style="width: 60px; height: 60px; background: var(--green-100); border-radius: 50%;"></div><div class="text-xs text-muted" style="margin-top: 6px;">∞ · full</div></div>
+      </div>
+
+      <h3 style="margin-top: 24px; margin-bottom: 14px;">Sombras</h3>
+      <div class="row" style="gap: 18px;">
+        <div style="width: 100px; height: 60px; background: #fff; border-radius: 10px; box-shadow: var(--shadow-sm); display: grid; place-items: center; font-size: 11px; color: var(--ink-3);">shadow-sm</div>
+        <div style="width: 100px; height: 60px; background: #fff; border-radius: 10px; box-shadow: var(--shadow-md); display: grid; place-items: center; font-size: 11px; color: var(--ink-3);">shadow-md</div>
+        <div style="width: 100px; height: 60px; background: #fff; border-radius: 10px; box-shadow: var(--shadow-lg); display: grid; place-items: center; font-size: 11px; color: var(--ink-3);">shadow-lg</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========== SECTION 02: COMPONENTS =========== -->
+<div class="section-header">
+  <span class="num">02</span>
+  <h2>Biblioteca de Componentes</h2>
+  <span class="sub">Todos componentes com cada estado: default, hover, focus, disabled, error</span>
+</div>
+
+<div class="frame-row">
+  <div class="frame">
+    <div class="frame-label">Buttons · Todos estados <span class="pill">component</span></div>
+    <div class="frame-body" style="width: 800px; padding: 36px;">
+      <h4 style="margin-bottom: 14px;">Primary (verde-escuro)</h4>
+      <div class="row" style="gap: 12px; flex-wrap: wrap;">
+        <button class="btn btn-primary"><span>Salvar animal</span></button>
+        <button class="btn btn-primary hover"><span>Hover</span></button>
+        <button class="btn btn-primary focus"><span>Focus</span></button>
+        <button class="btn btn-primary disabled"><span>Disabled</span></button>
+        <button class="btn btn-primary btn-lg"><span>Large</span></button>
+        <button class="btn btn-primary btn-sm"><span>Small</span></button>
+      </div>
+      <h4 style="margin: 24px 0 14px;">Amber (CTA destaque)</h4>
+      <div class="row" style="gap: 12px; flex-wrap: wrap;">
+        <button class="btn btn-amber"><span>Analisar com IA</span></button>
+        <button class="btn btn-amber hover"><span>Hover</span></button>
+        <button class="btn btn-amber disabled"><span>Disabled</span></button>
+      </div>
+      <h4 style="margin: 24px 0 14px;">Secondary · Ghost · Danger</h4>
+      <div class="row" style="gap: 12px; flex-wrap: wrap;">
+        <button class="btn btn-secondary"><span>Cancelar</span></button>
+        <button class="btn btn-ghost"><span>Voltar</span></button>
+        <button class="btn btn-danger"><span>Excluir</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Inputs · Estados <span class="pill">component</span></div>
+    <div class="frame-body" style="width: 640px; padding: 32px;">
+      <div class="form-group"><label>Default</label><input class="input" value="Mimosa" /></div>
+      <div class="form-group"><label>Placeholder</label><input class="input placeholder" placeholder="ex: BOV-001 ou Mimosa" /></div>
+      <div class="form-group"><label>Focus</label><input class="input focus" value="Editando..." /></div>
+      <div class="form-group">
+        <label>Error <span class="req">*</span></label>
+        <input class="input error" value="123" />
+        <div class="field-error">Peso deve ser número positivo maior que zero</div>
+      </div>
+      <div class="form-group"><label>Disabled</label><input class="input" disabled value="Bloqueado" /></div>
+      <div class="form-group">
+        <label>Select</label>
+        <select class="select"><option>Nelore</option><option>Angus</option></select>
+      </div>
+      <div class="form-group">
+        <label>Textarea</label>
+        <textarea class="input" rows="3">Observações do técnico sobre o procedimento.</textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Badges + Pills <span class="pill">component</span></div>
+    <div class="frame-body" style="width: 640px; padding: 32px;">
+      <h4 style="margin-bottom: 12px;">Espécie</h4>
+      <div class="row" style="gap: 8px; flex-wrap: wrap;"><span class="badge badge-bovino">🐄 Bovino</span><span class="badge badge-ovino">🐑 Ovino</span><span class="badge badge-caprino">🐐 Caprino</span></div>
+      <h4 style="margin: 20px 0 12px;">Resultado da inseminação</h4>
+      <div class="row" style="gap: 8px; flex-wrap: wrap;"><span class="badge badge-ok">Prenha</span><span class="badge badge-warn">Aguardando</span><span class="badge badge-danger">Falha</span></div>
+      <h4 style="margin: 20px 0 12px;">Status reprodutivo</h4>
+      <div class="row" style="gap: 8px; flex-wrap: wrap;">
+        <span class="badge badge-ghost">Ativa</span>
+        <span class="badge badge-ok">Prenha</span>
+        <span class="badge badge-warn">Em observação</span>
+        <span class="badge badge-ghost">Em repouso</span>
+        <span class="badge badge-danger">Descartada</span>
+        <span class="badge badge-ghost">Reprodutor ativo</span>
+      </div>
+      <h4 style="margin: 20px 0 12px;">Trend indicators</h4>
+      <div class="row" style="gap: 16px;">
+        <div><span class="trend-up">▲ 12%</span> <span class="text-xs text-muted">vs mês anterior</span></div>
+        <div><span class="trend-down">▼ 8%</span> <span class="text-xs text-muted">vs mês anterior</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Radio cards + Toggle pills <span class="pill">component</span></div>
+    <div class="frame-body" style="width: 640px; padding: 32px;">
+      <h4 style="margin-bottom: 12px;">Espécie (radio cards)</h4>
+      <div class="radio-cards">
+        <div class="radio-card active"><div class="emoji">🐄</div><div class="label">Bovino</div></div>
+        <div class="radio-card"><div class="emoji">🐑</div><div class="label">Ovino</div></div>
+        <div class="radio-card"><div class="emoji">🐐</div><div class="label">Caprino</div></div>
+      </div>
+      <h4 style="margin: 20px 0 12px;">Sexo (toggle)</h4>
+      <div class="toggle-group">
+        <div class="toggle-pill active">♀ Fêmea</div>
+        <div class="toggle-pill">♂ Macho</div>
+      </div>
+      <h4 style="margin: 20px 0 12px;">Período (segmented)</h4>
+      <div class="toggle-group">
+        <div class="toggle-pill">3 meses</div>
+        <div class="toggle-pill active">6 meses</div>
+        <div class="toggle-pill">12 meses</div>
+      </div>
+      <h4 style="margin: 20px 0 12px;">Condição corporal (slider 1-5)</h4>
+      <div class="cc-scale">
+        <input type="range" min="1" max="5" value="4" />
+        <div class="cc-display">4</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Stat card · Variações <span class="pill">component</span></div>
+    <div class="frame-body" style="width: 1024px; padding: 32px;">
+      <div class="stat-grid">
+        <div class="card stat-card">
+          <div class="stat-head"><span class="label">Animais cadastrados</span><div class="icon-pill" style="background:var(--green-100); color:var(--green-900);">🐄</div></div>
+          <div class="num">62</div>
+          <div class="meta">32 bovinos · 18 ovinos · 12 caprinos</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-head"><span class="label">Inseminações no mês</span><div class="icon-pill" style="background:var(--amber-bg); color:var(--warn);">💉</div></div>
+          <div class="num">20</div>
+          <div class="meta"><span class="trend-up">▲ 12%</span> vs mês anterior</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-head"><span class="label">Taxa média de prenhez</span><div class="icon-pill" style="background:var(--green-100); color:var(--green-900);">📈</div></div>
+          <div class="num">68%</div>
+          <div class="meta"><span class="badge badge-ok">Excelente</span> · IA preditiva</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-head"><span class="label">Alertas ativos</span><div class="icon-pill" style="background:var(--warn-bg); color:var(--warn);">🔔</div></div>
+          <div class="num">3</div>
+          <div class="meta">Aguardando diagnóstico</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Toast notifications <span class="pill">component</span></div>
+    <div class="frame-body" style="width: 480px; padding: 32px; min-height: 280px;">
+      <div class="toast success" style="margin-bottom: 12px;">
+        <div style="width:18px;height:18px;background:var(--ok);border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;">✓</div>
+        <div class="grow"><div style="font-weight: 500;">Animal cadastrado com sucesso</div></div>
+        <div style="color: var(--ink-3); cursor: pointer;">✕</div>
+      </div>
+      <div class="toast error" style="margin-bottom: 12px;">
+        <div style="width:18px;height:18px;background:var(--danger);border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;">✕</div>
+        <div class="grow"><div style="font-weight: 500;">Peso deve ser positivo</div></div>
+        <div style="color: var(--ink-3); cursor: pointer;">✕</div>
+      </div>
+      <div class="toast warn">
+        <div style="width:18px;height:18px;background:var(--amber);border-radius:50%;display:grid;place-items:center;color:#2A1F00;font-size:12px;">!</div>
+        <div class="grow"><div style="font-weight: 500;">Inseminação recente — aguarde 21 dias</div></div>
+        <div style="color: var(--ink-3); cursor: pointer;">✕</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Modal · Confirmação destrutiva <span class="pill">component</span></div>
+    <div class="frame-body" style="width: 520px; padding: 32px; background: rgba(15,26,20,.55);">
+      <div class="modal">
+        <div class="modal-head"><h3 style="margin: 0;">Excluir animal</h3><div style="cursor:pointer;">✕</div></div>
+        <div class="modal-body">
+          <p>Tem certeza que deseja excluir <strong>Mimosa</strong> (BOV-001)? Esta ação não pode ser desfeita.</p>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-secondary">Cancelar</button>
+          <button class="btn btn-danger">Excluir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Wizard stepper · 4 estados <span class="pill">component</span></div>
+    <div class="frame-body" style="width: 900px; padding: 32px;">
+      <h4 style="margin-bottom: 14px;">Passo 1 ativo</h4>
+      <div class="stepper">
+        <div class="step-item active"><div class="step-circle">1</div><div class="step-label">Animal</div></div>
+        <div class="step-line"></div>
+        <div class="step-item"><div class="step-circle">2</div><div class="step-label">Reprodutor</div></div>
+        <div class="step-line"></div>
+        <div class="step-item"><div class="step-circle">3</div><div class="step-label">Evento</div></div>
+        <div class="step-line"></div>
+        <div class="step-item"><div class="step-circle">4</div><div class="step-label">Revisar</div></div>
+      </div>
+      <h4 style="margin: 18px 0 14px;">Passo 3 ativo (2 concluídos)</h4>
+      <div class="stepper">
+        <div class="step-item done"><div class="step-circle">✓</div><div class="step-label">Animal</div></div>
+        <div class="step-line"></div>
+        <div class="step-item done"><div class="step-circle">✓</div><div class="step-label">Reprodutor</div></div>
+        <div class="step-line"></div>
+        <div class="step-item active"><div class="step-circle">3</div><div class="step-label">Evento</div></div>
+        <div class="step-line"></div>
+        <div class="step-item"><div class="step-circle">4</div><div class="step-label">Revisar</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Gauge · 3 níveis <span class="pill">component</span></div>
+    <div class="frame-body" style="width: 900px; padding: 32px; display: flex; justify-content: space-around; gap: 24px;">
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <svg width="240" height="240" viewBox="0 0 240 240">
+            <circle class="circle-bg" cx="120" cy="120" r="100"></circle>
+            <circle class="circle-fg" cx="120" cy="120" r="100" stroke="#15803D" stroke-dasharray="628" stroke-dashoffset="158"></circle>
+          </svg>
+          <div class="gauge-num"><div class="v">74<span class="pct">%</span></div><div class="lbl">probabilidade</div></div>
+        </div>
+        <div style="margin-top:14px;padding:8px 14px;border-radius:999px;background:#15803D22;color:#15803D;font-weight:600;font-size:14px;">Alta probabilidade</div>
+      </div>
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <svg width="240" height="240" viewBox="0 0 240 240">
+            <circle class="circle-bg" cx="120" cy="120" r="100"></circle>
+            <circle class="circle-fg" cx="120" cy="120" r="100" stroke="#D4A017" stroke-dasharray="628" stroke-dashoffset="345"></circle>
+          </svg>
+          <div class="gauge-num"><div class="v">45<span class="pct">%</span></div><div class="lbl">probabilidade</div></div>
+        </div>
+        <div style="margin-top:14px;padding:8px 14px;border-radius:999px;background:#D4A01722;color:#B45309;font-weight:600;font-size:14px;">Probabilidade moderada</div>
+      </div>
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <svg width="240" height="240" viewBox="0 0 240 240">
+            <circle class="circle-bg" cx="120" cy="120" r="100"></circle>
+            <circle class="circle-fg" cx="120" cy="120" r="100" stroke="#B91C1C" stroke-dasharray="628" stroke-dashoffset="500"></circle>
+          </svg>
+          <div class="gauge-num"><div class="v">22<span class="pct">%</span></div><div class="lbl">probabilidade</div></div>
+        </div>
+        <div style="margin-top:14px;padding:8px 14px;border-radius:999px;background:#B91C1C22;color:#B91C1C;font-weight:600;font-size:14px;">Baixa — avalie protocolo</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Header global <span class="pill">component</span></div>
+    <div class="frame-body" style="width: 1440px;">
+      <header class="header">
+        <div class="header-inner">
+          <div class="logo">
+            <div class="logo-mark" style="font-size:18px;">🧬</div>
+            <div class="logo-text">AgroGen <span class="ia">IA</span></div>
+          </div>
+          <nav class="nav">
+            <a class="active">Dashboard</a>
+            <a>Animais</a>
+            <a>Inseminação</a>
+            <a>Análise IA</a>
+            <a>Relatórios</a>
+          </nav>
+          <div class="header-right">
+            <div class="icon-btn">🌙</div>
+            <div class="avatar">MC</div>
+          </div>
+        </div>
+      </header>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">LGPD Footer <span class="pill">component</span></div>
+    <div class="frame-body" style="width: 1440px;">
+      <footer class="lgpd-footer">
+        <strong>AgroGen IA</strong> · Dados tratados conforme <strong>LGPD (Lei 13.709/2018)</strong> · Licença GNU GPL v3.0 · Hackathon Expoagro Crateús 2026
+      </footer>
+    </div>
+  </div>
+</div>
+
+<!-- =========== SECTION 03: TELAS COMPLETAS =========== -->
+<div class="section-header">
+  <span class="num">03</span>
+  <h2>Telas Completas · Light Mode</h2>
+  <span class="sub">Todas as 7 páginas funcionais em resolução desktop (1440px)</span>
+</div>
+
+<div class="frame-row">
+
+  <!-- LOGIN -->
+  <div class="frame size-desktop">
+    <div class="frame-label">01 · Login · Sign In <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-login-signin"></div>
+  </div>
+
+  <div class="frame size-desktop">
+    <div class="frame-label">01b · Login · Sign Up <span class="pill">página</span> <span class="pill state">variação</span></div>
+    <div class="frame-body" id="frame-login-signup"></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="frame size-desktop">
+    <div class="frame-label">02 · Dashboard Principal <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-dashboard"></div>
+  </div>
+
+  <!-- ANIMAIS LIST -->
+  <div class="frame size-desktop">
+    <div class="frame-label">03a · Módulo Animais · Listagem <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-animais-list"></div>
+  </div>
+
+  <!-- ANIMAIS FORM -->
+  <div class="frame size-desktop">
+    <div class="frame-label">03b · Módulo Animais · Formulário <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-animais-form"></div>
+  </div>
+
+  <!-- INSEM STEP 1 -->
+  <div class="frame size-desktop">
+    <div class="frame-label">04a · Inseminação · Passo 1 · Selecionar animal <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-insem-1"></div>
+  </div>
+
+  <!-- INSEM STEP 2 -->
+  <div class="frame size-desktop">
+    <div class="frame-label">04b · Inseminação · Passo 2 · Reprodutor <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-insem-2"></div>
+  </div>
+
+  <!-- INSEM STEP 3 -->
+  <div class="frame size-desktop">
+    <div class="frame-label">04c · Inseminação · Passo 3 · Evento <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-insem-3"></div>
+  </div>
+
+  <!-- INSEM STEP 4 -->
+  <div class="frame size-desktop">
+    <div class="frame-label">04d · Inseminação · Passo 4 · Revisão <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-insem-4"></div>
+  </div>
+
+  <!-- INSEM HISTORY -->
+  <div class="frame size-desktop">
+    <div class="frame-label">04e · Inseminação · Histórico <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-insem-hist"></div>
+  </div>
+
+  <!-- AI PREDICAO -->
+  <div class="frame size-desktop">
+    <div class="frame-label">05a · Análise IA · Predição · Idle (vazio) <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-ai-predicao"></div>
+  </div>
+
+  <!-- AI PREDICAO RESULT -->
+  <div class="frame size-desktop">
+    <div class="frame-label">05a' · Análise IA · Predição · Resultado <span class="pill">página</span> <span class="pill state">após análise</span></div>
+    <div class="frame-body" id="frame-ai-predicao-result"></div>
+  </div>
+
+  <!-- AI PADROES -->
+  <div class="frame size-desktop">
+    <div class="frame-label">05b · Análise IA · Padrões · Idle <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-ai-padroes"></div>
+  </div>
+
+  <!-- AI PADROES RESULT -->
+  <div class="frame size-desktop">
+    <div class="frame-label">05b' · Análise IA · Padrões · Resultado <span class="pill">página</span> <span class="pill state">após análise</span></div>
+    <div class="frame-body" id="frame-ai-padroes-result"></div>
+  </div>
+
+  <!-- AI SELECAO -->
+  <div class="frame size-desktop">
+    <div class="frame-label">05c · Análise IA · Seleção · Idle <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-ai-selecao"></div>
+  </div>
+
+  <!-- AI SELECAO RESULT -->
+  <div class="frame size-desktop">
+    <div class="frame-label">05c' · Análise IA · Seleção · Resultado <span class="pill">página</span> <span class="pill state">após análise</span></div>
+    <div class="frame-body" id="frame-ai-selecao-result"></div>
+  </div>
+
+  <!-- RELATORIOS -->
+  <div class="frame size-desktop">
+    <div class="frame-label">06 · Relatórios <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-relatorios"></div>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="frame size-desktop">
+    <div class="frame-label">07 · Perfil & LGPD <span class="pill">página</span></div>
+    <div class="frame-body" id="frame-perfil"></div>
+  </div>
+
+</div>
+
+<!-- =========== SECTION 04: ESTADOS ESPECIAIS =========== -->
+<div class="section-header">
+  <span class="num">04</span>
+  <h2>Estados Especiais</h2>
+  <span class="sub">Empty state, Loading, Erro de validação, Sucesso, Alerta de inseminação recente</span>
+</div>
+
+<div class="frame-row">
+  <div class="frame">
+    <div class="frame-label">Empty state · Listagem vazia <span class="pill state">empty</span></div>
+    <div class="frame-body" style="width: 720px; padding: 40px;">
+      <div style="text-align: center; padding: 60px 20px; color: var(--ink-3);">
+        <div style="font-size: 56px;">🐄</div>
+        <h3 style="margin: 14px 0 6px; color: var(--ink);">Nenhum animal cadastrado</h3>
+        <p style="margin-bottom: 18px;">Comece cadastrando o primeiro animal do seu rebanho para acompanhar genética e inseminações.</p>
+        <button class="btn btn-primary">+ Cadastrar primeiro animal</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Loading · IA processando <span class="pill state">loading</span></div>
+    <div class="frame-body" style="width: 720px; padding: 40px;">
+      <div class="ai-loader">
+        <div class="ai-spinner"></div>
+        <div class="ai-loader-text">
+          Analisando dados genéticos e histórico reprodutivo...
+          <span class="mono">&gt; conectando modelo · analisando histórico · calculando probabilidades</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Alerta · Inseminação recente <span class="pill state">warning</span></div>
+    <div class="frame-body" style="width: 720px; padding: 32px;">
+      <div class="animal-pick" style="margin-bottom: 12px;">
+        <div class="ava">🐄</div>
+        <div class="info">
+          <div class="name">Mimosa <span class="id-mono" style="font-weight:400;color:var(--ink-3);">BOV-001</span></div>
+          <div class="meta">🐄 Bovino · Nelore · Fêmea · Em observação</div>
+          <div class="meta" style="margin-top:4px;">Último ciclo: 12 dias atrás</div>
+        </div>
+      </div>
+      <div class="recommendation">
+        <div style="font-size: 20px;">⚠️</div>
+        <div>
+          <div class="ttl">Atenção: inseminação recente</div>
+          <div class="txt">Este animal foi inseminado há 12 dias. Para bovinos, recomenda-se aguardar pelo menos 21 dias entre eventos.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-label">Recomendação IA · Resultado positivo <span class="pill state">success</span></div>
+    <div class="frame-body" style="width: 720px; padding: 32px;">
+      <div class="factor-list">
+        <div class="factor pos">
+          <div style="color: var(--ok); font-size: 18px;">✓</div>
+          <div>Histórico positivo: 75% de sucesso em 4 eventos anteriores</div>
+        </div>
+        <div class="factor pos">
+          <div style="color: var(--ok); font-size: 18px;">✓</div>
+          <div>Boa condição corporal (4/5)</div>
+        </div>
+        <div class="factor pos">
+          <div style="color: var(--ok); font-size: 18px;">✓</div>
+          <div>Raça Nelore com alta fertilidade na região do semiárido</div>
+        </div>
+        <div class="factor warn">
+          <div style="color: var(--amber); font-size: 18px;">⚠</div>
+          <div>Intervalo curto desde última inseminação (12 dias)</div>
+        </div>
+      </div>
+      <div class="recommendation" style="margin-top: 14px;">
+        <div style="font-size: 18px;">💡</div>
+        <div>
+          <div class="ttl">Recomendação da IA</div>
+          <div class="txt">Excelente momento para inseminação. Protocolo padrão recomendado. Mantenha a condição corporal e ambiente controlado.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========== SECTION 05: DARK MODE =========== -->
+<div class="section-header">
+  <span class="num">05</span>
+  <h2>Dark Mode</h2>
+  <span class="sub">Variações principais no tema escuro</span>
+</div>
+
+<div class="frame-row">
+  <div class="frame size-desktop">
+    <div class="frame-label">Dashboard · Dark <span class="pill dark">dark</span></div>
+    <div class="frame-body dark" id="frame-dashboard-dark"></div>
+  </div>
+
+  <div class="frame size-desktop">
+    <div class="frame-label">Animais · Listagem · Dark <span class="pill dark">dark</span></div>
+    <div class="frame-body dark" id="frame-animais-dark"></div>
+  </div>
+
+  <div class="frame size-desktop">
+    <div class="frame-label">Análise IA · Predição · Dark <span class="pill dark">dark</span></div>
+    <div class="frame-body dark" id="frame-ai-dark"></div>
+  </div>
+</div>
+
+<!-- =========== SECTION 06: MOBILE =========== -->
+<div class="section-header">
+  <span class="num">06</span>
+  <h2>Mobile (390 × 800)</h2>
+  <span class="sub">Comportamento responsivo em dispositivos pequenos</span>
+</div>
+
+<div class="frame-row row-tight">
+  <div class="frame size-mobile">
+    <div class="frame-label">Login · Mobile <span class="pill mobile">mobile</span></div>
+    <div class="frame-body" id="frame-mobile-login"></div>
+  </div>
+  <div class="frame size-mobile">
+    <div class="frame-label">Dashboard · Mobile <span class="pill mobile">mobile</span></div>
+    <div class="frame-body" id="frame-mobile-dash"></div>
+  </div>
+  <div class="frame size-mobile">
+    <div class="frame-label">Animais · Mobile cards <span class="pill mobile">mobile</span></div>
+    <div class="frame-body" id="frame-mobile-animais"></div>
+  </div>
+  <div class="frame size-mobile">
+    <div class="frame-label">Drawer aberto <span class="pill mobile">mobile</span></div>
+    <div class="frame-body" id="frame-mobile-drawer"></div>
+  </div>
+</div>
+
+<!-- Hidden stubs main.js's initApp queries during DOMContentLoaded -->
+<div id="__app_stubs" style="display:none;" aria-hidden="true">
+  <div id="login-screen">
+    <button class="login-tab" data-tab="signin"></button>
+    <button class="login-tab" data-tab="signup"></button>
+    <form id="form-signin"></form>
+    <form id="form-signup"></form>
+    <a id="forgot-link"></a>
+  </div>
+  <div id="app-shell">
+    <span id="avatar-initials"></span>
+    <span id="menu-user-name"></span>
+    <span id="menu-user-role"></span>
+    <div id="theme-toggle"><i></i></div>
+    <button id="hamburger-btn"></button>
+    <div id="drawer"></div>
+    <div id="drawer-overlay"></div>
+    <div id="avatar-btn"></div>
+    <div id="avatar-menu"></div>
+    <nav id="main-nav"></nav>
+    <main id="page-root"></main>
+  </div>
+  <div id="toast-wrap"></div>
+  <div id="modal-root"></div>
+</div>
+
+<!-- Load app modules + render orchestrator -->
+<script src="app/data.js"></script>
+<script src="app/components.js"></script>
+<script src="app/pages.js"></script>
+<script src="app/main.js"></script>
+<script>
+/* ====================================
+   BOARD RENDERER — render each screen
+   into its specific frame container
+   ==================================== */
+
+// Reference the static stub container (created above so main.js's initApp finds it)
+const stub = document.getElementById('__app_stubs');
+
+// auth user for AppState
+AppState.currentUser = { nome: 'Maria Cavalcante', email: 'maria@agrogen.ce.gov.br', telefone: '(88) 9 9123-4567', cpf: '123.456.789-12', tipo: 'Técnico Agropecuário' };
+
+// Render helper - returns a Promise that resolves after the frame's internal
+// timers fire AND its IDs are renamed (so they can't collide with later frames)
+function renderInto(containerId, pageName, opts = {}) {
+  const c = document.getElementById(containerId);
+  if (!c) return Promise.resolve();
+  // Build a sub-shell so renderPage finds #page-root inside our frame
+  const wrap = document.createElement('div');
+  wrap.className = 'app';
+  const header = makeHeader(pageName, opts.dark);
+  wrap.appendChild(header);
+  const main = document.createElement('main');
+  main.id = 'page-root';
+  main.style.flex = '1';
+  wrap.appendChild(main);
+  const footer = makeFooter();
+  wrap.appendChild(footer);
+  c.appendChild(wrap);
+
+  // Temporarily switch the global #page-root pointer (renderPage uses $('#page-root'))
+  const origPR = document.getElementById('__app_stubs').querySelector('#page-root');
+  origPR.id = '__origPR';
+  main.id = 'page-root';
+
+  // set state
+  AppState.currentPage = pageName;
+  if (opts.subpage) {
+    if (pageName === 'animais') AppState.animaisSubpage = opts.subpage;
+    if (pageName === 'inseminacao') AppState.insemSubpage = opts.subpage;
+  }
+  if (opts.step) AppState.insemStep = opts.step;
+  if (opts.aiTab) AppState.aiTab = opts.aiTab;
+  if (opts.draft) Object.assign(AppState.insemDraft, opts.draft);
+  if (opts.editId) AppState.editingAnimalId = opts.editId;
+  else AppState.editingAnimalId = null;
+
+  try {
+    renderPage();
+  } catch(e) { console.warn('render failed', pageName, e); }
+
+  // restore pointer immediately
+  main.id = '__renderedFrame_' + containerId;
+  origPR.id = 'page-root';
+
+  if (opts.dark) c.setAttribute('data-theme', 'dark');
+
+  // Wait for the page's internal setTimeouts (e.g. relatorios auto-generate)
+  // to fire — those still need the original IDs. THEN rename.
+  return new Promise(resolve => {
+    setTimeout(() => {
+      // Rename ALL ids inside this just-rendered frame so subsequent renders
+      // can't accidentally target them via global $('#foo') lookups in pages.js.
+      const renamePrefix = '__f_' + containerId + '__';
+      c.querySelectorAll('[id]').forEach(el => {
+        if (el.id.startsWith(renamePrefix)) return;
+        if (el.id.startsWith('__renderedFrame_')) return;
+        el.id = renamePrefix + el.id;
+      });
+
+      // Disable interactivity: turn buttons static
+      c.querySelectorAll('button, a, .icon-btn').forEach(b => {
+        b.removeAttribute('onclick');
+        b.style.cursor = 'default';
+        b.style.pointerEvents = 'none';
+      });
+      c.querySelectorAll('.no-print').forEach(n => n.style.display = '');
+      c.querySelectorAll('.page').forEach(p => { p.style.maxWidth = 'none'; });
+
+      resolve();
+    }, 250);
+  });
+}
+
+function makeHeader(activePage, dark) {
+  const h = document.createElement('header');
+  h.className = 'header';
+  if (dark) h.setAttribute('data-theme', 'dark');
+  h.innerHTML = `
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-mark" style="font-size:16px;">🧬</div>
+        <div class="logo-text">AgroGen <span class="ia">IA</span></div>
+      </div>
+      <nav class="nav">
+        <a data-page="dashboard" class="${activePage==='dashboard'?'active':''}">Dashboard</a>
+        <a data-page="animais" class="${activePage==='animais'?'active':''}">Animais</a>
+        <a data-page="inseminacao" class="${activePage==='inseminacao'?'active':''}">Inseminação</a>
+        <a data-page="ia" class="${activePage==='ia'?'active':''}">Análise IA</a>
+        <a data-page="relatorios" class="${activePage==='relatorios'?'active':''}">Relatórios</a>
+      </nav>
+      <div class="header-right">
+        <div class="icon-btn">${dark?'☀':'🌙'}</div>
+        <div class="avatar">MC</div>
+      </div>
+    </div>
+  `;
+  return h;
+}
+
+function makeFooter() {
+  const f = document.createElement('footer');
+  f.className = 'lgpd-footer';
+  f.innerHTML = `<strong>AgroGen IA</strong> · Dados tratados conforme <strong>LGPD (Lei 13.709/2018)</strong> · Licença GNU GPL v3.0 · Hackathon Expoagro Crateús 2026`;
+  return f;
+}
+
+/* Custom screens that don't come from renderPage — Login is rendered manually */
+function renderLoginInto(containerId, mode = 'signin', mobile = false) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = `
+    <div class="login-screen" ${mobile?'style="grid-template-columns:1fr;height:auto;min-height:800px;"':''}>
+      ${mobile ? '' : `
+      <div class="login-hero">
+        <div>
+          <div class="logo" style="color:#fff;">
+            <div class="logo-mark" style="background:linear-gradient(135deg,#fff,#F5E2A0);color:var(--green-900);font-size:18px;">🧬</div>
+            <div class="logo-text" style="font-size:22px;color:#fff;">AgroGen <span style="color:var(--amber-soft);">IA</span></div>
+          </div>
+          <div class="tagline">Genética inteligente para o <span class="accent">sertão que produz</span>.</div>
+          <div class="subline">Plataforma de coleta de dados genéticos e monitoramento de inseminação artificial com IA para bovinos, ovinos e caprinos.</div>
+          <div class="stats">
+            <div class="stat"><div class="num">+62%</div><div class="lbl">Taxa de prenhez</div></div>
+            <div class="stat"><div class="num">3 espécies</div><div class="lbl">Bovino · Ovino · Caprino</div></div>
+            <div class="stat"><div class="num">100%</div><div class="lbl">Offline-ready</div></div>
+          </div>
+        </div>
+        <div class="footer-c">Hackathon Expoagro Crateús 2026 · Prefeitura Municipal de Crateús/CE</div>
+      </div>`}
+      <div class="login-form-wrap" ${mobile?'style="padding:24px 18px;"':''}>
+        <div class="login-form">
+          <div class="logo" style="margin-bottom:24px;">
+            <div class="logo-mark" style="font-size:16px;">🧬</div>
+            <div class="logo-text">AgroGen <span class="ia">IA</span></div>
+          </div>
+          <div class="login-tabs">
+            <button class="login-tab ${mode==='signin'?'active':''}">Entrar</button>
+            <button class="login-tab ${mode==='signup'?'active':''}">Criar conta</button>
+          </div>
+          ${mode==='signin' ? `
+            <h2 style="margin-bottom:6px;">Bem-vindo de volta</h2>
+            <p class="text-muted text-sm" style="margin-bottom:22px;">Entre para acompanhar seu rebanho.</p>
+            <div class="form-group"><label>E-mail</label><input class="input placeholder" placeholder="seu@email.com" /></div>
+            <div class="form-group"><label>Senha</label><input class="input placeholder" placeholder="••••••••" /></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;font-size:13px;">
+              <label class="row" style="font-weight:400;"><input type="checkbox" checked /> Lembrar-me</label>
+              <a>Esqueci minha senha</a>
+            </div>
+            <button class="btn btn-primary btn-lg" style="width:100%;">Entrar →</button>
+            <p class="text-xs text-muted" style="text-align:center;margin-top:20px;">Ao continuar, você concorda com nossa Política de Privacidade conforme LGPD (Lei 13.709/2018).</p>
+          ` : `
+            <h2 style="margin-bottom:6px;">Criar conta</h2>
+            <p class="text-muted text-sm" style="margin-bottom:22px;">Comece a usar a AgroGen IA hoje.</p>
+            <div class="form-group"><label>Nome completo <span class="req">*</span></label><input class="input" value="José Mendes Cavalcante" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>CPF <span class="req">*</span></label><input class="input" value="123.456.789-12" /></div>
+              <div class="form-group"><label>Telefone <span class="req">*</span></label><input class="input" value="(88) 9 9123-4567" /></div>
+            </div>
+            <div class="form-group"><label>E-mail <span class="req">*</span></label><input class="input" value="jose@fazendaboaesperanca.com.br" /></div>
+            <div class="form-group">
+              <label>Tipo de usuário <span class="req">*</span></label>
+              <select class="select"><option>Produtor Rural</option><option>Técnico Agropecuário</option><option>Veterinário</option></select>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Senha <span class="req">*</span></label><input class="input placeholder" placeholder="••••••••" /></div>
+              <div class="form-group"><label>Confirmar <span class="req">*</span></label><input class="input placeholder" placeholder="••••••••" /></div>
+            </div>
+            <button class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;">Criar conta</button>
+          `}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMobileDashboard(containerId) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = `
+    <header class="header">
+      <div class="header-inner" style="padding: 12px 16px;">
+        <div class="icon-btn" style="width:32px;height:32px;">☰</div>
+        <div class="logo">
+          <div class="logo-mark" style="width:30px;height:30px;font-size:14px;">🧬</div>
+          <div class="logo-text" style="font-size:15px;">AgroGen <span class="ia">IA</span></div>
+        </div>
+        <div class="header-right">
+          <div class="avatar" style="width:30px;height:30px;font-size:11px;">MC</div>
+        </div>
+      </div>
+    </header>
+    <div class="page" style="padding: 18px 16px;">
+      <h1 style="font-size:20px;">Olá, Maria 👋</h1>
+      <div class="text-muted text-sm">Resumo do rebanho</div>
+      <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px;">
+        <div class="card stat-card">
+          <div class="stat-head"><span class="label">Animais</span><div class="icon-pill" style="background:var(--green-100); color:var(--green-900);">🐄</div></div>
+          <div class="num">15</div>
+          <div class="meta">6 bovinos · 4 ovinos · 5 caprinos</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-head"><span class="label">Inseminações no mês</span><div class="icon-pill" style="background:var(--amber-bg); color:var(--warn);">💉</div></div>
+          <div class="num">3</div>
+          <div class="meta"><span class="trend-up">▲ 12%</span> vs mês anterior</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-head"><span class="label">Taxa de prenhez</span><div class="icon-pill" style="background:var(--green-100); color:var(--green-900);">📈</div></div>
+          <div class="num">68%</div>
+          <div class="meta"><span class="badge badge-ok">Excelente</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title"><h3 style="font-size:14px;">Atividades recentes</h3></div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:var(--amber-bg);color:var(--warn);">💉</div>
+            <div class="timeline-content"><div class="text">Inseminação registrada — Mimosa</div><div class="time">há 2 horas</div></div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:var(--green-100);color:var(--green-700);">✨</div>
+            <div class="timeline-content"><div class="text">IA analisou rebanho</div><div class="time">há 5 horas</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMobileAnimais(containerId) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = `
+    <header class="header">
+      <div class="header-inner" style="padding: 12px 16px;">
+        <div class="icon-btn" style="width:32px;height:32px;">☰</div>
+        <div class="logo">
+          <div class="logo-mark" style="width:30px;height:30px;font-size:14px;">🧬</div>
+          <div class="logo-text" style="font-size:15px;">AgroGen <span class="ia">IA</span></div>
+        </div>
+        <div class="header-right"><div class="avatar" style="width:30px;height:30px;font-size:11px;">MC</div></div>
+      </div>
+    </header>
+    <div class="page" style="padding: 18px 16px;">
+      <h1 style="font-size:20px;">Animais</h1>
+      <div class="text-muted text-sm">15 cadastrados</div>
+      <button class="btn btn-primary" style="width:100%;margin-top:14px;justify-content:center;">+ Cadastrar animal</button>
+      <input class="input placeholder" placeholder="🔍 Buscar..." style="margin-top:14px;" />
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;">
+        <div class="card" style="padding:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div>
+              <div style="font-weight:600;font-size:15px;">Mimosa</div>
+              <div class="text-xs text-muted id-mono">BOV-001</div>
+            </div>
+            <span class="badge badge-bovino">🐄</span>
+          </div>
+          <div class="text-sm" style="margin-top:8px;">Nelore · Fêmea · 4y · 480kg</div>
+          <div style="margin-top:8px;"><span class="badge badge-warn">Em observação</span></div>
+        </div>
+        <div class="card" style="padding:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div>
+              <div style="font-weight:600;font-size:15px;">Bonita</div>
+              <div class="text-xs text-muted id-mono">BOV-003</div>
+            </div>
+            <span class="badge badge-bovino">🐄</span>
+          </div>
+          <div class="text-sm" style="margin-top:8px;">Gir · Fêmea · 6y · 510kg</div>
+          <div style="margin-top:8px;"><span class="badge badge-ok">Prenha</span></div>
+        </div>
+        <div class="card" style="padding:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div>
+              <div style="font-weight:600;font-size:15px;">Faísca</div>
+              <div class="text-xs text-muted id-mono">OVI-001</div>
+            </div>
+            <span class="badge badge-ovino">🐑</span>
+          </div>
+          <div class="text-sm" style="margin-top:8px;">Santa Inês · Fêmea · 3y · 52kg</div>
+          <div style="margin-top:8px;"><span class="badge badge-ok">Prenha</span></div>
+        </div>
+        <div class="card" style="padding:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div>
+              <div style="font-weight:600;font-size:15px;">Serena</div>
+              <div class="text-xs text-muted id-mono">CAP-001</div>
+            </div>
+            <span class="badge badge-caprino">🐐</span>
+          </div>
+          <div class="text-sm" style="margin-top:8px;">Anglo Nubiana · Fêmea · 5y · 62kg</div>
+          <div style="margin-top:8px;"><span class="badge badge-ghost">Ativa</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMobileDrawer(containerId) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = `
+    <div style="position:relative;height:100%;background:rgba(15,26,20,.4);">
+      <div class="mobile-nav-drawer" style="width:280px;height:100%;background:var(--surface);box-shadow:var(--shadow-lg);">
+        <div class="logo" style="margin-bottom:18px;">
+          <div class="logo-mark" style="font-size:16px;">🧬</div>
+          <div class="logo-text">AgroGen <span class="ia">IA</span></div>
+        </div>
+        <a class="active">📊 Dashboard</a>
+        <a>🐄 Animais</a>
+        <a>💉 Inseminação</a>
+        <a>✨ Análise IA</a>
+        <a>📋 Relatórios</a>
+        <a>👤 Perfil</a>
+        <div style="margin-top:auto;padding-top:24px;border-top:1px solid var(--line);">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;">
+            <div class="avatar" style="width:36px;height:36px;">MC</div>
+            <div><div style="font-weight:600;font-size:13px;">Maria Cavalcante</div><div class="text-xs text-muted">Técnico Agropecuário</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ===========================================================
+   AI Result States — hand-built so they always render reliably
+   =========================================================== */
+
+function aiPageShell(activeTab, contentHtml) {
+  return `
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo">
+          <div class="logo-mark" style="font-size:16px;">🧬</div>
+          <div class="logo-text">AgroGen <span class="ia">IA</span></div>
+        </div>
+        <nav class="nav">
+          <a>Dashboard</a><a>Animais</a><a>Inseminação</a>
+          <a class="active">Análise IA</a><a>Relatórios</a>
+        </nav>
+        <div class="header-right">
+          <div class="icon-btn">🌙</div>
+          <div class="avatar">MC</div>
+        </div>
+      </div>
+    </header>
+    <main>
+      <div class="page">
+        <div class="page-head">
+          <div class="title">
+            <h1>✨ Análise com IA</h1>
+            <span class="subtitle">Inteligência artificial aplicada à reprodução do seu rebanho</span>
+          </div>
+        </div>
+        <div class="ai-tabs">
+          <div class="ai-tab ${activeTab==='predicao'?'active':''}">
+            <div class="ico">📊</div>
+            <div><div class="ttl">Predição de prenhez</div><div class="sub">Probabilidade individual</div></div>
+          </div>
+          <div class="ai-tab ${activeTab==='padroes'?'active':''}">
+            <div class="ico">📈</div>
+            <div><div class="ttl">Padrões de fertilidade</div><div class="sub">Análise do rebanho</div></div>
+          </div>
+          <div class="ai-tab ${activeTab==='selecao'?'active':''}">
+            <div class="ico">🧬</div>
+            <div><div class="ttl">Seleção genética</div><div class="sub">Cruzamentos recomendados</div></div>
+          </div>
+        </div>
+        <div class="card" style="padding:28px;">${contentHtml}</div>
+      </div>
+    </main>
+    <footer class="lgpd-footer">
+      <strong>AgroGen IA</strong> · Dados tratados conforme <strong>LGPD (Lei 13.709/2018)</strong> · Licença GNU GPL v3.0 · Hackathon Expoagro Crateús 2026
+    </footer>
+  `;
+}
+
+function renderAIPredicaoResult(containerId) {
+  const c = document.getElementById(containerId);
+  const content = `
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:18px;">
+      <div>
+        <h3>Predição de taxa de prenhez</h3>
+        <div class="text-muted text-sm">Resultado da análise · matriz Bonita (BOV-003)</div>
+      </div>
+    </div>
+    <div class="form-row" style="grid-template-columns:2fr 1fr;align-items:end;">
+      <div class="form-group">
+        <label>Matriz (fêmea)</label>
+        <input class="input" value="Bonita (BOV-003)" />
+      </div>
+      <button class="btn btn-primary btn-lg">✨ Analisar com IA</button>
+    </div>
+    <div style="margin-top:8px;">
+      <div class="animal-pick">
+        <div class="ava">🐄</div>
+        <div class="info">
+          <div class="name">Bonita</div>
+          <div class="meta">
+            <span class="badge badge-bovino">🐄 Bovino</span> · Gir · CC 4/5 ·
+            3 inseminações no histórico · Taxa histórica: 67%
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:24px;">
+      <div class="form-row" style="grid-template-columns:1fr 1.2fr;gap:24px;">
+        <div class="card" style="background:var(--beige);border:0;padding:14px;">
+          <div class="gauge-wrap">
+            <div class="gauge">
+              <svg width="240" height="240" viewBox="0 0 240 240">
+                <circle class="circle-bg" cx="120" cy="120" r="100"></circle>
+                <circle class="circle-fg" cx="120" cy="120" r="100" stroke="#15803D" stroke-dasharray="628" stroke-dashoffset="170"></circle>
+              </svg>
+              <div class="gauge-num">
+                <div class="v">73<span class="pct">%</span></div>
+                <div class="lbl">probabilidade de prenhez</div>
+              </div>
+            </div>
+            <div style="margin-top:14px;padding:8px 14px;border-radius:999px;background:rgba(21,128,61,.13);color:#15803D;font-weight:600;font-size:14px;">
+              Alta probabilidade de sucesso
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 style="margin-bottom:12px;">Fatores que influenciaram</h3>
+          <div class="factor-list">
+            <div class="factor pos"><div style="color:var(--ok);font-size:16px;">✓</div><div>Histórico positivo: 67% de sucesso em 3 eventos anteriores</div></div>
+            <div class="factor pos"><div style="color:var(--ok);font-size:16px;">✓</div><div>Boa condição corporal (4/5)</div></div>
+            <div class="factor pos"><div style="color:var(--ok);font-size:16px;">✓</div><div>Raça Gir com alta fertilidade na região do semiárido</div></div>
+            <div class="factor pos"><div style="color:var(--ok);font-size:16px;">✓</div><div>Intervalo adequado desde último evento (130 dias)</div></div>
+          </div>
+          <div class="recommendation" style="margin-top:18px;">
+            <div style="font-size:18px;">💡</div>
+            <div>
+              <div class="ttl">Recomendação da IA</div>
+              <div class="txt">Excelente momento para inseminação. Protocolo padrão recomendado. Mantenha a condição corporal e ambiente controlado durante o protocolo hormonal.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  c.innerHTML = aiPageShell('predicao', content);
+  c.querySelectorAll('button, a').forEach(b => { b.style.pointerEvents = 'none'; b.style.cursor = 'default'; });
+}
+
+function renderAIPadroesResult(containerId) {
+  const c = document.getElementById(containerId);
+  const content = `
+    <h3>Identificação de padrões de fertilidade</h3>
+    <div class="text-muted text-sm" style="margin-bottom:18px;">
+      Análise concluída · 20 inseminações analisadas nos últimos 6 meses
+    </div>
+    <div class="form-row" style="grid-template-columns:1fr 2fr;">
+      <div class="form-group">
+        <label>Grupo de análise</label>
+        <select class="select"><option>Todo o rebanho</option></select>
+      </div>
+      <div class="form-group">
+        <label>Período</label>
+        <div class="toggle-group">
+          <div class="toggle-pill">3 meses</div>
+          <div class="toggle-pill active">6 meses</div>
+          <div class="toggle-pill">12 meses</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary">✨ Gerar análise</button>
+
+    <div style="margin-top:24px;">
+      <div class="form-row" style="grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="card" style="padding:18px;">
+          <h4 style="margin-bottom:8px;">Taxa de prenhez por raça</h4>
+          <div style="height:220px;position:relative;"><canvas id="padroes-raca-chart"></canvas></div>
+        </div>
+        <div class="card" style="padding:18px;">
+          <h4 style="margin-bottom:8px;">Evolução mensal (%)</h4>
+          <div style="height:220px;position:relative;"><canvas id="padroes-evol-chart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="form-row" style="grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;">
+        <div class="card" style="border-left:4px solid var(--ok);">
+          <div class="text-xs text-muted">RAÇA COM MAIOR TAXA</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:22px;margin-top:4px;">
+            Nelore <span style="color:var(--ok);">78%</span>
+          </div>
+          <div class="text-sm text-muted">Baseado em 9 inseminações no período</div>
+        </div>
+        <div class="card" style="border-left:4px solid var(--danger);">
+          <div class="text-xs text-muted">RAÇA COM MENOR TAXA</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:22px;margin-top:4px;">
+            Angus <span style="color:var(--danger);">52%</span>
+          </div>
+          <div class="text-sm text-muted">Possível inadaptação ao semiárido</div>
+        </div>
+        <div class="card" style="border-left:4px solid var(--green-700);">
+          <div class="text-xs text-muted">TÉCNICO COM MELHOR DESEMPENHO</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:22px;margin-top:4px;">
+            João Silva
+          </div>
+          <div class="text-sm text-muted">82% de sucesso em 11 eventos</div>
+        </div>
+        <div class="card" style="border-left:4px solid var(--amber);">
+          <div class="text-xs text-muted">CONDIÇÃO CORPORAL IDEAL</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:22px;margin-top:4px;">3,5 a 4,5</div>
+          <div class="text-sm text-muted">Faixa com maior probabilidade de sucesso</div>
+        </div>
+        <div class="card" style="border-left:4px solid var(--green-700);">
+          <div class="text-xs text-muted">MELHORES MESES</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:22px;margin-top:4px;">Maio – Julho</div>
+          <div class="text-sm text-muted">Após período chuvoso · maior CC do rebanho</div>
+        </div>
+        <div class="card" style="border-left:4px solid var(--terra-700);">
+          <div class="text-xs text-muted">TAXA GERAL DO PERÍODO</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:22px;margin-top:4px;">64%</div>
+          <div class="text-sm text-muted">14 inseminações resolvidas · 9 prenhas</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px;">
+        <h4 style="margin-bottom:10px;">Ranking de matrizes</h4>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Matriz</th><th>Espécie</th><th>Inseminações</th><th>Taxa de sucesso</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1º</strong></td><td>Bonita <span class="id-mono">BOV-003</span></td><td><span class="badge badge-bovino">🐄 Bovino</span></td><td>3</td><td><span class="badge badge-ok">100%</span></td></tr>
+            <tr><td><strong>2º</strong></td><td>Linda <span class="id-mono">BOV-006</span></td><td><span class="badge badge-bovino">🐄 Bovino</span></td><td>2</td><td><span class="badge badge-ok">100%</span></td></tr>
+            <tr><td><strong>3º</strong></td><td>Estrela <span class="id-mono">BOV-004</span></td><td><span class="badge badge-bovino">🐄 Bovino</span></td><td>2</td><td><span class="badge badge-warn">50%</span></td></tr>
+            <tr><td><strong>4º</strong></td><td>Serena <span class="id-mono">CAP-001</span></td><td><span class="badge badge-caprino">🐐 Caprino</span></td><td>2</td><td><span class="badge badge-warn">50%</span></td></tr>
+            <tr><td><strong>5º</strong></td><td>Faísca <span class="id-mono">OVI-001</span></td><td><span class="badge badge-ovino">🐑 Ovino</span></td><td>2</td><td><span class="badge badge-warn">50%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  c.innerHTML = aiPageShell('padroes', content);
+
+  // draw charts
+  setTimeout(() => {
+    const racaEl = c.querySelector('#padroes-raca-chart');
+    const evolEl = c.querySelector('#padroes-evol-chart');
+    if (racaEl) new Chart(racaEl, {
+      type: 'bar',
+      data: {
+        labels: ['Nelore', 'Gir', 'Santa Inês', 'Anglo Nubiana', 'Dorper', 'Brahman', 'Angus'],
+        datasets: [{ data: [78, 75, 67, 65, 58, 56, 52], backgroundColor: ['#15803D','#15803D','#15803D','#15803D','#D4A017','#D4A017','#B91C1C'], borderRadius: 8 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#3A3A3A', font: { size: 11 } }, grid: { color: '#E6E3DC' } },
+          y: { beginAtZero: true, max: 100, ticks: { color: '#3A3A3A', callback: v => v + '%' }, grid: { color: '#E6E3DC' } }
+        }
+      }
+    });
+    if (evolEl) new Chart(evolEl, {
+      type: 'line',
+      data: {
+        labels: ['dez', 'jan', 'fev', 'mar', 'abr', 'mai'],
+        datasets: [{ data: [55, 58, 62, 60, 67, 71], borderColor: '#D4A017', backgroundColor: 'rgba(212,160,23,.2)', fill: true, tension: .35, borderWidth: 3, pointBackgroundColor: '#D4A017', pointRadius: 4 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#3A3A3A' }, grid: { color: '#E6E3DC' } },
+          y: { beginAtZero: true, max: 100, ticks: { color: '#3A3A3A', callback: v => v + '%' }, grid: { color: '#E6E3DC' } }
+        }
+      }
+    });
+  }, 100);
+
+  c.querySelectorAll('button, a').forEach(b => { b.style.pointerEvents = 'none'; b.style.cursor = 'default'; });
+}
+
+function renderAISelecaoResult(containerId) {
+  const c = document.getElementById(containerId);
+  const content = `
+    <h3>Recomendação de seleção genética</h3>
+    <div class="text-muted text-sm" style="margin-bottom:18px;">
+      Análise concluída · 6 matrizes ativas cruzadas com pool de 5 reprodutores
+    </div>
+    <div class="form-group">
+      <label>Objetivos do cruzamento</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <div class="toggle-pill active" style="flex:none;padding:8px 14px;">✓ Ganho de peso</div>
+        <div class="toggle-pill" style="flex:none;padding:8px 14px;">Precocidade</div>
+        <div class="toggle-pill active" style="flex:none;padding:8px 14px;">✓ Resistência ao calor</div>
+        <div class="toggle-pill" style="flex:none;padding:8px 14px;">Qualidade do leite</div>
+        <div class="toggle-pill" style="flex:none;padding:8px 14px;">Prolificidade</div>
+        <div class="toggle-pill" style="flex:none;padding:8px 14px;">Tamanho da carcaça</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Espécie alvo</label>
+        <select class="select"><option>Bovino</option></select>
+      </div>
+      <div class="form-group">
+        <label>Origem dos reprodutores</label>
+        <select class="select"><option>Cadastrados + sêmen externo</option></select>
+      </div>
+    </div>
+    <button class="btn btn-primary">✨ Gerar recomendações</button>
+
+    <div style="margin-top:24px;">
+      <h4 style="margin-bottom:10px;">Cruzamentos recomendados</h4>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>Matriz</th><th>Reprodutor recomendado</th><th>Origem</th><th>Score genético</th><th>Justificativa</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Mimosa</strong> <span class="id-mono">BOV-001</span><br><span class="text-xs text-muted">Nelore · CC 4/5</span></td>
+              <td><strong>Reprodutor Sertão Brahman</strong><br><span class="text-xs text-muted">Brahman</span></td>
+              <td><span class="badge badge-amber">Externo</span></td>
+              <td><span class="badge badge-ok">88/100</span></td>
+              <td class="text-sm">Alinhado com Ganho de peso, Resistência ao calor · linhagens distintas</td>
+            </tr>
+            <tr>
+              <td><strong>Bonita</strong> <span class="id-mono">BOV-003</span><br><span class="text-xs text-muted">Gir · CC 4/5</span></td>
+              <td><strong>Touro Imperador (NLR)</strong><br><span class="text-xs text-muted">Nelore</span></td>
+              <td><span class="badge badge-amber">Externo</span></td>
+              <td><span class="badge badge-ok">85/100</span></td>
+              <td class="text-sm">Alinhado com Ganho de peso, Tamanho da carcaça · alta heterose</td>
+            </tr>
+            <tr>
+              <td><strong>Estrela</strong> <span class="id-mono">BOV-004</span><br><span class="text-xs text-muted">Girolando · CC 3/5</span></td>
+              <td><strong>Sultão</strong> <span class="id-mono">BOV-005</span><br><span class="text-xs text-muted">Brahman</span></td>
+              <td><span class="badge badge-bovino">Cadastrado</span></td>
+              <td><span class="badge badge-ok">79/100</span></td>
+              <td class="text-sm">Alinhado com Resistência ao calor · linhagens distintas (A × E)</td>
+            </tr>
+            <tr>
+              <td><strong>Linda</strong> <span class="id-mono">BOV-006</span><br><span class="text-xs text-muted">Nelore · CC 4/5</span></td>
+              <td><strong>Reprodutor Sertão Brahman</strong><br><span class="text-xs text-muted">Brahman</span></td>
+              <td><span class="badge badge-amber">Externo</span></td>
+              <td><span class="badge badge-warn">72/100</span></td>
+              <td class="text-sm">Alinhado com Resistência ao calor · linhagens distintas</td>
+            </tr>
+            <tr>
+              <td><strong>Aurora</strong> <span class="id-mono">CAP-002</span><br><span class="text-xs text-muted">Saanen · CC 4/5</span></td>
+              <td><strong>Pedra</strong> <span class="id-mono">CAP-003</span><br><span class="text-xs text-muted">Boer</span></td>
+              <td><span class="badge badge-bovino">Cadastrado</span></td>
+              <td><span class="badge badge-warn">68/100</span></td>
+              <td class="text-sm">Alinhado com Ganho de peso · linhagens distintas (D × G)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4 style="margin-top:22px;margin-bottom:10px;color:var(--danger);">⚠ Cruzamentos a evitar (consanguinidade detectada)</h4>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>Matriz</th><th>Reprodutor</th><th>Motivo</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Serena</strong> <span class="id-mono">CAP-001</span></td>
+              <td>Cabrito Anglo Real (Linhagem D)</td>
+              <td class="text-sm text-muted">Mesma linhagem (Linhagem D) — risco de consanguinidade. Buscar reprodutor de outra linhagem ou banco externo.</td>
+            </tr>
+            <tr>
+              <td><strong>Cigana</strong> <span class="id-mono">CAP-005</span></td>
+              <td>Pedra (CAP-003) — descendência cruzada</td>
+              <td class="text-sm text-muted">Parentesco direto detectado no histórico genealógico. Recomenda-se sêmen externo.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="recommendation" style="margin-top:18px;">
+        <div style="font-size:18px;">💡</div>
+        <div>
+          <div class="ttl">Insight da IA</div>
+          <div class="txt">3 dos 5 cruzamentos recomendados utilizam sêmen externo. Considere expandir seu banco de reprodutores cadastrados para reduzir custos de aquisição e ampliar a variabilidade genética disponível.</div>
+        </div>
+      </div>
+    </div>
+  `;
+  c.innerHTML = aiPageShell('selecao', content);
+  c.querySelectorAll('button, a').forEach(b => { b.style.pointerEvents = 'none'; b.style.cursor = 'default'; });
+}
+
+/* Boot: render all frames sequentially so IDs don't collide */
+window.addEventListener('load', () => {
+  const boot = async () => {
+    // Login frames (synchronous, no ID collisions)
+    renderLoginInto('frame-login-signin', 'signin');
+    renderLoginInto('frame-login-signup', 'signup');
+    renderLoginInto('frame-mobile-login', 'signin', true);
+
+    // Serialize dynamic renders — each awaits its IDs to be renamed
+    // before the next frame is rendered.
+    await renderInto('frame-dashboard', 'dashboard');
+    await renderInto('frame-animais-list', 'animais', { subpage: 'list' });
+    await renderInto('frame-animais-form', 'animais', { subpage: 'form' });
+    await renderInto('frame-insem-1', 'inseminacao', { subpage: 'wizard', step: 1 });
+    await renderInto('frame-insem-2', 'inseminacao', { subpage: 'wizard', step: 2, draft: { animalId: 'BOV-001', tipo: 'IATF' } });
+    await renderInto('frame-insem-3', 'inseminacao', { subpage: 'wizard', step: 3, draft: { animalId: 'BOV-001', tipo: 'IATF', reprodutor: 'Trovão (BOV-002)', palheta: 'P-238' } });
+    await renderInto('frame-insem-4', 'inseminacao', { subpage: 'wizard', step: 4, draft: { animalId: 'BOV-001', tipo: 'IATF', reprodutor: 'Trovão (BOV-002)', palheta: 'P-238', tecnico: 'João Silva', fase: 'Protocolo IATF 9 dias — CIDR + Benzoato de estradiol', condicao: 4, temperatura: 29.5, observacoes: 'Procedimento sem intercorrências.' } });
+    await renderInto('frame-insem-hist', 'inseminacao', { subpage: 'history' });
+    await renderInto('frame-ai-predicao', 'ia', { aiTab: 'predicao' });
+    renderAIPredicaoResult('frame-ai-predicao-result');
+    await renderInto('frame-ai-padroes', 'ia', { aiTab: 'padroes' });
+    renderAIPadroesResult('frame-ai-padroes-result');
+    await renderInto('frame-ai-selecao', 'ia', { aiTab: 'selecao' });
+    renderAISelecaoResult('frame-ai-selecao-result');
+    await renderInto('frame-relatorios', 'relatorios');
+    await renderInto('frame-perfil', 'perfil');
+
+    // Dark frames
+    await renderInto('frame-dashboard-dark', 'dashboard', { dark: true });
+    await renderInto('frame-animais-dark', 'animais', { subpage: 'list', dark: true });
+    await renderInto('frame-ai-dark', 'ia', { aiTab: 'predicao', dark: true });
+
+    // Mobile
+    renderMobileDashboard('frame-mobile-dash');
+    renderMobileAnimais('frame-mobile-animais');
+    renderMobileDrawer('frame-mobile-drawer');
+
+    // Update frame count
+    const count = document.querySelectorAll('.frame').length;
+    const fc = document.getElementById('frame-count');
+    if (fc) fc.textContent = count;
+  };
+
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(boot);
+  else setTimeout(boot, 200);
+});
+</script>
+</body>
+</html>

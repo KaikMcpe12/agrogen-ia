@@ -1,0 +1,9 @@
+- definir nome e logo do aplicativo
+
+- configurar regras de inseminação para permitir o registro apenas em fêmeas
+- remover a aba ou histórico reprodutivo de animais cadastrados como machos
+- bloquear o avanço no campo de busca de reprodutor caso o animal digitado não exista no sistema
+
+- criar validações, formatações e listas de valores aceitos para campos específicos como fase do cio e protocolo hormonal
+- remover a seção de atividades recentes do sistema
+- remover figuras e substituir por algo visualmente mais profissional
