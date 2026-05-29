@@ -1,49 +1,51 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import React from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Field, inputStyle, submitBtnStyle } from "../../components/auth/SharedStyles";
 
-// 1. Schema do Login
 const loginSchema = z.object({
-  email: z.string().email('Formato de e-mail inválido'),
-  password: z.string().min(1, 'A senha é obrigatória'),
+  email: z.string().email("Formato de e-mail inválido"),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
 });
 
-type LoginFormInputs = z.infer<typeof loginSchema>;
+type LoginInputs = z.infer<typeof loginSchema>;
 
-export function LoginScreen() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormInputs>({
-    resolver: zodResolver(loginSchema),
-  });
+export function LoginForm() {
+  const { register, handleSubmit, formState: { errors } } =
+    useForm<LoginInputs>({ resolver: zodResolver(loginSchema) });
 
-  const onSubmit = (data: LoginFormInputs) => {
-    console.log('Fazendo login com:', data);
-  };
+  const onSubmit = (data: LoginInputs) => console.log("Login:", data);
 
   return (
-    <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px' }}>
-      <h2>Login</h2>
-      
-      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        
-        <div>
-          <label>E-mail</label>
-          <input type="email" {...register('email')} />
-          {errors.email && <p style={{ color: 'red', fontSize: '12px' }}>{errors.email.message}</p>}
-        </div>
+    <div>
+      <h2 style={{ fontSize: "1.4rem", fontWeight: 700, color: "#1a2e1a", marginBottom: "0.3rem", letterSpacing: "-0.02em" }}>
+        Entrar
+      </h2>
+      <p style={{ fontSize: "0.875rem", color: "#6b6b5e", marginBottom: "1.5rem", marginTop: 0 }}>
+        Acesse sua conta AgroGen IA.
+      </p>
 
-        <div>
-          <label>Senha</label>
-          <input type="password" {...register('password')} />
-          {errors.password && <p style={{ color: 'red', fontSize: '12px' }}>{errors.password.message}</p>}
-        </div>
+      <Field label="E-mail" required error={errors.email?.message}>
+        <input type="email" placeholder="seu@email.com" style={inputStyle} {...register("email")} />
+      </Field>
 
-        <button type="submit">Entrar</button>
-      </form>
+      <Field label="Senha" required error={errors.password?.message}>
+        <input type="password" placeholder="••••••" style={inputStyle} {...register("password")} />
+      </Field>
+
+      <button
+        type="button"
+        onClick={handleSubmit(onSubmit)}
+        style={submitBtnStyle}
+        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#2d5a3d")}
+        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#1a3a2a")}
+      >
+        Entrar
+        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" />
+        </svg>
+      </button>
     </div>
   );
 }
