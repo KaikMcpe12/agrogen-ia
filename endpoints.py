@@ -55,3 +55,5 @@ def register_user(user: UserRegister):
         "usuario": user
     }
 >>>>>>> ca417ad98b40b7590ea22425cc5b32d8c9726726
+
+print("teste")
