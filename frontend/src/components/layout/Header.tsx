@@ -54,7 +54,7 @@ export function Header({ alertCount = 0, onMenuToggle }: HeaderProps) {
                   [
                     "px-3 py-2 rounded-[10px] text-[14px] font-medium transition-colors whitespace-nowrap",
                     isActive
-                      ? "bg-green-100 text-green-900"
+                      ? "bg-green-100 text-white"
                       : "text-ink-3 hover:text-ink hover:bg-beige",
                     item.highlight && !isActive
                       ? "text-green-700 font-semibold"
