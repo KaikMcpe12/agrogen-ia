@@ -1,0 +1,2 @@
+deixa de ser curioso
+🖖
