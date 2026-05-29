@@ -12,7 +12,7 @@ export const diarioApi = {
   pesagens: (animalId: string) =>
     client.get<PesagensResponse>(`/diario/${animalId}/pesagens`).then((r) => r.data),
 
-  criarPesagem: (animalId: string, body: { data: string; peso_kg: number; estagio: EstagioPesagem; observacao?: string }) =>
+  criarPesagem: (animalId: string, body: { data: string; peso_kg: number; estagio: EstagioPesagem; observacao?: string | undefined }) =>
     client.post<ApiResponse<{ id: string; gmd_calculado?: number }>>(`/diario/${animalId}/pesagens`, body).then((r) => r.data),
 
   partos: (animalId: string) =>
@@ -23,10 +23,10 @@ export const diarioApi = {
     tipo_parto: TipoParto;
     num_crias: number;
     num_crias_vivas: number;
-    peso_total_crias_kg?: number;
+    peso_total_crias_kg?: number | undefined;
     houve_distorcia: boolean;
     houve_obito_matriz: boolean;
-    inseminacao_id?: string;
+    inseminacao_id?: string | undefined;
   }) =>
     client.post<ApiResponse<{ id: string }>>(`/diario/${animalId}/partos`, body).then((r) => r.data),
 
@@ -36,12 +36,12 @@ export const diarioApi = {
   criarEventoSanitario: (animalId: string, body: {
     tipo: TipoSanitario;
     produto: string;
-    principio_ativo?: string;
+    principio_ativo?: string | undefined;
     data_aplicacao: string;
-    dose?: string;
-    via?: ViaSanitaria;
-    lote_produto?: string;
-    proxima_dose?: string;
+    dose?: string | undefined;
+    via?: ViaSanitaria | undefined;
+    lote_produto?: string | undefined;
+    proxima_dose?: string | undefined;
   }) =>
     client.post<ApiResponse<{ id: string }>>(`/diario/${animalId}/sanitario`, body).then((r) => r.data),
 
