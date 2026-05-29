@@ -20,6 +20,9 @@ npm run preview   # Preview production build locally
 - **Lucide React** for icons
 - Path alias: `@/` → `src/`
 
+## Skills
+- em .agents/skills
+
 ## Architecture
 
 The app is an agricultural management system (AgroGen) in early development. Currently only login/register screens exist.
