@@ -29,7 +29,7 @@ export function BottomNav() {
               className={({ isActive }) =>
                 [
                   "flex-1 flex flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors min-h-[44px]",
-                  isActive ? "text-green-700" : "text-ink-4",
+                  isActive ? "text-white" : "text-ink-4",
                 ].join(" ")
               }
             >
