@@ -19,4 +19,10 @@ export const authApi = {
 
   redefinirSenha: (token: string, novaSenha: string) =>
     client.post<ApiResponse<{ mensagem: string }>>("/auth/redefinir-senha", { token, nova_senha: novaSenha }).then((r) => r.data),
+
+  atualizarPerfil: (body: { nome?: string; telefone?: string }) =>
+    client.put<ApiResponse<{ id: string; nome: string; email: string; perfil: Perfil }>>("/usuarios/me", body).then((r) => r.data),
+
+  exportarDados: () =>
+    client.get<ApiResponse<{ url: string; mensagem: string }>>("/usuarios/me/exportar").then((r) => r.data),
 };

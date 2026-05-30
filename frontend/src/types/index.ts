@@ -102,6 +102,9 @@ export interface Fazenda {
   area_hectares?: number;
   tipo_producao?: TipoProducao;
   capacidade_rebanho?: number;
+  lat?: number;
+  lng?: number;
+  ativa?: boolean;
   total_animais: number;
   created_at: string;
 }
