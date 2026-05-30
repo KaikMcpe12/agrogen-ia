@@ -31,8 +31,8 @@ export function setupMocks(client: AxiosInstance): void {
       {
         success: true,
         data: {
-          access_token: "mock-token-dev",
-          refresh_token: "mock-refresh-dev",
+          access_token: "mock-jwt-access-dev",
+          refresh_token: "mock-jwt-refresh-dev",
           expires_in: 86400,
           usuario: {
             id: usuario.id,

@@ -1,38 +1,37 @@
-const messages: Record<string, string> = {
+// Mensagens estáticas — exibidas como-estão (Adendo UX seção 7.2)
+const staticMessages: Record<string, string> = {
   // Autenticação
-  AUTH_INVALID_CREDENTIALS: "E-mail ou senha incorretos. Verifique e tente novamente.",
-  AUTH_ACCOUNT_LOCKED: "Conta bloqueada temporariamente por excesso de tentativas. Tente em 15 minutos.",
+  AUTH_INVALID_CREDENTIALS: "E-mail ou senha incorretos. Tente novamente.",
+  AUTH_ACCOUNT_LOCKED: "Sua conta foi temporariamente bloqueada. Tente em alguns minutos.",
   REFRESH_TOKEN_INVALID: "Sessão expirada. Faça login novamente.",
   TOKEN_EXPIRED: "Sessão expirada. Faça login novamente.",
   UNAUTHORIZED: "Você precisa estar autenticado para acessar este recurso.",
 
-  // Cadastro de usuário
-  EMAIL_ALREADY_EXISTS: "Este e-mail já está cadastrado no sistema.",
+  // Cadastro
+  EMAIL_ALREADY_EXISTS: "Este e-mail já está cadastrado. Faça login ou recupere sua senha.",
   CPF_ALREADY_EXISTS: "Este CPF já está vinculado a outra conta.",
 
   // Animais
-  ANIMAL_NOT_FOUND: "Animal não encontrado ou não pertence a esta fazenda.",
+  ANIMAL_NOT_FOUND: "Animal não encontrado ou pertence a outra fazenda.",
   INVALID_PESO: "Peso fora da faixa válida para a espécie.",
-  INVALID_DATE: "Data de nascimento não pode ser futura.",
-  BRINCO_DUPLICADO: "Este brinco/tatuagem já está cadastrado nesta fazenda.",
+  INVALID_DATE: "Data inválida.",
+  BRINCO_DUPLICADO: "Este brinco já está cadastrado em outro animal desta fazenda.",
   INVALID_FILTER: "Filtro inválido. Verifique os valores informados.",
   INVALID_STATUS_TRANSITION: "Transição de status inválida para o estado atual do animal.",
 
   // Inseminação
-  INTERVALO_CURTO: "Intervalo entre inseminações abaixo do mínimo recomendado.",
-  STATUS_INCOMPATIVEL: "Animal com status incompatível para inseminação.",
   ESPECIE_INCOMPATIVEL: "A espécie do reprodutor não corresponde à do animal.",
-  DIAGNOSTICO_JA_EXISTE: "Esta inseminação já possui diagnóstico registrado.",
-  DATA_ANTERIOR_INSEMINACAO: "A data do diagnóstico deve ser posterior à data da inseminação.",
+  DIAGNOSTICO_JA_EXISTE: "Esta inseminação já tem diagnóstico registrado.",
+  DATA_ANTERIOR_INSEMINACAO: "A data do diagnóstico deve ser posterior à da inseminação.",
 
   // Diário de Bordo
-  PESO_FORA_FAIXA: "Peso fora do intervalo válido para a espécie.",
-  ANIMAL_MACHO: "O controle de parição está disponível apenas para fêmeas.",
+  PESO_FORA_FAIXA: "Peso fora da faixa válida para a espécie.",
+  ANIMAL_MACHO: "Esta aba é exclusiva para fêmeas reprodutoras.",
 
   // IA
-  HISTORICO_INSUFICIENTE: "Animal sem histórico suficiente. São necessárias ao menos 1 inseminação.",
-  IA_SERVICE_UNAVAILABLE: "Serviço de IA temporariamente indisponível. Um modelo de regras alternativo foi ativado.",
-  DADOS_INSUFICIENTES: "São necessárias ao menos 20 inseminações com diagnóstico para análise de padrões.",
+  HISTORICO_INSUFICIENTE: "A IA precisa de pelo menos uma inseminação anterior deste animal para fazer a predição.",
+  IA_SERVICE_UNAVAILABLE: "A análise por IA está temporariamente indisponível. Usando análise baseada em regras.",
+  DADOS_INSUFICIENTES: "Você precisa de pelo menos 20 inseminações com diagnóstico para esta análise.",
 
   // Relatórios
   FORMATO_INVALIDO: "Formato de exportação inválido. Use PDF ou CSV.",
@@ -43,17 +42,36 @@ const messages: Record<string, string> = {
 
   // Fazendas
   FAZENDA_NOT_FOUND: "Fazenda não encontrada.",
-  FORBIDDEN: "Você não tem permissão para realizar esta operação.",
 
   // Genérico
   VALIDATION_ERROR: "Dados inválidos. Verifique os campos e tente novamente.",
-  NETWORK_ERROR: "Falha de conexão. Verifique sua internet e tente novamente.",
-  UNKNOWN_ERROR: "Ocorreu um erro inesperado. Tente novamente.",
+  NETWORK_ERROR: "Algo deu errado do nosso lado. Tente novamente em instantes.",
+  UNKNOWN_ERROR: "Algo deu errado do nosso lado. Tente novamente em instantes.",
 };
 
+// Mensagens com interpolação — recebem dados dinâmicos (ex: {N}, {X})
+const interpolatedTemplates: Record<string, string> = {
+  INTERVALO_CURTO: "Atenção: este animal teve inseminação há apenas {N} dias. Deseja continuar?",
+  STATUS_INCOMPATIVEL: "Animais com status {X} não podem ser inseminados.",
+  FORBIDDEN: "Seu perfil ({X}) não tem permissão para esta ação.",
+};
+
+export function getInterpolatedMessage(
+  code: string,
+  data?: Record<string, string | number>
+): string {
+  const tpl = interpolatedTemplates[code];
+  if (!tpl) return getErrorMessage(code);
+  if (!data) return tpl.replace(/\{[^}]+\}/g, "?");
+  return Object.entries(data).reduce(
+    (acc, [k, v]) => acc.replace(`{${k}}`, String(v)),
+    tpl
+  );
+}
+
 export function getErrorMessage(code: string | undefined): string {
-  if (!code) return messages["UNKNOWN_ERROR"]!;
-  return messages[code] ?? messages["UNKNOWN_ERROR"]!;
+  if (!code) return staticMessages["UNKNOWN_ERROR"]!;
+  return staticMessages[code] ?? staticMessages["UNKNOWN_ERROR"]!;
 }
 
 export function extractErrorCode(error: unknown): string | undefined {

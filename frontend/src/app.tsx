@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "react-router-dom";
 import { ToastProvider } from "@/components/ui/Toast";
 import { router } from "./routes";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,7 +16,7 @@ const queryClient = new QueryClient({
 
 function ThemeInit() {
   useEffect(() => {
-    const stored = localStorage.getItem("agrogen.theme");
+    const stored = localStorage.getItem(STORAGE_KEYS.theme);
     const theme =
       stored ??
       (window.matchMedia("(prefers-color-scheme: dark)").matches

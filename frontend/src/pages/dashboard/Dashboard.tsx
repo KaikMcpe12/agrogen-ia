@@ -7,7 +7,7 @@ import {
 } from "recharts";
 import {
   AlertCircle, AlertTriangle, TrendingUp, TrendingDown,
-  Syringe, Scale, Stethoscope, Baby, Bell, Home,
+  Syringe, Scale, Stethoscope, Baby, Bell, Tractor, PawPrint,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -263,26 +263,50 @@ function UrgentAlerts() {
   );
 }
 
-/* ── Empty state: sem fazenda ──────────────────────────────────── */
+/* ── Empty states ──────────────────────────────────────────────── */
 
-function EmptyFazenda() {
+// Usado no FLUXO-07 (onboarding) — chamado quando user não tem fazendas
+export function EmptySemFazenda() {
   const navigate = useNavigate();
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
       <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-        <Home size={28} className="text-green-700" />
+        <Tractor size={28} className="text-green-700" />
       </div>
       <h3 className="text-[18px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>
-        Nenhuma fazenda cadastrada
+        Bem-vindo ao AgroGen IA!
       </h3>
       <p className="text-[14px] text-ink-3 max-w-sm">
-        Cadastre sua primeira fazenda para começar a gerenciar o rebanho e visualizar os dados aqui.
+        Cadastre sua primeira fazenda para começar a usar a plataforma.
       </p>
       <button
         className="px-5 py-2.5 rounded-[10px] bg-green-700 text-white text-[14px] font-semibold hover:bg-green-800 transition-colors"
         onClick={() => void navigate("/perfil")}
       >
         Cadastrar fazenda
+      </button>
+    </div>
+  );
+}
+
+function EmptySemAnimais() {
+  const navigate = useNavigate();
+  return (
+    <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+      <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+        <PawPrint size={28} className="text-green-700" />
+      </div>
+      <h3 className="text-[18px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>
+        Sua fazenda está pronta — agora vamos cadastrar o rebanho.
+      </h3>
+      <p className="text-[14px] text-ink-3 max-w-sm">
+        Adicione seu primeiro animal para começar a acompanhar o desempenho reprodutivo.
+      </p>
+      <button
+        className="px-5 py-2.5 rounded-[10px] bg-green-700 text-white text-[14px] font-semibold hover:bg-green-800 transition-colors"
+        onClick={() => void navigate("/animais")}
+      >
+        Cadastrar primeiro animal
       </button>
     </div>
   );
@@ -333,8 +357,8 @@ export function DashboardPage() {
           </div>
           <Card className="h-72 animate-pulse bg-beige">{null}</Card>
         </>
-      ) : kpis.total_animais.total === 0 && !isLoading ? (
-        <EmptyFazenda />
+      ) : kpis.total_animais.total === 0 ? (
+        <EmptySemAnimais />
       ) : (
         <>
           <KPISection data={kpis} />
