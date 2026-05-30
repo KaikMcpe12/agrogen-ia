@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,15 +38,35 @@ const resultadoOptions = [
   { value: "INCONCLUSIVO", label: "⚠️ Inconclusivo" },
 ];
 
+const DIAS_GESTACAO: Record<string, number> = { BOVINO: 285, OVINO: 150, CAPRINO: 150 };
+
+function calcDataParto(dataInseminacao: string, especie: string): string {
+  const base = new Date(dataInseminacao);
+  if (isNaN(base.getTime())) return "";
+  const dias = DIAS_GESTACAO[especie] ?? 285;
+  base.setDate(base.getDate() + dias);
+  return base.toISOString().split("T")[0] ?? "";
+}
+
 export function Modal05Diagnostico({ open, onClose, inseminacao }: Props) {
   useScrollLock(open && !!inseminacao);
 
+  const dataPrevista = inseminacao
+    ? calcDataParto(inseminacao.data_inseminacao, inseminacao.animal.especie)
+    : "";
+
   const qc = useQueryClient();
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: { metodo: "ULTRASSONOGRAFIA" },
   });
   const resultado = watch("resultado");
+
+  useEffect(() => {
+    if (resultado === "PRENHA" && dataPrevista) {
+      setValue("data_parto_prevista", dataPrevista);
+    }
+  }, [resultado, dataPrevista, setValue]);
 
   const registerDiag = useMutation({
     mutationFn: (data: FormData) =>

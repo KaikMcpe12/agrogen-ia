@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, AlertCircle } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Plus, AlertCircle, Clock, Syringe, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -96,32 +97,39 @@ function InseminacaoCard({ ins, onDiag }: { ins: Inseminacao; onDiag: () => void
   );
 }
 
-// ── Pendentes card (unchanged) ───────────────────────────────────
+// ── Pendentes card ───────────────────────────────────────────────
 
 function PendenteRow({ ins, onDiag }: { ins: Inseminacao; onDiag: () => void }) {
-  const isUrgent = ins.dias_decorridos > 30;
+  const isCritico = ins.dias_decorridos > 30;
+  const isAtraso = ins.dias_decorridos > 28;
   return (
     <Card
       padding="sm"
-      className={`cursor-pointer hover:border-warn transition-colors ${isUrgent ? "border-danger-bg bg-danger-bg/20" : ""}`}
+      className={`cursor-pointer transition-colors ${
+        isCritico ? "border-danger bg-danger-bg/20 hover:border-danger" :
+        isAtraso ? "border-warn bg-warn-bg/30 hover:border-warn" :
+        "hover:border-warn"
+      }`}
       onClick={onDiag}
     >
       <div className="flex items-center gap-3">
-        {isUrgent && <AlertCircle size={18} className="text-danger shrink-0" />}
+        {isCritico ? <AlertCircle size={18} className="text-danger shrink-0" /> :
+         isAtraso ? <Clock size={18} className="text-warn shrink-0" /> : null}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-[14px] font-semibold text-ink">{ins.animal.nome}</p>
             <span className="font-mono text-[11px] text-ink-4">{ins.animal.codigo}</span>
-            {isUrgent && <Badge variant="danger">Crítico</Badge>}
+            {isCritico && <Badge variant="danger">Crítico</Badge>}
+            {isAtraso && !isCritico && <Badge variant="warn">Atraso</Badge>}
           </div>
           <p className="text-[12px] text-ink-3 mt-0.5">
             Inseminação em {new Date(ins.data_inseminacao).toLocaleDateString("pt-BR")} ·{" "}
-            <strong className={isUrgent ? "text-danger" : "text-warn"}>
+            <strong className={isCritico ? "text-danger" : isAtraso ? "text-warn" : "text-ink-2"}>
               {ins.dias_decorridos} dias decorridos
             </strong>
           </p>
         </div>
-        <Button variant={isUrgent ? "danger" : "secondary"} size="sm">
+        <Button variant={isCritico ? "danger" : isAtraso ? "secondary" : "secondary"} size="sm">
           Diagnóstico
         </Button>
       </div>
@@ -132,10 +140,20 @@ function PendenteRow({ ins, onDiag }: { ins: Inseminacao; onDiag: () => void }) 
 // ── Page ─────────────────────────────────────────────────────────
 
 export function InseminacaoListPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<Tab>("historico");
   const [novaOpen, setNovaOpen] = useState(false);
   const [diagOpen, setDiagOpen] = useState(false);
   const [selectedIns, setSelectedIns] = useState<Inseminacao | null>(null);
+
+  const animalIdParam = searchParams.get("animal_id");
+
+  useEffect(() => {
+    if (animalIdParam) {
+      setNovaOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [animalIdParam, setSearchParams]);
 
   const { data: historico, isLoading: histLoading } = useQuery({
     queryKey: ["inseminacoes"],
@@ -214,9 +232,20 @@ export function InseminacaoListPage() {
               ))}
             </div>
           ) : insHistorico.length === 0 ? (
-            <p className="text-center text-[14px] text-ink-3 py-12">
-              Nenhuma inseminação registrada.
-            </p>
+            <div className="flex flex-col items-center py-16 gap-4 text-center">
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                <Syringe size={28} className="text-green-700" />
+              </div>
+              <h3 className="text-[17px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>
+                Nenhuma inseminação registrada
+              </h3>
+              <p className="text-[14px] text-ink-3 max-w-xs">
+                Registre a primeira inseminação do rebanho para iniciar o controle reprodutivo.
+              </p>
+              <Button variant="primary" size="sm" onClick={() => setNovaOpen(true)}>
+                <Plus size={15} /> Nova Inseminação
+              </Button>
+            </div>
           ) : (
             <>
               {/* Mobile: cards */}
@@ -262,10 +291,14 @@ export function InseminacaoListPage() {
               ))}
             </div>
           ) : insPendentes.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-4xl mb-3">✅</p>
-              <p className="text-[15px] font-semibold text-ink">Nenhum diagnóstico pendente</p>
-              <p className="text-[14px] text-ink-3 mt-1">Todos os diagnósticos estão em dia.</p>
+            <div className="flex flex-col items-center py-16 gap-4 text-center">
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle2 size={28} className="text-green-700" />
+              </div>
+              <h3 className="text-[17px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>
+                Tudo em dia!
+              </h3>
+              <p className="text-[14px] text-ink-3">Nenhum diagnóstico pendente no momento.</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -276,7 +309,11 @@ export function InseminacaoListPage() {
           ))}
       </div>
 
-      <Modal03NewInseminacao open={novaOpen} onClose={() => setNovaOpen(false)} />
+      <Modal03NewInseminacao
+        open={novaOpen}
+        onClose={() => setNovaOpen(false)}
+        {...(animalIdParam ? { preselectedAnimalId: animalIdParam } : {})}
+      />
       <Modal05Diagnostico
         open={diagOpen}
         onClose={() => setDiagOpen(false)}
