@@ -140,7 +140,7 @@ export interface DiagnosticoInseminacao {
 
 export interface Inseminacao {
   id: string;
-  animal: Pick<Animal, "id" | "codigo" | "nome">;
+  animal: Pick<Animal, "id" | "codigo" | "nome" | "especie">;
   reprodutor: Pick<Reprodutor, "id" | "nome" | "raca" | "tipo">;
   tecnico?: { id: string; nome: string };
   data_inseminacao: string;

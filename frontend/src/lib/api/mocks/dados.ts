@@ -366,7 +366,7 @@ export const animais: Animal[] = [
 export const inseminacoes: Inseminacao[] = [
   {
     id: "ins-001",
-    animal: { id: "ani-002", codigo: "BOV-0012", nome: "Mimosa" },
+    animal: { id: "ani-002", codigo: "BOV-0012", nome: "Mimosa", especie: "BOVINO" as const },
     reprodutor: { id: "rep-001", nome: "Titan Nelore", raca: "Nelore", tipo: "SEMEN_EXTERNO" },
     tecnico: { id: USER_ID, nome: "Maria Campos" },
     data_inseminacao: "2026-04-28T09:00:00Z",
@@ -382,7 +382,7 @@ export const inseminacoes: Inseminacao[] = [
   },
   {
     id: "ins-002",
-    animal: { id: "ani-001", codigo: "BOV-0001", nome: "Estrela" },
+    animal: { id: "ani-001", codigo: "BOV-0001", nome: "Estrela", especie: "BOVINO" as const },
     reprodutor: { id: "rep-002", nome: "Zeus Angus", raca: "Angus", tipo: "SEMEN_EXTERNO" },
     tecnico: { id: USER_ID, nome: "Maria Campos" },
     data_inseminacao: "2025-12-01T10:00:00Z",
@@ -402,7 +402,7 @@ export const inseminacoes: Inseminacao[] = [
   },
   {
     id: "ins-003",
-    animal: { id: "ani-009", codigo: "OVI-0012", nome: "Neve" },
+    animal: { id: "ani-009", codigo: "OVI-0012", nome: "Neve", especie: "OVINO" as const },
     reprodutor: { id: "rep-003", nome: "Trovão", raca: "Dorper", tipo: "ANIMAL_PROPRIO" },
     tecnico: { id: USER_ID, nome: "Maria Campos" },
     data_inseminacao: "2026-04-30T08:00:00Z",
@@ -416,7 +416,7 @@ export const inseminacoes: Inseminacao[] = [
   },
   {
     id: "ins-004",
-    animal: { id: "ani-015", codigo: "CAP-0015", nome: "Rosinha" },
+    animal: { id: "ani-015", codigo: "CAP-0015", nome: "Rosinha", especie: "CAPRINO" as const },
     reprodutor: { id: "rep-004", nome: "Bode Forte", raca: "Boer", tipo: "ANIMAL_PROPRIO" },
     tecnico: { id: USER_ID, nome: "Maria Campos" },
     data_inseminacao: "2026-05-01T09:00:00Z",
@@ -430,7 +430,7 @@ export const inseminacoes: Inseminacao[] = [
   },
   {
     id: "ins-005",
-    animal: { id: "ani-007", codigo: "OVI-0001", nome: "Serena" },
+    animal: { id: "ani-007", codigo: "OVI-0001", nome: "Serena", especie: "OVINO" as const },
     reprodutor: { id: "rep-003", nome: "Trovão", raca: "Dorper", tipo: "ANIMAL_PROPRIO" },
     tecnico: { id: USER_ID, nome: "Maria Campos" },
     data_inseminacao: "2026-02-20T09:00:00Z",
@@ -450,7 +450,7 @@ export const inseminacoes: Inseminacao[] = [
   },
   {
     id: "ins-006",
-    animal: { id: "ani-011", codigo: "CAP-0008", nome: "Margarida" },
+    animal: { id: "ani-011", codigo: "CAP-0008", nome: "Margarida", especie: "CAPRINO" as const },
     reprodutor: { id: "rep-004", nome: "Bode Forte", raca: "Boer", tipo: "ANIMAL_PROPRIO" },
     data_inseminacao: "2026-02-28T08:00:00Z",
     tipo: "IA_CONVENCIONAL",
@@ -468,7 +468,7 @@ export const inseminacoes: Inseminacao[] = [
   },
   {
     id: "ins-007",
-    animal: { id: "ani-005", codigo: "BOV-0041", nome: "Princesa" },
+    animal: { id: "ani-005", codigo: "BOV-0041", nome: "Princesa", especie: "BOVINO" as const },
     reprodutor: { id: "rep-001", nome: "Titan Nelore", raca: "Nelore", tipo: "SEMEN_EXTERNO" },
     tecnico: { id: USER_ID, nome: "Maria Campos" },
     data_inseminacao: "2026-02-15T10:00:00Z",
@@ -488,7 +488,7 @@ export const inseminacoes: Inseminacao[] = [
   },
   {
     id: "ins-008",
-    animal: { id: "ani-003", codigo: "BOV-0021", nome: "Boneca" },
+    animal: { id: "ani-003", codigo: "BOV-0021", nome: "Boneca", especie: "BOVINO" as const },
     reprodutor: { id: "rep-002", nome: "Zeus Angus", raca: "Angus", tipo: "SEMEN_EXTERNO" },
     data_inseminacao: "2025-10-10T10:00:00Z",
     tipo: "IA_CONVENCIONAL",
