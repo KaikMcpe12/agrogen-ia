@@ -327,9 +327,11 @@ export function setupMocks(client: AxiosInstance): void {
     return [200, { success: true, data: dashboardKPIs }];
   });
 
-  mock.onGet("/dashboard/grafico-reprodutivo").reply(async () => {
+  mock.onGet("/dashboard/grafico-reprodutivo").reply(async (config) => {
     await delay();
-    return [200, { success: true, data: graficoReproductivo }];
+    const params = config.params as Record<string, string> | undefined;
+    const meses = Number(params?.["meses"] ?? 6);
+    return [200, { success: true, data: graficoReproductivo.slice(-meses) }];
   });
 
   mock.onGet("/dashboard/timeline").reply(async () => {
