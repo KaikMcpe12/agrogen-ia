@@ -10,11 +10,19 @@
 
 ## Commits realizados
 
-| Commit | Descrição |
-|--------|-----------|
-| C1 `e1afb19` | Infraestrutura — storage keys, error-messages, utils, ALE-04 polling |
-| C2 `9c727b2` | Dashboard completações |
-| CFix `9d3957f` | Fix inconsistências Adendo UX |
+| Commit | Hash | Descrição |
+|--------|------|-----------|
+| C1 | `e1afb19` | Infraestrutura — storage keys, error-messages, utils, ALE-04 polling |
+| C2 | `9c727b2` | Dashboard completações |
+| CFix | `9d3957f` | Fix inconsistências Adendo UX |
+| C3 | `b74d596` | TELA-02 + SUB-01: filtros, sort, edit modal, perfil do animal |
+| C4 | `9b4f781` | Inseminação: MODAL-04, melhorias MODAL-03/05, TELA-03 |
+| C5 | `2d55c8e` | Diário de Bordo completo (TELA-05) |
+| C6 | `bc42e38` | Análise IA completa (TELA-04) |
+| C7 | `b2173a9` | Auth: RecuperarSenha, RedefinirSenha, FLUXO-07 |
+| C8 | `d5f632b` | Perfil 3 abas, MODAL-11 a MODAL-15, FAZ-01/04 |
+| C9 | `50d96ea` | Header: seletor de fazenda, atalho Fazendas |
+| C10 | WIP | OfflineBanner, Relatórios melhorias, polimento final |
 
 ---
 
