@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Brain, TrendingUp, Dna, AlertTriangle, CheckCircle } from "lucide-react";
+import { Brain, TrendingUp, Dna, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -9,14 +9,20 @@ import { animaisApi } from "@/lib/api/endpoints/animais";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useChartTheme } from "@/hooks/useChartTheme";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
 } from "recharts";
 import type { Animal, PredicaoPrenhez } from "@/types";
 
 type Tab = "predicao" | "padroes" | "selecao";
 
-/* ── Gauge SVG ── */
+/* ── Gauge SVG ─────────────────────────────────────────────────── */
 function GaugeSVG({ pct }: { pct: number }) {
   const r = 70;
   const cx = 100, cy = 100;
@@ -35,16 +41,22 @@ function GaugeSVG({ pct }: { pct: number }) {
   const color = pct >= 70 ? "#15803d" : pct >= 45 ? "#b45309" : "#b91c1c";
 
   return (
-    <svg viewBox="0 0 200 160" className="w-48 h-36">
+    <svg viewBox="0 0 200 160" className="w-52 h-40">
       <path
         d={`M ${s.x} ${s.y} A ${r} ${r} 0 ${total > Math.PI ? 1 : 0} 1 ${eE.x} ${eE.y}`}
-        fill="none" stroke="#e6e3dc" strokeWidth="14" strokeLinecap="round"
+        fill="none"
+        stroke="#e6e3dc"
+        strokeWidth="14"
+        strokeLinecap="round"
       />
       <path
         d={`M ${s.x} ${s.y} A ${r} ${r} 0 ${filled > Math.PI ? 1 : 0} 1 ${eF.x} ${eF.y}`}
-        fill="none" stroke={color} strokeWidth="14" strokeLinecap="round"
+        fill="none"
+        stroke={color}
+        strokeWidth="14"
+        strokeLinecap="round"
       />
-      <text x={cx} y={cy + 8} textAnchor="middle" fontSize="28" fontWeight="700" fill={color}>
+      <text x={cx} y={cy + 8} textAnchor="middle" fontSize="30" fontWeight="700" fill={color}>
         {pct}%
       </text>
       <text x={cx} y={cy + 26} textAnchor="middle" fontSize="11" fill="#6b6b6b">
@@ -54,7 +66,7 @@ function GaugeSVG({ pct }: { pct: number }) {
   );
 }
 
-/* ── Aba: Predição ── */
+/* ── Aba: Predição ─────────────────────────────────────────────── */
 function TabPredicao() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
@@ -65,7 +77,8 @@ function TabPredicao() {
 
   const { data: animaisData } = useQuery({
     queryKey: ["animais-ia-search", debouncedSearch],
-    queryFn: () => animaisApi.listar({ q: debouncedSearch, sexo: "FEMEA", status: "ATIVA", limit: 8 }),
+    queryFn: () =>
+      animaisApi.listar({ q: debouncedSearch, sexo: "FEMEA", status: "ATIVA", limit: 8 }),
     enabled: debouncedSearch.length > 1 && !selectedAnimal,
   });
 
@@ -104,9 +117,13 @@ function TabPredicao() {
                   key={a.id}
                   type="button"
                   className="w-full text-left px-4 py-2.5 text-[13px] hover:bg-beige transition-colors border-b border-line last:border-0"
-                  onClick={() => { setSelectedAnimal(a); setSearch(""); }}
+                  onClick={() => {
+                    setSelectedAnimal(a);
+                    setSearch("");
+                  }}
                 >
-                  <strong>{a.nome}</strong> <span className="font-mono text-ink-4">{a.codigo}</span>
+                  <strong>{a.nome}</strong>{" "}
+                  <span className="font-mono text-ink-4">{a.codigo}</span>
                 </button>
               ))}
             </div>
@@ -114,58 +131,91 @@ function TabPredicao() {
         </div>
       ) : (
         <>
-          {/* Context card */}
+          {/* Animal context card */}
           <Card padding="sm" className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-900 font-bold">
+            <div className="w-10 h-10 rounded-full bg-green-700 flex items-center justify-center text-white font-bold text-[15px] shrink-0">
               {selectedAnimal.nome.charAt(0)}
             </div>
-            <div className="flex-1">
-              <p className="text-[15px] font-bold text-ink">{selectedAnimal.nome}</p>
-              <p className="text-[12px] text-ink-3 font-mono">{selectedAnimal.codigo} · CC atual: {selectedAnimal.condicao_corporal} · {selectedAnimal.num_partos} partos</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-[15px] font-bold text-ink truncate">{selectedAnimal.nome}</p>
+              <p className="text-[12px] text-ink-3 font-mono">
+                {selectedAnimal.codigo} · CC atual: {selectedAnimal.condicao_corporal} · {selectedAnimal.num_partos} partos
+              </p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="secondary" size="sm" onClick={() => { setSelectedAnimal(null); setPredicao(null); }}>
+            <div className="flex gap-2 shrink-0">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setSelectedAnimal(null);
+                  setPredicao(null);
+                }}
+              >
                 Trocar
               </Button>
               {!predicao && (
-                <Button variant="primary" size="sm" onClick={() => rodar.mutate()} loading={rodar.isPending}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => rodar.mutate()}
+                  loading={rodar.isPending}
+                >
                   <Brain size={15} /> Rodar Predição
                 </Button>
               )}
             </div>
           </Card>
 
+          {/* Loading */}
           {rodar.isPending && (
-            <div className="text-center py-10">
-              <div className="w-8 h-8 border-2 border-green-700 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-[14px] text-ink-3">Processando modelo de IA…</p>
+            <div className="text-center py-12">
+              <div className="w-10 h-10 border-[3px] border-green-700 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-[15px] font-semibold text-ink">Processando modelo de IA</p>
+              <p className="text-[13px] text-ink-4 font-mono mt-1">
+                Analisando dados genéticos e histórico…
+              </p>
             </div>
           )}
 
+          {/* Result */}
           {predicao && (
             <div className="flex flex-col gap-5">
-              {/* Gauge + recomendações */}
               <div className="flex flex-col md:flex-row gap-5">
-                <Card padding="sm" className="flex flex-col items-center justify-center gap-2">
+                {/* Gauge card */}
+                <Card padding="sm" className="flex flex-col items-center gap-3 md:w-[260px] shrink-0">
+                  <p className="text-[11px] font-semibold text-ink-4 uppercase tracking-[0.07em] self-start">
+                    Resultado da Predição
+                  </p>
                   <GaugeSVG pct={predicao.score_percentual} />
-                  <Badge variant={predicao.classificacao === "FAVORAVEL" ? "ok" : "danger"}>
-                    {predicao.classificacao === "FAVORAVEL" ? "Favorável" : "Desfavorável"}
+                  <Badge
+                    variant={predicao.classificacao === "FAVORAVEL" ? "ok" : "danger"}
+                    className="text-[13px] px-4"
+                  >
+                    {predicao.classificacao === "FAVORAVEL" ? "✓ Favorável" : "✗ Desfavorável"}
                   </Badge>
-                  <p className="text-[11px] text-ink-4 font-mono">{predicao.modelo_versao} · {predicao.processado_em_ms}ms</p>
+                  <p className="text-[11px] text-ink-4 font-mono">
+                    {predicao.modelo_versao} · {predicao.processado_em_ms}ms
+                  </p>
                 </Card>
 
+                {/* Recomendações card */}
                 <Card padding="sm" className="flex-1 flex flex-col gap-3">
                   <p className="text-[13px] font-semibold text-ink-2">Recomendações</p>
                   {predicao.recomendacoes.map((r, i) => (
-                    <div key={i} className="flex gap-2">
-                      <CheckCircle size={14} className="text-ok shrink-0 mt-0.5" />
+                    <div key={i} className="flex gap-3 items-start">
+                      <span className="w-5 h-5 rounded-full bg-green-700/15 text-green-700 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        {i + 1}
+                      </span>
                       <p className="text-[13px] text-ink">{r}</p>
                     </div>
                   ))}
                   {predicao.aviso_clinico && (
-                    <div className="flex gap-2 p-2.5 rounded-[8px] bg-warn-bg border border-warn/20">
-                      <AlertTriangle size={14} className="text-warn shrink-0 mt-0.5" />
-                      <p className="text-[12px] text-warn">{predicao.aviso_clinico}</p>
+                    <div className="flex gap-3 p-3 rounded-[12px] bg-warn-bg border border-warn/20 mt-1">
+                      <AlertTriangle size={16} className="text-warn shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[12px] font-semibold text-warn">Atenção Clínica</p>
+                        <p className="text-[12px] text-warn mt-0.5">{predicao.aviso_clinico}</p>
+                      </div>
                     </div>
                   )}
                 </Card>
@@ -174,19 +224,53 @@ function TabPredicao() {
               {/* Fatores */}
               {fatoresChart.length > 0 && (
                 <Card padding="sm">
-                  <p className="text-[13px] font-semibold text-ink-2 mb-3">Top fatores determinantes</p>
+                  <div className="mb-3">
+                    <p className="text-[13px] font-semibold text-ink-2">Top fatores determinantes</p>
+                    <p className="text-[11px] text-ink-4">
+                      Impacto relativo de cada variável no score
+                    </p>
+                  </div>
                   <ResponsiveContainer width="100%" height={180}>
-                    <BarChart data={fatoresChart} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 130 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
-                      <XAxis type="number" tick={{ fontSize: 11, fill: chartTheme.textColor }} unit="%" />
-                      <YAxis dataKey="label" type="category" tick={{ fontSize: 11, fill: chartTheme.textColor }} width={120} />
+                    <BarChart
+                      data={fatoresChart}
+                      layout="vertical"
+                      margin={{ top: 0, right: 16, bottom: 0, left: 130 }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={chartTheme.gridColor}
+                        horizontal={false}
+                      />
+                      <XAxis
+                        type="number"
+                        tick={{ fontSize: 11, fill: chartTheme.textColor }}
+                        unit="%"
+                      />
+                      <YAxis
+                        dataKey="label"
+                        type="category"
+                        tick={{ fontSize: 11, fill: chartTheme.textColor }}
+                        width={120}
+                      />
                       <Tooltip
-                        contentStyle={{ background: chartTheme.tooltipBg, border: "1px solid #e6e3dc", borderRadius: 8, fontSize: 12 }}
+                        contentStyle={{
+                          background: chartTheme.tooltipBg,
+                          border: "1px solid #e6e3dc",
+                          borderRadius: 8,
+                          fontSize: 12,
+                        }}
                         formatter={(v) => [`${String(v)}%`, "Impacto"] as [string, string]}
                       />
                       <Bar dataKey="impacto" radius={[0, 4, 4, 0]}>
                         {fatoresChart.map((f, i) => (
-                          <Cell key={i} fill={f.sentido === "POSITIVO" ? chartTheme.successColor : chartTheme.dangerColor} />
+                          <Cell
+                            key={i}
+                            fill={
+                              f.sentido === "POSITIVO"
+                                ? chartTheme.successColor
+                                : chartTheme.dangerColor
+                            }
+                          />
                         ))}
                       </Bar>
                     </BarChart>
@@ -207,7 +291,7 @@ function TabPredicao() {
   );
 }
 
-/* ── Aba: Padrões de Fertilidade ── */
+/* ── Aba: Padrões de Fertilidade ───────────────────────────────── */
 function TabPadroes() {
   const chartTheme = useChartTheme();
 
@@ -221,7 +305,9 @@ function TabPadroes() {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[...Array(4)].map((_, i) => <div key={i} className="h-56 animate-pulse bg-beige rounded-[14px]" />)}
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-56 animate-pulse bg-beige rounded-[14px]" />
+        ))}
       </div>
     );
   }
@@ -233,64 +319,122 @@ function TabPadroes() {
       <div className="flex flex-col items-center py-16 gap-3">
         <AlertTriangle size={32} className="text-warn" />
         <p className="text-[15px] font-semibold text-ink">Dados insuficientes</p>
-        <p className="text-[14px] text-ink-3">São necessárias ao menos 20 inseminações para análise de padrões.</p>
+        <p className="text-[14px] text-ink-3">
+          São necessárias ao menos 20 inseminações para análise de padrões.
+        </p>
       </div>
     );
   }
 
   const barProps = {
-    contentStyle: { background: chartTheme.tooltipBg, border: "1px solid #e6e3dc", borderRadius: 8, fontSize: 12 },
+    contentStyle: {
+      background: chartTheme.tooltipBg,
+      border: "1px solid #e6e3dc",
+      borderRadius: 8,
+      fontSize: 12,
+    },
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Card padding="sm">
-        <p className="text-[13px] font-semibold text-ink-2 mb-3">Taxa de prenhez por mês</p>
+        <div className="mb-3">
+          <p className="text-[13px] font-semibold text-ink-2">Taxa de prenhez por mês</p>
+          <p className="text-[11px] text-ink-4">Percentual de sucesso mensal</p>
+        </div>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={padroes.por_mes}>
             <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} />
             <XAxis dataKey="mes" tick={{ fontSize: 10, fill: chartTheme.textColor }} />
             <YAxis tick={{ fontSize: 10, fill: chartTheme.textColor }} unit="%" />
-            <Tooltip {...barProps} formatter={(v) => [`${String(v)}%`, "Taxa"] as [string, string]} />
+            <Tooltip
+              {...barProps}
+              formatter={(v) => [`${String(v)}%`, "Taxa"] as [string, string]}
+            />
             <Bar dataKey="taxa" fill={chartTheme.primaryColor} radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
 
       <Card padding="sm">
-        <p className="text-[13px] font-semibold text-ink-2 mb-3">Taxa por raça</p>
+        <div className="mb-3">
+          <p className="text-[13px] font-semibold text-ink-2">Taxa por raça</p>
+          <p className="text-[11px] text-ink-4">Comparativo entre raças do rebanho</p>
+        </div>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={padroes.por_raca} layout="vertical" margin={{ left: 60 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartTheme.gridColor}
+              horizontal={false}
+            />
             <XAxis type="number" tick={{ fontSize: 10, fill: chartTheme.textColor }} unit="%" />
-            <YAxis dataKey="raca" type="category" tick={{ fontSize: 10, fill: chartTheme.textColor }} width={55} />
-            <Tooltip {...barProps} formatter={(v) => [`${String(v)}%`, "Taxa"] as [string, string]} />
+            <YAxis
+              dataKey="raca"
+              type="category"
+              tick={{ fontSize: 10, fill: chartTheme.textColor }}
+              width={55}
+            />
+            <Tooltip
+              {...barProps}
+              formatter={(v) => [`${String(v)}%`, "Taxa"] as [string, string]}
+            />
             <Bar dataKey="taxa" fill={chartTheme.secondaryColor} radius={[0, 3, 3, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
 
       <Card padding="sm">
-        <p className="text-[13px] font-semibold text-ink-2 mb-3">Taxa por técnico</p>
+        <div className="mb-3">
+          <p className="text-[13px] font-semibold text-ink-2">Taxa por técnico</p>
+          <p className="text-[11px] text-ink-4">Performance por responsável</p>
+        </div>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={padroes.por_tecnico} layout="vertical" margin={{ left: 90 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartTheme.gridColor}
+              horizontal={false}
+            />
             <XAxis type="number" tick={{ fontSize: 10, fill: chartTheme.textColor }} unit="%" />
-            <YAxis dataKey="tecnico_nome" type="category" tick={{ fontSize: 10, fill: chartTheme.textColor }} width={85} />
-            <Tooltip {...barProps} formatter={(v) => [`${String(v)}%`, "Taxa"] as [string, string]} />
+            <YAxis
+              dataKey="tecnico_nome"
+              type="category"
+              tick={{ fontSize: 10, fill: chartTheme.textColor }}
+              width={85}
+            />
+            <Tooltip
+              {...barProps}
+              formatter={(v) => [`${String(v)}%`, "Taxa"] as [string, string]}
+            />
             <Bar dataKey="taxa" fill={chartTheme.successColor} radius={[0, 3, 3, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
 
       <Card padding="sm">
-        <p className="text-[13px] font-semibold text-ink-2 mb-3">Taxa por protocolo</p>
+        <div className="mb-3">
+          <p className="text-[13px] font-semibold text-ink-2">Taxa por protocolo</p>
+          <p className="text-[11px] text-ink-4">Eficácia por protocolo utilizado</p>
+        </div>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={padroes.por_protocolo} layout="vertical" margin={{ left: 110 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartTheme.gridColor}
+              horizontal={false}
+            />
             <XAxis type="number" tick={{ fontSize: 10, fill: chartTheme.textColor }} unit="%" />
-            <YAxis dataKey="protocolo" type="category" tick={{ fontSize: 10, fill: chartTheme.textColor }} width={105} />
-            <Tooltip {...barProps} formatter={(v) => [`${String(v)}%`, "Taxa"] as [string, string]} />
+            <YAxis
+              dataKey="protocolo"
+              type="category"
+              tick={{ fontSize: 10, fill: chartTheme.textColor }}
+              width={105}
+            />
+            <Tooltip
+              {...barProps}
+              formatter={(v) => [`${String(v)}%`, "Taxa"] as [string, string]}
+            />
             <Bar dataKey="taxa" fill={chartTheme.warnColor} radius={[0, 3, 3, 0]} />
           </BarChart>
         </ResponsiveContainer>
@@ -299,12 +443,12 @@ function TabPadroes() {
   );
 }
 
-/* ── Aba: Seleção Genética ── */
+/* ── Aba: Seleção Genética ─────────────────────────────────────── */
 const CRITERIOS = [
-  { id: "fertilidade", label: "Fertilidade (DEP)" },
-  { id: "peso_desmame", label: "Peso ao desmame" },
-  { id: "heterose", label: "Heterose estimada" },
-  { id: "endogamia", label: "Risco de endogamia" },
+  { id: "fertilidade", label: "Fertilidade (DEP)", icon: "🧬" },
+  { id: "peso_desmame", label: "Peso ao desmame", icon: "⚖️" },
+  { id: "heterose", label: "Heterose estimada", icon: "🔀" },
+  { id: "endogamia", label: "Risco de endogamia", icon: "⚠️" },
 ];
 
 function TabSelecao() {
@@ -322,6 +466,16 @@ function TabSelecao() {
     );
   };
 
+  type Recomendacao = {
+    matriz: string;
+    reprodutor: string;
+    score_genetico: number;
+    heterose_esperada: string;
+    risco_endogamia: string;
+  };
+
+  const recomendacoes = resultado?.recomendacoes as Recomendacao[] | undefined;
+
   return (
     <div className="flex flex-col gap-5 max-w-2xl">
       <Card padding="sm">
@@ -331,9 +485,9 @@ function TabSelecao() {
             <label
               key={c.id}
               className={[
-                "flex items-center gap-2 px-3 py-2.5 rounded-[10px] border cursor-pointer transition-colors text-[13px]",
+                "flex items-center gap-2.5 px-3 py-2.5 rounded-[12px] border cursor-pointer transition-all text-[13px]",
                 criteriosSelecionados.includes(c.id)
-                  ? "border-green-700 bg-green-100/50 text-green-900 font-medium"
+                  ? "border-green-700 bg-green-700/10 text-green-700 font-medium shadow-[0_0_0_1px_var(--color-green-700)]"
                   : "border-line bg-surface text-ink-2 hover:bg-beige",
               ].join(" ")}
             >
@@ -343,6 +497,7 @@ function TabSelecao() {
                 checked={criteriosSelecionados.includes(c.id)}
                 onChange={() => toggleCriterio(c.id)}
               />
+              <span className="text-[16px]">{c.icon}</span>
               {c.label}
             </label>
           ))}
@@ -360,25 +515,66 @@ function TabSelecao() {
         </div>
       </Card>
 
-      {resultado && (
+      {resultado && recomendacoes && (
         <Card padding="sm">
-          <p className="text-[13px] font-semibold text-ink-2 mb-3">Pares recomendados</p>
-          <div className="overflow-hidden rounded-[10px] border border-line">
+          <div className="mb-3">
+            <p className="text-[13px] font-semibold text-ink-2">Pares recomendados</p>
+            <p className="text-[11px] text-ink-4">
+              {recomendacoes.length} par(es) selecionado(s) por score genético
+            </p>
+          </div>
+
+          {/* Mobile: cards */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {recomendacoes.map((r, i) => (
+              <div
+                key={i}
+                className="rounded-[12px] border border-line bg-beige p-3 flex flex-col gap-2"
+              >
+                <div className="flex justify-between items-center">
+                  <p className="text-[13px] font-semibold text-ink">{r.matriz}</p>
+                  <span className="text-[14px] font-bold text-green-700">{r.score_genetico}</span>
+                </div>
+                <p className="text-[12px] text-ink-3">{r.reprodutor}</p>
+                <div className="flex gap-3 text-[12px]">
+                  <span className="text-ink-4">
+                    Heterose: <strong className="text-ink-2">{r.heterose_esperada}</strong>
+                  </span>
+                  <span className="text-ink-4">
+                    Risco: <strong className="text-ink-2">{r.risco_endogamia}</strong>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <div className="hidden md:block overflow-hidden rounded-[10px] border border-line">
             <table className="w-full">
               <thead>
                 <tr className="bg-beige border-b border-line">
-                  {["Matriz", "Reprodutor", "Score Genético", "Heterose", "Risco Endogamia"].map((h) => (
-                    <th key={h} className="px-3 py-2.5 text-left text-[11px] font-semibold text-ink-2 uppercase tracking-[0.04em]">{h}</th>
-                  ))}
+                  {["Matriz", "Reprodutor", "Score Genético", "Heterose", "Risco Endogamia"].map(
+                    (h) => (
+                      <th
+                        key={h}
+                        className="px-3 py-2.5 text-left text-[11px] font-semibold text-ink-2 uppercase tracking-[0.04em]"
+                      >
+                        {h}
+                      </th>
+                    )
+                  )}
                 </tr>
               </thead>
               <tbody>
-                {(resultado.recomendacoes as { matriz: string; reprodutor: string; score_genetico: number; heterose_esperada: string; risco_endogamia: string }[]).map((r, i) => (
-                  <tr key={i} className="border-b border-line last:border-0 hover:bg-beige/50 transition-colors">
+                {recomendacoes.map((r, i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-line last:border-0 hover:bg-beige/50 transition-colors"
+                  >
                     <td className="px-3 py-2.5 text-[13px] font-medium text-ink">{r.matriz}</td>
                     <td className="px-3 py-2.5 text-[13px] text-ink-2">{r.reprodutor}</td>
                     <td className="px-3 py-2.5">
-                      <span className="text-[13px] font-semibold text-green-700">{r.score_genetico}</span>
+                      <span className="text-[14px] font-bold text-green-700">{r.score_genetico}</span>
                     </td>
                     <td className="px-3 py-2.5 text-[13px] text-ink-3">{r.heterose_esperada}</td>
                     <td className="px-3 py-2.5 text-[13px] text-ink-3">{r.risco_endogamia}</td>
@@ -393,7 +589,7 @@ function TabSelecao() {
   );
 }
 
-/* ── Main Page ── */
+/* ── Página Principal ──────────────────────────────────────────── */
 export function AnaliseIAPage() {
   const [tab, setTab] = useState<Tab>("predicao");
 
@@ -404,21 +600,33 @@ export function AnaliseIAPage() {
   ];
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 py-6 flex flex-col gap-4">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
+      {/* Header */}
       <div>
-        <h1 className="text-[22px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>
-          Análise IA
-        </h1>
-        <p className="text-[14px] text-ink-3 mt-0.5">Predição, padrões reprodutivos e seleção genética</p>
+        <div className="flex items-center gap-2">
+          <h1
+            className="text-[22px] font-bold text-ink"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            Análise IA
+          </h1>
+          <span className="text-[10px] font-bold bg-amber-soft text-amber px-2 py-0.5 rounded-[6px] font-mono tracking-wider">
+            IA
+          </span>
+        </div>
+        <p className="text-[14px] text-ink-3 mt-0.5">
+          Predição, padrões reprodutivos e seleção genética
+        </p>
       </div>
 
-      <div className="flex border-b border-line">
+      {/* Tabs — scroll horizontal no mobile */}
+      <div className="flex border-b border-line overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
             className={[
-              "flex items-center gap-2 px-5 py-3 text-[14px] font-medium border-b-2 transition-colors",
+              "flex items-center gap-2 px-5 py-3 text-[14px] font-medium border-b-2 transition-colors flex-shrink-0 whitespace-nowrap",
               tab === id
                 ? "border-green-700 text-green-700"
                 : "border-transparent text-ink-3 hover:text-ink",
