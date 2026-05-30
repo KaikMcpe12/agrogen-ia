@@ -9,7 +9,8 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem(STORAGE_KEYS.token);
+  // access token: sessionStorage primeiro (login sem lembrar-me), fallback localStorage (mock/dev)
+  const token = sessionStorage.getItem(STORAGE_KEYS.token) ?? localStorage.getItem(STORAGE_KEYS.token);
   const fazendaId = localStorage.getItem(STORAGE_KEYS.fazendaAtivaId);
   if (token) config.headers["Authorization"] = `Bearer ${token}`;
   if (fazendaId) config.headers["X-Fazenda-ID"] = fazendaId;

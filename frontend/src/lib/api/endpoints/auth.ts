@@ -5,7 +5,7 @@ export const authApi = {
   login: (email: string, senha: string) =>
     client.post<ApiResponse<LoginResponse>>("/auth/login", { email, senha }).then((r) => r.data),
 
-  registro: (body: { nome: string; email: string; senha: string; perfil: Perfil; cpf?: string; telefone?: string }) =>
+  registro: (body: { nome: string; email: string; senha: string; perfil: Perfil; cpf: string; telefone?: string }) =>
     client.post<ApiResponse<{ id: string; mensagem: string }>>("/auth/registro", body).then((r) => r.data),
 
   logout: () =>
