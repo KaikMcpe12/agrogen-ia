@@ -52,6 +52,7 @@ export function BottomNav() {
           <button
             className="flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-ink-3 min-h-[44px] transition-colors hover:text-ink"
             onClick={() => setMoreOpen(true)}
+            aria-label="Mais opções de navegação"
           >
             <div className="w-9 h-7 flex items-center justify-center">
               <MoreHorizontal size={20} strokeWidth={1.8} />

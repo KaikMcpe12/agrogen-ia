@@ -15,7 +15,7 @@ const queryClient = new QueryClient({
 
 function ThemeInit() {
   useEffect(() => {
-    const stored = localStorage.getItem("agrogen_theme");
+    const stored = localStorage.getItem("agrogen.theme");
     const theme =
       stored ??
       (window.matchMedia("(prefers-color-scheme: dark)").matches

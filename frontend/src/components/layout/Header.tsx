@@ -4,6 +4,7 @@ import { Bell, ChevronDown, Moon, Sun, User, Menu, LogOut } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { useTheme } from "@/hooks/useTheme";
 import { AlertDrawer } from "./AlertDrawer";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard" },
@@ -37,8 +38,9 @@ export function Header({ alertCount = 0, onMenuToggle }: HeaderProps) {
   }, [avatarOpen]);
 
   const handleLogout = () => {
-    localStorage.removeItem("agrogen_token");
-    localStorage.removeItem("agrogen_fazenda_id");
+    localStorage.removeItem(STORAGE_KEYS.token);
+    localStorage.removeItem(STORAGE_KEYS.fazendaAtivaId);
+    localStorage.removeItem(STORAGE_KEYS.refreshToken);
     void navigate("/login");
   };
 

@@ -11,18 +11,18 @@ export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { data: alertasData } = useQuery({
-    queryKey: ["alertas", "nao_lidos"],
-    queryFn: () => alertasApi.listar({ lido: false, resolvido: false }),
-    refetchInterval: 5 * 60 * 1000,
+    queryKey: ["alertas", "contagem"],
+    queryFn: () => alertasApi.contagem(),
+    refetchInterval: 60 * 1000,
   });
 
-  const alertCount = alertasData?.meta.nao_lidos ?? 0;
+  const alertCount = alertasData?.data?.nao_lidos ?? 0;
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden bg-bg">
       <Header alertCount={alertCount} onMenuToggle={() => setDrawerOpen(true)} />
       <MobileNavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-      <main className="flex-1 min-h-0 overflow-y-auto pb-6">
+      <main id="main-content" className="flex-1 min-h-0 overflow-y-auto pb-6">
         <Outlet />
       </main>
       <BottomNav />

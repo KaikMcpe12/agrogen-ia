@@ -1,16 +1,20 @@
 import { useState } from "react";
-
-const STORAGE_KEY = "agrogen_fazenda_id";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 export function useFazendaAtiva() {
   const [fazendaId, setFazendaIdState] = useState<string | null>(
-    () => localStorage.getItem(STORAGE_KEY)
+    () => localStorage.getItem(STORAGE_KEYS.fazendaAtivaId)
   );
 
   const setFazendaId = (id: string) => {
-    localStorage.setItem(STORAGE_KEY, id);
+    localStorage.setItem(STORAGE_KEYS.fazendaAtivaId, id);
     setFazendaIdState(id);
   };
 
-  return { fazendaId, setFazendaId };
+  const clearFazendaId = () => {
+    localStorage.removeItem(STORAGE_KEYS.fazendaAtivaId);
+    setFazendaIdState(null);
+  };
+
+  return { fazendaId, setFazendaId, clearFazendaId };
 }

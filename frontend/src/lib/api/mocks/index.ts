@@ -304,6 +304,13 @@ export function setupMocks(client: AxiosInstance): void {
     ];
   });
 
+  mock.onGet("/alertas/contagem").reply(async () => {
+    await delay(50, 150);
+    const naoLidos = alertas.filter((a) => !a.lido).length;
+    const criticos = alertas.filter((a) => a.prioridade === "CRITICA" && !a.resolvido).length;
+    return [200, { success: true, data: { nao_lidos: naoLidos, criticos, total: alertas.length } }];
+  });
+
   mock.onPatch(/\/alertas\/[^/]+\/lido/).reply(async () => {
     await delay(100, 200);
     return [200, { success: true }];
