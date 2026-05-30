@@ -17,14 +17,14 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  bovino: "bg-green-100 text-green-900",
+  bovino: "bg-green-700/[0.18] text-green-600",
   ovino: "bg-terra-200 text-terra-900",
   caprino: "bg-amber-bg text-amber",
   ok: "bg-ok-bg text-ok",
   warn: "bg-warn-bg text-warn",
   danger: "bg-danger-bg text-danger",
   ghost: "bg-beige text-ink-2",
-  info: "bg-green-100 text-green-700",
+  info: "bg-green-600/[0.15] text-green-600",
 };
 
 export function Badge({ variant = "ghost", children, className = "" }: BadgeProps) {

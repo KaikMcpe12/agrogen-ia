@@ -18,7 +18,14 @@ const RESULTADO_VARIANT = {
   VAZIA: "danger" as const,
   CANCELADA: "ghost" as const,
 };
-const RESULTADO_LABELS = { PENDENTE: "Pendente", PRENHA: "Prenha", VAZIA: "Vazia", CANCELADA: "Cancelada" };
+const RESULTADO_LABELS = {
+  PENDENTE: "Pendente",
+  PRENHA: "Prenha",
+  VAZIA: "Vazia",
+  CANCELADA: "Cancelada",
+};
+
+// ── Desktop table row ────────────────────────────────────────────
 
 function InseminacaoRow({ ins, onDiag }: { ins: Inseminacao; onDiag: () => void }) {
   return (
@@ -50,6 +57,47 @@ function InseminacaoRow({ ins, onDiag }: { ins: Inseminacao; onDiag: () => void 
   );
 }
 
+// ── Mobile card ──────────────────────────────────────────────────
+
+function InseminacaoCard({ ins, onDiag }: { ins: Inseminacao; onDiag: () => void }) {
+  return (
+    <div className="rounded-[14px] border border-line bg-surface p-4 flex flex-col gap-3">
+      <div className="flex justify-between items-start gap-2">
+        <div className="min-w-0">
+          <p className="text-[15px] font-semibold text-ink truncate">{ins.animal.nome}</p>
+          <p className="text-[11px] font-mono text-ink-4">{ins.animal.codigo}</p>
+        </div>
+        <Badge variant={RESULTADO_VARIANT[ins.resultado]}>{RESULTADO_LABELS[ins.resultado]}</Badge>
+      </div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[13px]">
+        <div>
+          <span className="text-ink-4">Data: </span>
+          <span className="text-ink-2">
+            {new Date(ins.data_inseminacao).toLocaleDateString("pt-BR")}
+          </span>
+        </div>
+        <div>
+          <span className="text-ink-4">Tipo: </span>
+          <span className="font-mono text-ink-3 bg-beige px-1.5 py-0.5 rounded-[5px] text-[11px]">
+            {TIPO_LABELS[ins.tipo]}
+          </span>
+        </div>
+        <div className="col-span-2">
+          <span className="text-ink-4">Reprodutor: </span>
+          <span className="text-ink-2">{ins.reprodutor.nome}</span>
+        </div>
+      </div>
+      {ins.resultado === "PENDENTE" && (
+        <Button variant="secondary" size="sm" onClick={onDiag} className="self-end">
+          Registrar diagnóstico
+        </Button>
+      )}
+    </div>
+  );
+}
+
+// ── Pendentes card (unchanged) ───────────────────────────────────
+
 function PendenteRow({ ins, onDiag }: { ins: Inseminacao; onDiag: () => void }) {
   const isUrgent = ins.dias_decorridos > 30;
   return (
@@ -60,22 +108,28 @@ function PendenteRow({ ins, onDiag }: { ins: Inseminacao; onDiag: () => void }) 
     >
       <div className="flex items-center gap-3">
         {isUrgent && <AlertCircle size={18} className="text-danger shrink-0" />}
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
             <p className="text-[14px] font-semibold text-ink">{ins.animal.nome}</p>
             <span className="font-mono text-[11px] text-ink-4">{ins.animal.codigo}</span>
             {isUrgent && <Badge variant="danger">Crítico</Badge>}
           </div>
           <p className="text-[12px] text-ink-3 mt-0.5">
             Inseminação em {new Date(ins.data_inseminacao).toLocaleDateString("pt-BR")} ·{" "}
-            <strong className={isUrgent ? "text-danger" : "text-warn"}>{ins.dias_decorridos} dias decorridos</strong>
+            <strong className={isUrgent ? "text-danger" : "text-warn"}>
+              {ins.dias_decorridos} dias decorridos
+            </strong>
           </p>
         </div>
-        <Button variant={isUrgent ? "danger" : "secondary"} size="sm">Diagnóstico</Button>
+        <Button variant={isUrgent ? "danger" : "secondary"} size="sm">
+          Diagnóstico
+        </Button>
       </div>
     </Card>
   );
 }
+
+// ── Page ─────────────────────────────────────────────────────────
 
 export function InseminacaoListPage() {
   const [tab, setTab] = useState<Tab>("historico");
@@ -95,18 +149,24 @@ export function InseminacaoListPage() {
     enabled: tab === "pendentes",
   });
 
-  const openDiag = (ins: Inseminacao) => { setSelectedIns(ins); setDiagOpen(true); };
+  const openDiag = (ins: Inseminacao) => {
+    setSelectedIns(ins);
+    setDiagOpen(true);
+  };
 
   const insHistorico = historico?.data ?? [];
   const insPendentes = pendentes?.data ?? [];
 
   return (
     <>
-      <div className="max-w-[1440px] mx-auto px-4 py-6 flex flex-col gap-4">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-[22px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>
+            <h1
+              className="text-[22px] font-bold text-ink"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
               Inseminação
             </h1>
             <p className="text-[14px] text-ink-3 mt-0.5">Controle reprodutivo do rebanho</p>
@@ -118,13 +178,21 @@ export function InseminacaoListPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-line">
-          {([["historico", "Histórico"], ["pendentes", `Diagnósticos Pendentes${insPendentes.length > 0 ? ` (${insPendentes.length})` : ""}`]] as const).map(([t, label]) => (
+        <div className="flex border-b border-line overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]">
+          {(
+            [
+              ["historico", "Histórico"],
+              [
+                "pendentes",
+                `Diagnósticos Pendentes${insPendentes.length > 0 ? ` (${insPendentes.length})` : ""}`,
+              ],
+            ] as const
+          ).map(([t, label]) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={[
-                "px-5 py-3 text-[14px] font-medium border-b-2 transition-colors",
+                "px-5 py-3 text-[14px] font-medium border-b-2 transition-colors flex-shrink-0 whitespace-nowrap",
                 tab === t
                   ? "border-green-700 text-green-700"
                   : "border-transparent text-ink-3 hover:text-ink",
@@ -136,38 +204,62 @@ export function InseminacaoListPage() {
         </div>
 
         {/* Tab: Histórico */}
-        {tab === "historico" && (
-          histLoading ? (
+        {tab === "historico" &&
+          (histLoading ? (
             <div className="flex flex-col gap-3">
-              {[...Array(4)].map((_, i) => <Card key={i} className="h-14 animate-pulse bg-beige">{null}</Card>)}
+              {[...Array(4)].map((_, i) => (
+                <Card key={i} className="h-14 animate-pulse bg-beige">
+                  {null}
+                </Card>
+              ))}
             </div>
+          ) : insHistorico.length === 0 ? (
+            <p className="text-center text-[14px] text-ink-3 py-12">
+              Nenhuma inseminação registrada.
+            </p>
           ) : (
-            <div className="overflow-hidden rounded-[18px] border border-line bg-surface">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-beige border-b border-line">
-                    {["Animal", "Data", "Tipo", "Reprodutor", "Resultado", "Ação"].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left text-[12px] font-semibold text-ink-2 uppercase tracking-[0.04em]">
-                        {h}
-                      </th>
+            <>
+              {/* Mobile: cards */}
+              <div className="flex flex-col gap-3 md:hidden">
+                {insHistorico.map((ins) => (
+                  <InseminacaoCard key={ins.id} ins={ins} onDiag={() => openDiag(ins)} />
+                ))}
+              </div>
+
+              {/* Desktop: table */}
+              <div className="hidden md:block overflow-hidden rounded-[18px] border border-line bg-surface">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-beige border-b border-line">
+                      {["Animal", "Data", "Tipo", "Reprodutor", "Resultado", "Ação"].map((h) => (
+                        <th
+                          key={h}
+                          className="px-4 py-3 text-left text-[12px] font-semibold text-ink-2 uppercase tracking-[0.04em]"
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {insHistorico.map((ins) => (
+                      <InseminacaoRow key={ins.id} ins={ins} onDiag={() => openDiag(ins)} />
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {insHistorico.map((ins) => (
-                    <InseminacaoRow key={ins.id} ins={ins} onDiag={() => openDiag(ins)} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        )}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ))}
 
         {/* Tab: Pendentes */}
-        {tab === "pendentes" && (
-          pendLoading ? (
+        {tab === "pendentes" &&
+          (pendLoading ? (
             <div className="flex flex-col gap-3">
-              {[...Array(3)].map((_, i) => <Card key={i} className="h-16 animate-pulse bg-beige">{null}</Card>)}
+              {[...Array(3)].map((_, i) => (
+                <Card key={i} className="h-16 animate-pulse bg-beige">
+                  {null}
+                </Card>
+              ))}
             </div>
           ) : insPendentes.length === 0 ? (
             <div className="text-center py-12">
@@ -181,12 +273,15 @@ export function InseminacaoListPage() {
                 <PendenteRow key={ins.id} ins={ins} onDiag={() => openDiag(ins)} />
               ))}
             </div>
-          )
-        )}
+          ))}
       </div>
 
       <Modal03NewInseminacao open={novaOpen} onClose={() => setNovaOpen(false)} />
-      <Modal05Diagnostico open={diagOpen} onClose={() => setDiagOpen(false)} inseminacao={selectedIns} />
+      <Modal05Diagnostico
+        open={diagOpen}
+        onClose={() => setDiagOpen(false)}
+        inseminacao={selectedIns}
+      />
     </>
   );
 }
