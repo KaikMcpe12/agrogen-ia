@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, Scale, Baby, ShieldPlus, AlertCircle, FileText, Download, Clock } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -12,6 +13,7 @@ import { Modal06Pesagem } from "@/components/modals/Modal06Pesagem";
 import { Modal07Parto } from "@/components/modals/Modal07Parto";
 import { Modal08Sanitario } from "@/components/modals/Modal08Sanitario";
 import { Modal09Ocorrencia } from "@/components/modals/Modal09Ocorrencia";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import {
   AreaChart,
   Area,
@@ -21,7 +23,29 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import type { Animal, Pesagem, Parto, EventoSanitario } from "@/types";
+import type { Animal, Pesagem, Parto, EventoSanitario, Sexo } from "@/types";
+
+function getLastAnimaisIds(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.lastAnimaisIds) ?? "[]") as string[];
+  } catch { return []; }
+}
+
+function saveLastAnimalId(id: string) {
+  const ids = getLastAnimaisIds().filter((x) => x !== id);
+  localStorage.setItem(STORAGE_KEYS.lastAnimaisIds, JSON.stringify([id, ...ids].slice(0, 5)));
+}
+
+function isProximaDoseAlerta(proxima_dose?: string): boolean {
+  if (!proxima_dose) return false;
+  const diff = Math.ceil((new Date(proxima_dose).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  return diff <= 7;
+}
+
+function isProximaDoseVencida(proxima_dose?: string): boolean {
+  if (!proxima_dose) return false;
+  return new Date(proxima_dose).getTime() < Date.now();
+}
 
 type Tab = "peso" | "paricao" | "sanitario" | "ocorrencias";
 
@@ -122,9 +146,10 @@ function SanitarioCard({ s }: { s: EventoSanitario }) {
 
 interface DiarioContentProps {
   animalId: string;
+  sexo?: Sexo;
 }
 
-export function DiarioContent({ animalId }: DiarioContentProps) {
+export function DiarioContent({ animalId, sexo }: DiarioContentProps) {
   const [tab, setTab] = useState<Tab>("peso");
   const [modal06Open, setModal06Open] = useState(false);
   const [modal07Open, setModal07Open] = useState(false);
@@ -148,7 +173,7 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
   const { data: sanitarioData, isLoading: sanLoading } = useQuery({
     queryKey: ["sanitario", animalId],
     queryFn: () => diarioApi.sanitario(animalId),
-    enabled: tab === "sanitario",
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: ocorrenciasData, isLoading: ocoLoading } = useQuery({
@@ -174,27 +199,29 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
   const sanitario = sanitarioData?.data ?? [];
   const ocorrencias = ocorrenciasData?.data ?? [];
 
-  const tabs: { id: Tab; label: string; count?: number | undefined }[] = [
+  const sanitarioAlerta = sanitario.some((s) => isProximaDoseAlerta(s.proxima_dose));
+
+  const naoResolvidasCount = ocorrencias.filter((o) => !o.resolvida).length;
+  const allTabs: { id: Tab; label: string; count?: number; alerta?: boolean; hidden?: boolean }[] = [
     { id: "peso", label: "Peso" },
-    { id: "paricao", label: "Parição", count: partos.length || undefined },
-    { id: "sanitario", label: "Sanitário", count: sanitario.length || undefined },
-    {
-      id: "ocorrencias",
-      label: "Ocorrências",
-      count: ocorrencias.filter((o) => !o.resolvida).length || undefined,
-    },
+    { id: "paricao", label: "Parição", hidden: sexo === "MACHO" },
+    { id: "sanitario", label: "Sanitário", alerta: sanitarioAlerta },
+    { id: "ocorrencias", label: "Ocorrências", ...(naoResolvidasCount > 0 ? { count: naoResolvidasCount } : {}) },
   ];
+  const tabs = allTabs.filter((t) => !t.hidden);
 
   const chartData = pesagens.map((p) => ({
-    data: new Date(p.data).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }),
+    dataFormatada: new Date(p.data).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }),
+    dataCompleta: new Date(p.data).toLocaleDateString("pt-BR"),
     peso: p.peso_kg,
+    gmd: p.gmd_calculado,
   }));
 
   return (
     <>
       {/* Tabs */}
       <div className="flex border-b border-line overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]">
-        {tabs.map(({ id, label, count }) => (
+        {tabs.map(({ id, label, count, alerta }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
@@ -209,6 +236,11 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
             {count !== undefined && (
               <span className="ml-1.5 text-[11px] bg-green-700 text-white font-semibold px-1.5 py-0.5 rounded-full">
                 {count}
+              </span>
+            )}
+            {alerta && (
+              <span className="ml-1.5 inline-flex items-center justify-center w-[18px] h-[18px] bg-warn text-white rounded-full" title="Dose próxima ou vencida">
+                <AlertCircle size={11} />
               </span>
             )}
           </button>
@@ -261,24 +293,17 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} />
-                  <XAxis dataKey="data" tick={{ fontSize: 11, fill: chartTheme.textColor }} />
+                  <XAxis dataKey="dataFormatada" tick={{ fontSize: 11, fill: chartTheme.textColor }} />
                   <YAxis tick={{ fontSize: 11, fill: chartTheme.textColor }} unit=" kg" />
                   <Tooltip
-                    contentStyle={{
-                      background: chartTheme.tooltipBg,
-                      border: "1px solid #e6e3dc",
-                      borderRadius: 8,
-                      fontSize: 12,
+                    contentStyle={{ background: chartTheme.tooltipBg, border: `1px solid ${chartTheme.gridColor}`, borderRadius: 8, fontSize: 12 }}
+                    labelFormatter={(label) => `Data: ${String(label)}`}
+                    formatter={(v: unknown, name: string | number | undefined) => {
+                      if (name === "peso") return [`${String(v)} kg`, "Peso"];
+                      return [`${String(v)} kg/dia`, "GMD"];
                     }}
-                    formatter={(v) => [`${String(v)} kg`, "Peso"] as [string, string]}
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="peso"
-                    stroke={chartTheme.primaryColor}
-                    strokeWidth={2}
-                    fill="url(#pesoGrad)"
-                  />
+                  <Area type="monotone" dataKey="peso" name="peso" stroke={chartTheme.primaryColor} strokeWidth={2} fill="url(#pesoGrad)" dot={{ r: 3 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </Card>
@@ -297,28 +322,17 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
                   <thead>
                     <tr className="bg-beige border-b border-line">
                       {["Data", "Peso (kg)", "Estágio", "GMD", "Observação"].map((h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-left text-[11px] font-semibold text-ink-2 uppercase tracking-[0.04em]"
-                        >
-                          {h}
-                        </th>
+                        <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-ink-2 uppercase tracking-[0.04em]">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {pesagens.map((p) => (
                       <tr key={p.id} className="border-b border-line last:border-0 hover:bg-beige/50 transition-colors">
-                        <td className="px-4 py-2.5 text-[13px] text-ink">
-                          {new Date(p.data).toLocaleDateString("pt-BR")}
-                        </td>
+                        <td className="px-4 py-2.5 text-[13px] text-ink">{new Date(p.data).toLocaleDateString("pt-BR")}</td>
                         <td className="px-4 py-2.5 text-[14px] font-semibold text-ink">{p.peso_kg}</td>
-                        <td className="px-4 py-2.5 text-[12px] text-ink-3">
-                          {ESTAGIO_LABELS[p.estagio] ?? p.estagio}
-                        </td>
-                        <td className="px-4 py-2.5 text-[13px] text-ink-2">
-                          {p.gmd_calculado !== undefined ? `${p.gmd_calculado} kg/dia` : "—"}
-                        </td>
+                        <td className="px-4 py-2.5 text-[12px] text-ink-3">{ESTAGIO_LABELS[p.estagio] ?? p.estagio}</td>
+                        <td className="px-4 py-2.5 text-[13px] text-ink-2">{p.gmd_calculado !== undefined ? `${p.gmd_calculado} kg/dia` : "—"}</td>
                         <td className="px-4 py-2.5 text-[12px] text-ink-3">{p.observacao ?? "—"}</td>
                       </tr>
                     ))}
@@ -328,7 +342,11 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
             </>
           ) : (
             !pesLoading && (
-              <p className="text-center text-[14px] text-ink-3 py-8">Nenhuma pesagem registrada.</p>
+              <div className="flex flex-col items-center py-12 gap-3 text-center">
+                <Scale size={32} className="text-ink-4" />
+                <p className="text-[15px] font-semibold text-ink">Sem pesagens registradas</p>
+                <p className="text-[13px] text-ink-3">Registre a primeira pesagem para acompanhar a curva de crescimento.</p>
+              </div>
             )
           )}
         </div>
@@ -337,6 +355,14 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
       {/* Tab: Parição */}
       {tab === "paricao" && (
         <div className="flex flex-col gap-4">
+          {sexo === "MACHO" ? (
+            <div className="flex flex-col items-center py-12 gap-3 text-center">
+              <Baby size={32} className="text-ink-4" />
+              <p className="text-[15px] font-semibold text-ink">Aba não disponível</p>
+              <p className="text-[13px] text-ink-3 max-w-xs">Registros de parição são exclusivos para animais do sexo feminino.</p>
+            </div>
+          ) : (
+          <>
           <div className="flex justify-between items-center">
             {partos.length > 0 && (
               <p className="text-[13px] text-ink-3">
@@ -407,7 +433,13 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
               </div>
             </>
           ) : (
-            <p className="text-center text-[14px] text-ink-3 py-8">Nenhum parto registrado.</p>
+            <div className="flex flex-col items-center py-12 gap-3 text-center">
+              <Baby size={32} className="text-ink-4" />
+              <p className="text-[15px] font-semibold text-ink">Sem partos registrados</p>
+              <p className="text-[13px] text-ink-3">Registre o primeiro parto para iniciar o histórico reprodutivo.</p>
+            </div>
+          )}
+          </>
           )}
         </div>
       )}
@@ -456,10 +488,13 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
                           {new Date(s.data_aplicacao).toLocaleDateString("pt-BR")}
                         </td>
                         <td className="px-4 py-2.5 text-[12px] text-ink-3">{s.via ?? "—"}</td>
-                        <td className="px-4 py-2.5 text-[12px] text-ink-2">
-                          {s.proxima_dose
-                            ? new Date(s.proxima_dose).toLocaleDateString("pt-BR")
-                            : "—"}
+                        <td className="px-4 py-2.5 text-[12px]">
+                          {s.proxima_dose ? (
+                            <span className={`flex items-center gap-1 ${isProximaDoseVencida(s.proxima_dose) ? "text-danger font-medium" : isProximaDoseAlerta(s.proxima_dose) ? "text-warn font-medium" : "text-ink-2"}`}>
+                              {(isProximaDoseVencida(s.proxima_dose) || isProximaDoseAlerta(s.proxima_dose)) && <Clock size={12} />}
+                              {new Date(s.proxima_dose).toLocaleDateString("pt-BR")}
+                            </span>
+                          ) : "—"}
                         </td>
                       </tr>
                     ))}
@@ -468,9 +503,13 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
               </div>
             </>
           ) : (
-            <p className="text-center text-[14px] text-ink-3 py-8">
-              Nenhum evento sanitário registrado.
-            </p>
+            !sanLoading && (
+              <div className="flex flex-col items-center py-12 gap-3 text-center">
+                <ShieldPlus size={32} className="text-ink-4" />
+                <p className="text-[15px] font-semibold text-ink">Sem eventos sanitários</p>
+                <p className="text-[13px] text-ink-3">Registre vacinas, vermifugações e medicações.</p>
+              </div>
+            )
           )}
         </div>
       )}
@@ -512,10 +551,35 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
                 ))}
             </div>
           ) : (
-            <p className="text-center text-[14px] text-ink-3 py-8">Nenhuma ocorrência registrada.</p>
+            !ocoLoading && (
+              <div className="flex flex-col items-center py-12 gap-3 text-center">
+                <AlertCircle size={32} className="text-ink-4" />
+                <p className="text-[15px] font-semibold text-ink">Sem ocorrências registradas</p>
+                <p className="text-[13px] text-ink-3">Registre eventos como lesões, comportamentos incomuns ou intercorrências.</p>
+              </div>
+            )
           )}
         </div>
       )}
+
+      {/* Rodapé: exportar */}
+      <div className="flex items-center gap-3 pt-4 border-t border-line mt-2">
+        <p className="text-[12px] text-ink-4 mr-auto">Exportar dados deste animal:</p>
+        <button
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border border-line text-[13px] text-ink-3 hover:bg-beige transition-colors"
+          onClick={() => alert("Exportação de PDF em desenvolvimento")}
+          aria-label="Exportar ficha em PDF"
+        >
+          <FileText size={14} /> Ficha PDF
+        </button>
+        <button
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border border-line text-[13px] text-ink-3 hover:bg-beige transition-colors"
+          onClick={() => alert("Exportação de CSV em desenvolvimento")}
+          aria-label="Exportar dados em CSV"
+        >
+          <Download size={14} /> Exportar CSV
+        </button>
+      </div>
 
       <Modal06Pesagem
         open={modal06Open}
@@ -546,92 +610,102 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
 }
 
 export function DiarioListPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
   const debouncedSearch = useDebounce(search, 300);
+  const lastIds = getLastAnimaisIds();
 
   const { data: animaisData } = useQuery({
     queryKey: ["animais-diario-search", debouncedSearch],
     queryFn: () => animaisApi.listar({ q: debouncedSearch, limit: 8 }),
-    enabled: debouncedSearch.length > 1 && !selectedAnimal,
+    enabled: debouncedSearch.length > 1,
+  });
+
+  const { data: lastAnimaisData } = useQuery({
+    queryKey: ["animais-last-visited", lastIds],
+    queryFn: async () => {
+      const results = await Promise.all(lastIds.map((id) => animaisApi.buscar(id)));
+      return results.map((r) => r.data).filter(Boolean) as Animal[];
+    },
+    enabled: lastIds.length > 0 && !debouncedSearch,
+    staleTime: 2 * 60 * 1000,
   });
 
   const sugestoes = animaisData?.data ?? [];
+  const ultimosAcessados = lastAnimaisData ?? [];
+
+  const handleSelectAnimal = (animal: Animal) => {
+    saveLastAnimalId(animal.id);
+    void navigate(`/diario-de-bordo/${animal.id}`);
+  };
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
       <div>
-        <h1
-          className="text-[22px] font-bold text-ink"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
+        <h1 className="text-[22px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>
           Diário de Bordo
         </h1>
         <p className="text-[14px] text-ink-3 mt-0.5">Registros individuais por animal</p>
       </div>
 
       {/* Animal search */}
-      {!selectedAnimal ? (
-        <div className="max-w-lg">
-          <div className="relative">
-            <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-4 pointer-events-none"
-            />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar animal por nome ou código…"
-              className="w-full pl-9 pr-4 py-2.5 rounded-[10px] border border-line text-[14px] text-ink bg-surface outline-none focus:border-green-700 focus:ring-[3px] focus:ring-green-700/18 transition-all placeholder:text-ink-4"
-            />
-          </div>
-          {sugestoes.length > 0 && search && (
-            <div className="mt-1 border border-line rounded-[10px] bg-surface overflow-hidden shadow-[var(--shadow-sm)]">
-              {sugestoes.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  className="w-full text-left px-4 py-2.5 text-[13px] hover:bg-beige transition-colors border-b border-line last:border-0"
-                  onClick={() => {
-                    setSelectedAnimal(a);
-                    setSearch("");
-                  }}
-                >
-                  <strong className="text-ink">{a.nome}</strong>{" "}
-                  <span className="font-mono text-ink-4">{a.codigo}</span>{" "}
-                  <span className="text-ink-3 ml-1">
-                    {a.especie} · {a.status}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-          {search.length > 1 && sugestoes.length === 0 && (
-            <p className="text-[13px] text-ink-4 mt-2 px-1">
-              Nenhum animal encontrado para "{search}".
-            </p>
-          )}
+      <div className="max-w-lg">
+        <div className="relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-4 pointer-events-none" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar animal por nome ou código…"
+            className="w-full pl-9 pr-4 py-2.5 rounded-[10px] border border-line text-[14px] text-ink bg-surface outline-none focus:border-green-700 focus:ring-[3px] focus:ring-green-700/18 transition-all placeholder:text-ink-4"
+          />
         </div>
-      ) : (
-        <>
-          {/* Animal card */}
-          <Card padding="sm" className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-green-700 flex items-center justify-center text-white font-bold text-[15px]">
-              {selectedAnimal.nome.charAt(0)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[16px] font-bold text-ink truncate">{selectedAnimal.nome}</p>
-              <p className="text-[12px] text-ink-3 font-mono truncate">
-                {selectedAnimal.codigo} · {selectedAnimal.especie} · {selectedAnimal.raca_principal}
-              </p>
-            </div>
-            <Button variant="secondary" size="sm" onClick={() => setSelectedAnimal(null)}>
-              Trocar animal
-            </Button>
-          </Card>
+        {sugestoes.length > 0 && debouncedSearch && (
+          <div className="mt-1 border border-line rounded-[10px] bg-surface overflow-hidden shadow-[var(--shadow-sm)]">
+            {sugestoes.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                className="w-full text-left px-4 py-2.5 text-[13px] hover:bg-beige transition-colors border-b border-line last:border-0"
+                onClick={() => handleSelectAnimal(a)}
+              >
+                <strong className="text-ink">{a.nome}</strong>{" "}
+                <span className="font-mono text-ink-4">{a.codigo}</span>{" "}
+                <span className="text-ink-3 ml-1">{a.especie} · {a.status}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {debouncedSearch.length > 1 && sugestoes.length === 0 && (
+          <p className="text-[13px] text-ink-4 mt-2 px-1">Nenhum animal encontrado para "{debouncedSearch}".</p>
+        )}
+      </div>
 
-          <DiarioContent animalId={selectedAnimal.id} />
-        </>
+      {/* Atalhos: últimos 5 animais acessados */}
+      {ultimosAcessados.length > 0 && !debouncedSearch && (
+        <div>
+          <p className="text-[12px] font-semibold text-ink-4 uppercase tracking-[0.06em] mb-2">Acessados recentemente</p>
+          <div className="flex flex-wrap gap-2">
+            {ultimosAcessados.map((a) => (
+              <button
+                key={a.id}
+                onClick={() => handleSelectAnimal(a)}
+                className="flex items-center gap-2 px-3 py-2 rounded-[10px] border border-line bg-surface hover:bg-beige transition-colors text-left"
+              >
+                <span className="text-[18px]">{a.especie === "BOVINO" ? "🐄" : a.especie === "OVINO" ? "🐑" : "🐐"}</span>
+                <div>
+                  <p className="text-[13px] font-semibold text-ink">{a.nome}</p>
+                  <p className="text-[11px] font-mono text-ink-4">{a.codigo}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!debouncedSearch && ultimosAcessados.length === 0 && (
+        <Card padding="md" className="max-w-lg text-center">
+          <p className="text-[14px] text-ink-3">Busque um animal pelo nome ou código para abrir seu diário.</p>
+        </Card>
       )}
     </div>
   );
