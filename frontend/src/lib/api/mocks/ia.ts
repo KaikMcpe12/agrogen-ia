@@ -45,5 +45,11 @@ export const padroesFertilidade: PadroesFertilidade = {
     { protocolo: "IA Convencional", inseminacoes: 10, taxa: 60 },
     { protocolo: "TE", inseminacoes: 2, taxa: 100 },
   ],
+  top_reprodutores: [
+    { reprodutor: "Titan Nelore", inseminacoes: 8, taxa_prenhez: 75 },
+    { reprodutor: "Zeus Angus", inseminacoes: 5, taxa_prenhez: 80 },
+    { reprodutor: "Trovão", inseminacoes: 4, taxa_prenhez: 75 },
+    { reprodutor: "Bode Forte", inseminacoes: 3, taxa_prenhez: 67 },
+  ],
   minimo_inseminacoes_atingido: true,
 };

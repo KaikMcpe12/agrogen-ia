@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Brain, TrendingUp, Dna, AlertTriangle } from "lucide-react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Brain, TrendingUp, Dna, AlertTriangle, Syringe } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -66,14 +67,39 @@ function GaugeSVG({ pct }: { pct: number }) {
   );
 }
 
+const LOADING_MESSAGES = [
+  "Lendo histórico reprodutivo…",
+  "Cruzando dados genéticos…",
+  "Calculando score de prenhez…",
+  "Avaliando fatores determinantes…",
+  "Gerando recomendações…",
+];
+
 /* ── Aba: Predição ─────────────────────────────────────────────── */
 function TabPredicao() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
   const [predicao, setPredicao] = useState<PredicaoPrenhez | null>(null);
+  const [loadingMsg, setLoadingMsg] = useState(0);
   const debouncedSearch = useDebounce(search, 300);
   const chartTheme = useChartTheme();
+
+  const animalIdParam = searchParams.get("animal_id");
+
+  const { data: preselectedData } = useQuery({
+    queryKey: ["animal", animalIdParam],
+    queryFn: () => animaisApi.buscar(animalIdParam!),
+    enabled: !!animalIdParam && !selectedAnimal,
+  });
+
+  useEffect(() => {
+    if (preselectedData?.data && !selectedAnimal) {
+      setSelectedAnimal(preselectedData.data);
+    }
+  }, [preselectedData, selectedAnimal]);
 
   const { data: animaisData } = useQuery({
     queryKey: ["animais-ia-search", debouncedSearch],
@@ -89,6 +115,14 @@ function TabPredicao() {
       void qc.invalidateQueries({ queryKey: ["alertas"] });
     },
   });
+
+  useEffect(() => {
+    if (!rodar.isPending) return;
+    const interval = setInterval(() => {
+      setLoadingMsg((m) => (m + 1) % LOADING_MESSAGES.length);
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [rodar.isPending]);
 
   const sugestoes = animaisData?.data ?? [];
 
@@ -166,13 +200,13 @@ function TabPredicao() {
             </div>
           </Card>
 
-          {/* Loading */}
+          {/* Loading com mensagens rotativas */}
           {rodar.isPending && (
             <div className="text-center py-12">
               <div className="w-10 h-10 border-[3px] border-green-700 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-[15px] font-semibold text-ink">Processando modelo de IA</p>
-              <p className="text-[13px] text-ink-4 font-mono mt-1">
-                Analisando dados genéticos e histórico…
+              <p className="text-[15px] font-semibold text-ink">Analisando…</p>
+              <p className="text-[13px] text-ink-4 font-mono mt-1 h-5 transition-all">
+                {LOADING_MESSAGES[loadingMsg]}
               </p>
             </div>
           )}
@@ -209,7 +243,7 @@ function TabPredicao() {
                       <p className="text-[13px] text-ink">{r}</p>
                     </div>
                   ))}
-                  {predicao.aviso_clinico && (
+                    {predicao.aviso_clinico && (
                     <div className="flex gap-3 p-3 rounded-[12px] bg-warn-bg border border-warn/20 mt-1">
                       <AlertTriangle size={16} className="text-warn shrink-0 mt-0.5" />
                       <div>
@@ -278,10 +312,30 @@ function TabPredicao() {
                 </Card>
               )}
 
-              <div className="flex justify-end">
-                <Button variant="primary" size="sm" onClick={() => setPredicao(null)}>
+              {/* Aviso clínico hardcoded — SEMPRE visível independente da API */}
+              <div className="flex gap-3 p-4 rounded-[12px] bg-warn-bg border border-warn/30">
+                <AlertTriangle size={18} className="text-warn shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[13px] font-semibold text-warn">Aviso Clínico Importante</p>
+                  <p className="text-[12px] text-warn/90 mt-0.5">
+                    Este score não substitui o julgamento clínico veterinário. A decisão de inseminação deve sempre ser tomada por profissional habilitado, considerando o exame físico e o histórico completo do animal.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <Button variant="secondary" size="sm" onClick={() => setPredicao(null)}>
                   Nova Análise
                 </Button>
+                {predicao.classificacao === "FAVORAVEL" && selectedAnimal && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => void navigate(`/inseminacao?animal_id=${selectedAnimal.id}`)}
+                  >
+                    <Syringe size={14} /> Registrar Inseminação
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -419,26 +473,48 @@ function TabPadroes() {
         </div>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={padroes.por_protocolo} layout="vertical" margin={{ left: 110 }}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke={chartTheme.gridColor}
-              horizontal={false}
-            />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
             <XAxis type="number" tick={{ fontSize: 10, fill: chartTheme.textColor }} unit="%" />
-            <YAxis
-              dataKey="protocolo"
-              type="category"
-              tick={{ fontSize: 10, fill: chartTheme.textColor }}
-              width={105}
-            />
-            <Tooltip
-              {...barProps}
-              formatter={(v) => [`${String(v)}%`, "Taxa"] as [string, string]}
-            />
+            <YAxis dataKey="protocolo" type="category" tick={{ fontSize: 10, fill: chartTheme.textColor }} width={105} />
+            <Tooltip {...barProps} formatter={(v) => [`${String(v)}%`, "Taxa"] as [string, string]} />
             <Bar dataKey="taxa" fill={chartTheme.warnColor} radius={[0, 3, 3, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
+
+      {/* Tabela top reprodutores */}
+      {padroes.top_reprodutores && padroes.top_reprodutores.length > 0 && (
+        <Card padding="sm" className="md:col-span-2">
+          <div className="mb-3">
+            <p className="text-[13px] font-semibold text-ink-2">Top reprodutores por taxa de prenhez</p>
+            <p className="text-[11px] text-ink-4">Ordenados por eficácia reprodutiva no rebanho</p>
+          </div>
+          <div className="overflow-hidden rounded-[10px] border border-line">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-beige border-b border-line">
+                  {["Reprodutor", "Inseminações", "Taxa de Prenhez"].map((h) => (
+                    <th key={h} className="px-3 py-2.5 text-left text-[11px] font-semibold text-ink-2 uppercase tracking-[0.04em]">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {padroes.top_reprodutores.map((r, i) => (
+                  <tr key={i} className="border-b border-line last:border-0 hover:bg-beige/50 transition-colors">
+                    <td className="px-3 py-2.5 text-[13px] font-medium text-ink">{r.reprodutor}</td>
+                    <td className="px-3 py-2.5 text-[13px] text-ink-2">{r.inseminacoes}</td>
+                    <td className="px-3 py-2.5">
+                      <span className={`text-[13px] font-semibold ${r.taxa_prenhez >= 75 ? "text-ok" : r.taxa_prenhez >= 60 ? "text-warn" : "text-danger"}`}>
+                        {r.taxa_prenhez}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
@@ -553,33 +629,41 @@ function TabSelecao() {
             <table className="w-full">
               <thead>
                 <tr className="bg-beige border-b border-line">
-                  {["Matriz", "Reprodutor", "Score Genético", "Heterose", "Risco Endogamia"].map(
-                    (h) => (
-                      <th
-                        key={h}
-                        className="px-3 py-2.5 text-left text-[11px] font-semibold text-ink-2 uppercase tracking-[0.04em]"
-                      >
-                        {h}
-                      </th>
-                    )
-                  )}
+                  <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-ink-2 uppercase tracking-[0.04em]">Matriz</th>
+                  <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-ink-2 uppercase tracking-[0.04em]">Reprodutor</th>
+                  <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-ink-2 uppercase tracking-[0.04em] cursor-help" title="Diferença esperada de performance da progênie em relação à média da raça (DEP)">
+                    Score Genético ⓘ
+                  </th>
+                  <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-ink-2 uppercase tracking-[0.04em] cursor-help" title="Ganho de performance por cruzamento de raças distintas. Quanto maior, melhor o aproveitamento genético">
+                    Heterose ⓘ
+                  </th>
+                  <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-ink-2 uppercase tracking-[0.04em] cursor-help" title="Probabilidade (F) de genes idênticos por descendência. Acima de 6,25% indica risco elevado de endogamia">
+                    Risco Endogamia ⓘ
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {recomendacoes.map((r, i) => (
-                  <tr
-                    key={i}
-                    className="border-b border-line last:border-0 hover:bg-beige/50 transition-colors"
-                  >
-                    <td className="px-3 py-2.5 text-[13px] font-medium text-ink">{r.matriz}</td>
-                    <td className="px-3 py-2.5 text-[13px] text-ink-2">{r.reprodutor}</td>
-                    <td className="px-3 py-2.5">
-                      <span className="text-[14px] font-bold text-green-700">{r.score_genetico}</span>
-                    </td>
-                    <td className="px-3 py-2.5 text-[13px] text-ink-3">{r.heterose_esperada}</td>
-                    <td className="px-3 py-2.5 text-[13px] text-ink-3">{r.risco_endogamia}</td>
-                  </tr>
-                ))}
+                {recomendacoes.map((r, i) => {
+                  const fValue = parseFloat(r.risco_endogamia);
+                  const isHighEndogamia = !isNaN(fValue) && fValue > 0.0625;
+                  return (
+                    <tr key={i} className={`border-b border-line last:border-0 hover:bg-beige/50 transition-colors ${isHighEndogamia ? "bg-warn-bg/40" : ""}`}>
+                      <td className="px-3 py-2.5 text-[13px] font-medium text-ink">{r.matriz}</td>
+                      <td className="px-3 py-2.5 text-[13px] text-ink-2">{r.reprodutor}</td>
+                      <td className="px-3 py-2.5">
+                        <span className="text-[14px] font-bold text-green-700">{r.score_genetico}</span>
+                      </td>
+                      <td className="px-3 py-2.5 text-[13px] text-ink-3">{r.heterose_esperada}</td>
+                      <td className="px-3 py-2.5 text-[13px]">
+                        <span className={isHighEndogamia ? "text-warn font-semibold flex items-center gap-1" : "text-ink-3"}>
+                          {isHighEndogamia && <AlertTriangle size={12} />}
+                          {(fValue * 100).toFixed(1)}%
+                          {isHighEndogamia && <span className="text-[10px] font-normal">— Risco elevado</span>}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

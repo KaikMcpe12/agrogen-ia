@@ -285,6 +285,7 @@ export interface PadroesFertilidade {
   por_raca: { raca: string; inseminacoes: number; taxa: number }[];
   por_tecnico: { tecnico_nome: string; inseminacoes: number; taxa: number }[];
   por_protocolo: { protocolo: string; inseminacoes: number; taxa: number }[];
+  top_reprodutores?: { reprodutor: string; inseminacoes: number; taxa_prenhez: number }[];
   minimo_inseminacoes_atingido: boolean;
 }
 
