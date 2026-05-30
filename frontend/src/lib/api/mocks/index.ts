@@ -72,10 +72,46 @@ export function setupMocks(client: AxiosInstance): void {
     return [200, { success: true, data: usuario }];
   });
 
+  mock.onPost("/usuarios/me/alterar-senha").reply(async () => {
+    await delay(300, 500);
+    return [200, { success: true, data: { mensagem: "Senha alterada com sucesso." } }];
+  });
+
+  mock.onPut("/usuarios/me").reply(async (config) => {
+    await delay(300, 500);
+    const body = config.data ? (JSON.parse(config.data as string) as Partial<typeof usuario>) : {};
+    return [200, { success: true, data: { ...usuario, ...body } }];
+  });
+
+  mock.onGet("/usuarios/me/exportar").reply(async () => {
+    await delay(1000, 2000);
+    return [200, { success: true, data: { url: "/mock-export.json", mensagem: "Dados exportados com sucesso." } }];
+  });
+
   /* ── Fazendas ── */
   mock.onGet("/fazendas").reply(async () => {
     await delay();
     return [200, { success: true, data: fazendas }];
+  });
+
+  mock.onPost("/fazendas").reply(async (_config) => {
+    await delay(300, 600);
+    const novaFazenda = { id: `faz-new-${Date.now()}`, total_animais: 0, created_at: new Date().toISOString() };
+    return [201, { success: true, data: novaFazenda }];
+  });
+
+  mock.onPut(/\/fazendas\/[^/]+$/).reply(async (config) => {
+    await delay(300, 500);
+    const id = config.url?.split("/").pop() ?? "";
+    const fazenda = fazendas.find((f) => f.id === id);
+    if (!fazenda) return [404, { success: false, error: { codigo: "FAZENDA_NOT_FOUND" } }];
+    const body = config.data ? (JSON.parse(config.data as string) as Partial<typeof fazenda>) : {};
+    return [200, { success: true, data: { ...fazenda, ...body } }];
+  });
+
+  mock.onDelete(/\/fazendas\/[^/]+$/).reply(async () => {
+    await delay();
+    return [200, { success: true }];
   });
 
   /* ── Animais ── */
