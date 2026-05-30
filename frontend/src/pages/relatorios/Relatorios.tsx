@@ -1,12 +1,35 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, FileBarChart2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { relatoriosApi } from "@/lib/api/endpoints/relatorios";
 import { useChartTheme } from "@/hooks/useChartTheme";
+import { useDebounce } from "@/hooks/useDebounce";
+
+type TipoRelatorio = "reprodutivo" | "ponderal" | "sanitario" | "reprodutores" | "especies";
+
+const TIPO_LABELS: Record<TipoRelatorio, string> = {
+  reprodutivo: "Reprodutivo",
+  ponderal: "Ponderal",
+  sanitario: "Sanitário",
+  reprodutores: "Comparativo Reprodutores",
+  especies: "Resumo por Espécie",
+};
+
+function getPeriod(type: "mes" | "trimestre" | "ano") {
+  const now = new Date();
+  const fmt = (d: Date) => d.toISOString().split("T")[0] ?? "";
+  if (type === "mes") {
+    return { inicio: fmt(new Date(now.getFullYear(), now.getMonth(), 1)), fim: fmt(now) };
+  }
+  if (type === "trimestre") {
+    return { inicio: fmt(new Date(now.getFullYear(), now.getMonth() - 2, 1)), fim: fmt(now) };
+  }
+  return { inicio: fmt(new Date(now.getFullYear(), 0, 1)), fim: fmt(now) };
+}
 import {
   BarChart,
   Bar,
@@ -33,19 +56,25 @@ const RESULTADO_LABEL: Record<string, string> = {
 
 export function RelatoriosPage() {
   const chartTheme = useChartTheme();
+  const [tipo, setTipo] = useState<TipoRelatorio>("reprodutivo");
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [especie, setEspecie] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
 
+  const debouncedInicio = useDebounce(dataInicio, 500);
+  const debouncedFim = useDebounce(dataFim, 500);
+  const debouncedEspecie = useDebounce(especie, 500);
+
   const { data, isLoading } = useQuery({
-    queryKey: ["relatorio-reprodutivo", dataInicio, dataFim, especie],
+    queryKey: ["relatorio-reprodutivo", debouncedInicio, debouncedFim, debouncedEspecie],
     queryFn: () =>
       relatoriosApi.reprodutivo({
-        data_inicio: dataInicio || undefined,
-        data_fim: dataFim || undefined,
-        especie: especie || undefined,
+        data_inicio: debouncedInicio || undefined,
+        data_fim: debouncedFim || undefined,
+        especie: debouncedEspecie || undefined,
       }),
+    enabled: tipo === "reprodutivo",
   });
 
   const exportarPDF = useMutation({
@@ -167,22 +196,47 @@ export function RelatoriosPage() {
         </div>
       )}
 
-      {/* Filtros */}
+      {/* Tipo de relatório */}
+      <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] pb-1">
+        {(Object.entries(TIPO_LABELS) as [TipoRelatorio, string][]).map(([t, label]) => (
+          <button
+            key={t}
+            onClick={() => setTipo(t)}
+            className={[
+              "px-3 py-1.5 rounded-full text-[13px] font-medium border whitespace-nowrap transition-colors",
+              tipo === t ? "bg-green-900 text-white border-green-900" : "bg-surface text-ink-3 border-line hover:bg-beige",
+              t !== "reprodutivo" ? "opacity-60" : "",
+            ].join(" ")}
+          >
+            {label}
+            {t !== "reprodutivo" && <span className="ml-1 text-[10px]">(em breve)</span>}
+          </button>
+        ))}
+      </div>
+
+      {/* Filtros — sem botão Gerar, atualiza com debounce 500ms */}
       <div className="bg-beige rounded-[14px] p-4 flex flex-col gap-3">
-        <p className="text-[13px] font-semibold text-ink-2">Filtros</p>
+        <div className="flex items-center justify-between">
+          <p className="text-[13px] font-semibold text-ink-2">Filtros</p>
+          {/* Atalhos de período */}
+          <div className="flex gap-1.5">
+            {(["mes", "trimestre", "ano"] as const).map((p) => {
+              const labels = { mes: "Este mês", trimestre: "Último trim.", ano: "Este ano" };
+              return (
+                <button
+                  key={p}
+                  onClick={() => { const r = getPeriod(p); setDataInicio(r.inicio); setDataFim(r.fim); }}
+                  className="px-2.5 py-1 rounded-[8px] text-[12px] font-medium border border-line bg-surface hover:bg-white text-ink-3 transition-colors"
+                >
+                  {labels[p]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Input
-            label="Data início"
-            type="date"
-            value={dataInicio}
-            onChange={(e) => setDataInicio(e.target.value)}
-          />
-          <Input
-            label="Data fim"
-            type="date"
-            value={dataFim}
-            onChange={(e) => setDataFim(e.target.value)}
-          />
+          <Input label="Data início" type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+          <Input label="Data fim" type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
           <div className="flex flex-col gap-1.5">
             <label className="text-[13px] font-medium text-ink-2">Espécie</label>
             <select
@@ -197,15 +251,7 @@ export function RelatoriosPage() {
             </select>
           </div>
           <div className="flex items-end">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                setDataInicio("");
-                setDataFim("");
-                setEspecie("");
-              }}
-            >
+            <Button variant="secondary" size="sm" onClick={() => { setDataInicio(""); setDataFim(""); setEspecie(""); }}>
               Limpar
             </Button>
           </div>
@@ -254,9 +300,15 @@ export function RelatoriosPage() {
             ))}
           </div>
         ) : rows.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-[15px] font-semibold text-ink">Nenhum registro encontrado</p>
-            <p className="text-[14px] text-ink-3 mt-1">Ajuste os filtros para ver resultados.</p>
+          <div className="flex flex-col items-center py-16 gap-4 text-center">
+            <div className="w-16 h-16 rounded-full bg-beige flex items-center justify-center">
+              <FileBarChart2 size={28} className="text-ink-4" />
+            </div>
+            <h3 className="text-[17px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>Sem dados no período</h3>
+            <p className="text-[14px] text-ink-3 max-w-xs">Ajuste os filtros ou selecione um período diferente.</p>
+            <Button variant="secondary" size="sm" onClick={() => { setDataInicio(""); setDataFim(""); setEspecie(""); }}>
+              Limpar filtros
+            </Button>
           </div>
         ) : (
           <>
