@@ -23,6 +23,9 @@ export const animaisApi = {
   criar: (body: Partial<Animal>) =>
     client.post<ApiResponse<Pick<Animal, "id" | "codigo" | "nome" | "status" | "created_at">>>("/animais", body).then((r) => r.data),
 
+  atualizar: (id: string, data: Partial<Animal>) =>
+    client.put<ApiResponse<Animal>>(`/animais/${id}`, data).then((r) => r.data),
+
   deletar: (id: string) =>
     client.delete<ApiResponse<null>>(`/animais/${id}`).then((r) => r.data),
 

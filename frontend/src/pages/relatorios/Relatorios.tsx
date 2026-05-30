@@ -39,6 +39,14 @@ export function RelatoriosPage() {
     mutationFn: () => relatoriosApi.exportarPDF("reprodutivo"),
     onMutate: () => setPdfLoading(true),
     onSettled: () => setPdfLoading(false),
+    onSuccess: (res) => {
+      const a = document.createElement("a");
+      a.href = res.data.url;
+      a.download = "relatorio-agrogen.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    },
   });
 
   const rows = data?.data ?? [];

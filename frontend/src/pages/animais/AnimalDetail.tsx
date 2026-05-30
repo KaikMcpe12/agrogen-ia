@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Syringe, Scale, Baby } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, Syringe, Scale, Baby, Trash2 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -9,6 +10,8 @@ import { animaisApi } from "@/lib/api/endpoints/animais";
 import { diarioApi } from "@/lib/api/endpoints/diario";
 import { alertasApi } from "@/lib/api/endpoints/alertas";
 import { useChartTheme } from "@/hooks/useChartTheme";
+import { Modal03NewInseminacao } from "@/components/modals/Modal03NewInseminacao";
+import { Modal10DeleteConfirm } from "@/components/modals/Modal10DeleteConfirm";
 import type { Animal, StatusAnimal, Especie } from "@/types";
 
 const ESPECIE_LABELS: Record<Especie, string> = { BOVINO: "🐄 Bovino", OVINO: "🐑 Ovino", CAPRINO: "🐐 Caprino" };
@@ -21,7 +24,7 @@ const STATUS_LABELS: Record<StatusAnimal, string> = {
   REPRODUTOR_ATIVO: "Reprodutor", EM_MONITORAMENTO: "Monitoramento",
 };
 
-function AnimalHeader({ animal }: { animal: Animal }) {
+function AnimalHeader({ animal, onInseminar, onDelete }: { animal: Animal; onInseminar: () => void; onDelete: () => void }) {
   const navigate = useNavigate();
   return (
     <div className="flex flex-col gap-4">
@@ -57,14 +60,18 @@ function AnimalHeader({ animal }: { animal: Animal }) {
             )}
           </div>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2 shrink-0 flex-wrap">
           <Button variant="secondary" size="sm" onClick={() => void navigate(`/diario-de-bordo/${animal.id}`)}>
             <Baby size={14} />
             Diário
           </Button>
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={onInseminar}>
             <Syringe size={14} />
             Inseminar
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onDelete} className="text-danger hover:bg-danger-bg">
+            <Trash2 size={14} />
+            Excluir
           </Button>
         </div>
       </Card>
@@ -157,10 +164,23 @@ function AlertsSection({ animalId }: { animalId: string }) {
 
 export function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [showInseminacao, setShowInseminacao] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+
   const { data, isLoading } = useQuery({
     queryKey: ["animal", id],
     queryFn: () => animaisApi.buscar(id!),
     enabled: !!id,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => animaisApi.deletar(id!),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["animais"] });
+      void navigate("/animais");
+    },
   });
 
   if (isLoading) {
@@ -176,10 +196,27 @@ export function AnimalDetailPage() {
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 py-6 flex flex-col gap-4">
-      <AnimalHeader animal={animal} />
+      <AnimalHeader
+        animal={animal}
+        onInseminar={() => setShowInseminacao(true)}
+        onDelete={() => setShowDelete(true)}
+      />
       <AlertsSection animalId={animal.id} />
       <WeightChart animalId={animal.id} />
       <GeneticData animal={animal} />
+
+      <Modal03NewInseminacao
+        open={showInseminacao}
+        onClose={() => setShowInseminacao(false)}
+        preselectedAnimalId={animal.id}
+      />
+      <Modal10DeleteConfirm
+        open={showDelete}
+        onClose={() => setShowDelete(false)}
+        itemName={animal.nome}
+        onConfirm={() => deleteMutation.mutate()}
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

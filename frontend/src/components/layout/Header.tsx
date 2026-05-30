@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { Bell, ChevronDown, Moon, Sun, User, Menu } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Bell, ChevronDown, Moon, Sun, User, Menu, LogOut } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { useTheme } from "@/hooks/useTheme";
 import { AlertDrawer } from "./AlertDrawer";
@@ -22,6 +22,25 @@ interface HeaderProps {
 export function Header({ alertCount = 0, onMenuToggle }: HeaderProps) {
   const { isDark, toggle } = useTheme();
   const [alertDrawerOpen, setAlertDrawerOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setAvatarOpen(false);
+      }
+    }
+    if (avatarOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [avatarOpen]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("agrogen_token");
+    localStorage.removeItem("agrogen_fazenda_id");
+    void navigate("/login");
+  };
 
   return (
     <>
@@ -98,15 +117,40 @@ export function Header({ alertCount = 0, onMenuToggle }: HeaderProps) {
             </button>
 
             {/* User avatar */}
-            <button className="flex items-center gap-2 px-3 py-2 rounded-[10px] hover:bg-beige transition-colors">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold"
-                style={{ background: "linear-gradient(135deg, #8B5E3C, #B98E6A)" }}
+            <div className="relative" ref={avatarRef}>
+              <button
+                className="flex items-center gap-2 px-3 py-2 rounded-[10px] hover:bg-beige transition-colors"
+                onClick={() => setAvatarOpen((v) => !v)}
+                aria-label="Menu do usuário"
               >
-                <User size={14} />
-              </div>
-              <ChevronDown size={14} className="text-ink-4 hidden sm:block" />
-            </button>
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold"
+                  style={{ background: "linear-gradient(135deg, #8B5E3C, #B98E6A)" }}
+                >
+                  <User size={14} />
+                </div>
+                <ChevronDown size={14} className="text-ink-4 hidden sm:block" />
+              </button>
+              {avatarOpen && (
+                <div className="absolute right-0 top-full mt-1 w-44 bg-surface border border-line rounded-[12px] shadow-[var(--shadow-md)] z-50 overflow-hidden">
+                  <NavLink
+                    to="/perfil"
+                    onClick={() => setAvatarOpen(false)}
+                    className="flex items-center gap-2 px-4 py-3 text-[14px] text-ink hover:bg-beige transition-colors"
+                  >
+                    <User size={15} className="text-ink-3" />
+                    Perfil
+                  </NavLink>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-4 py-3 text-[14px] text-danger hover:bg-danger-bg transition-colors border-t border-line"
+                  >
+                    <LogOut size={15} />
+                    Sair
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
