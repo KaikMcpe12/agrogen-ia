@@ -13,12 +13,26 @@ export interface AnimaisParams {
   order?: "asc" | "desc" | undefined;
 }
 
+export interface AnimaisCounts {
+  total: number;
+  bovino: number;
+  ovino: number;
+  caprino: number;
+  ativa: number;
+  prenha: number;
+  em_repouso: number;
+  descartada: number;
+}
+
 export const animaisApi = {
   listar: (params?: AnimaisParams) =>
     client.get<PaginatedResponse<Animal>>("/animais", { params }).then((r) => r.data),
 
   buscar: (id: string) =>
     client.get<ApiResponse<Animal>>(`/animais/${id}`).then((r) => r.data),
+
+  counts: () =>
+    client.get<ApiResponse<AnimaisCounts>>("/animais/counts").then((r) => r.data),
 
   criar: (body: Partial<Animal>) =>
     client.post<ApiResponse<Pick<Animal, "id" | "codigo" | "nome" | "status" | "created_at">>>("/animais", body).then((r) => r.data),

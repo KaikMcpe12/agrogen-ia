@@ -10,6 +10,8 @@ export interface InseminacoesParams {
   data_fim?: string;
   page?: number;
   limit?: number;
+  sort?: string;
+  order?: "asc" | "desc";
 }
 
 export const inseminacoesApi = {

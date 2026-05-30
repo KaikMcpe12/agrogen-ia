@@ -59,6 +59,8 @@ export interface DadosGeneticos {
   raca_principal: string;
   raca_pai?: string | undefined;
   raca_mae?: string | undefined;
+  pai_id?: string | undefined;
+  mae_id?: string | undefined;
   dep_peso_desmame?: number | undefined;
   dep_fertilidade?: number | undefined;
   dep_acuracia?: number | undefined;
