@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { inseminacoesApi } from "@/lib/api/endpoints/inseminacoes";
 import { animaisApi } from "@/lib/api/endpoints/animais";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import type { TipoInseminacao } from "@/types";
 
 const schema = z.object({
@@ -39,6 +40,8 @@ interface Props {
 }
 
 export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Props) {
+  useScrollLock(open);
+
   const qc = useQueryClient();
   const [animalSearch, setAnimalSearch] = useState("");
   const debouncedSearch = useDebounce(animalSearch, 400);
@@ -94,9 +97,9 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-surface rounded-[16px] border border-line overflow-hidden shadow-[var(--shadow-lg)] max-h-[90dvh] flex flex-col">
+    <div className="fixed inset-0 z-50 md:flex md:items-center md:justify-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm hidden md:block" onClick={onClose} />
+      <div className="relative bg-surface flex flex-col w-full h-full md:h-auto md:max-w-lg md:rounded-[16px] md:border md:border-line md:max-h-[90dvh] md:shadow-[var(--shadow-lg)] md:mx-4">
         <div className="flex items-center justify-between px-5 py-4 border-b border-line shrink-0">
           <h3 className="text-[17px] font-semibold text-ink" style={{ fontFamily: "var(--font-display)" }}>
             Nova Inseminação
@@ -161,7 +164,6 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
             <Input label="Temperatura (°C)" type="number" placeholder="Opcional" {...register("temperatura_ambiente_c")} />
           </div>
 
-          {/* Interval warning (always show for awareness in mock) */}
           <div className="flex gap-2 p-3 rounded-[10px] bg-warn-bg border border-warn/20">
             <AlertTriangle size={16} className="text-warn shrink-0 mt-0.5" />
             <p className="text-[13px] text-warn">

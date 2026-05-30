@@ -115,13 +115,13 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
   return (
     <>
       {/* Tabs */}
-      <div className="flex border-b border-line">
+      <div className="flex border-b border-line overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]">
         {tabs.map(({ id, label, count }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
             className={[
-              "px-5 py-3 text-[14px] font-medium border-b-2 transition-colors",
+              "px-5 py-3 text-[14px] font-medium border-b-2 transition-colors flex-shrink-0 whitespace-nowrap",
               tab === id
                 ? "border-green-700 text-green-700"
                 : "border-transparent text-ink-3 hover:text-ink",
@@ -141,7 +141,7 @@ export function DiarioContent({ animalId }: DiarioContentProps) {
       {tab === "peso" && (
         <div className="flex flex-col gap-4">
           <div className="flex justify-between items-center">
-            <div className="flex gap-4 text-[13px] text-ink-3">
+            <div className="flex flex-wrap gap-x-6 gap-y-1 text-[13px] text-ink-3">
               {pesagensData?.resumo && (
                 <>
                   <span>Última: <strong className="text-ink">{pesagensData.resumo.ultima_pesagem_kg ?? "—"} kg</strong></span>
@@ -371,7 +371,7 @@ export function DiarioListPage() {
   const sugestoes = animaisData?.data ?? [];
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 py-6 flex flex-col gap-4">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
       <div>
         <h1 className="text-[22px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>
           Diário de Bordo

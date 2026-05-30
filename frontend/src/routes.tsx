@@ -1,35 +1,5 @@
-import { useState } from "react";
-import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
-import { Header } from "@/components/layout/Header";
-import { BottomNav } from "@/components/layout/BottomNav";
-import { MobileNavDrawer } from "@/components/layout/MobileNavDrawer";
-import { InstallPWAPrompt } from "@/components/InstallPWAPrompt";
-import { useQuery } from "@tanstack/react-query";
-import { alertasApi } from "@/lib/api/endpoints/alertas";
-
-function AppLayout() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const { data: alertasData } = useQuery({
-    queryKey: ["alertas", "nao_lidos"],
-    queryFn: () => alertasApi.listar({ lido: false, resolvido: false }),
-    refetchInterval: 5 * 60 * 1000,
-  });
-
-  const alertCount = alertasData?.meta.nao_lidos ?? 0;
-
-  return (
-    <div className="min-h-dvh flex flex-col bg-bg">
-      <Header alertCount={alertCount} onMenuToggle={() => setDrawerOpen(true)} />
-      <MobileNavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-      <main className="flex-1 pb-20 md:pb-6">
-        <Outlet />
-      </main>
-      <BottomNav />
-      <InstallPWAPrompt />
-    </div>
-  );
-}
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import { AppLayout } from "@/components/layout/AppLayout";
 
 export const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/dashboard" replace /> },

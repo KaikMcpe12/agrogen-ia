@@ -20,7 +20,7 @@ export function BottomNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-surface/95 backdrop-blur-md border-t border-line pb-safe">
+      <nav className="md:hidden shrink-0 z-30 bg-surface border-t border-line pb-safe">
         <div className="flex items-stretch h-16">
           {PRIMARY_TABS.map(({ to, label, icon: Icon }) => (
             <NavLink
@@ -28,14 +28,21 @@ export function BottomNav() {
               to={to}
               className={({ isActive }) =>
                 [
-                  "flex-1 flex flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors min-h-[44px]",
-                  isActive ? "text-ink" : "text-ink-3",
+                  "flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors min-h-[44px] relative",
+                  isActive ? "text-green-700" : "text-ink-3",
                 ].join(" ")
               }
             >
               {({ isActive }) => (
                 <>
-                  <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
+                  <div
+                    className={[
+                      "w-9 h-7 flex items-center justify-center rounded-[10px] transition-colors",
+                      isActive ? "bg-green-700/10" : "",
+                    ].join(" ")}
+                  >
+                    <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
+                  </div>
                   <span>{label}</span>
                 </>
               )}
@@ -43,16 +50,18 @@ export function BottomNav() {
           ))}
           {/* More button */}
           <button
-            className="flex-1 flex flex-col items-center justify-center gap-1 text-[11px] font-medium text-ink-4 min-h-[44px]"
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-ink-3 min-h-[44px] transition-colors hover:text-ink"
             onClick={() => setMoreOpen(true)}
           >
-            <MoreHorizontal size={20} />
+            <div className="w-9 h-7 flex items-center justify-center">
+              <MoreHorizontal size={20} strokeWidth={1.8} />
+            </div>
             <span>Mais</span>
           </button>
         </div>
       </nav>
 
-      <Drawer open={moreOpen} onClose={() => setMoreOpen(false)} title="Mais opções" side="right">
+      <Drawer open={moreOpen} onClose={() => setMoreOpen(false)} title="Mais opções" side="bottom">
         <div className="flex flex-col gap-2">
           {MORE_ITEMS.map(({ to, label }) => (
             <NavLink
@@ -63,7 +72,7 @@ export function BottomNav() {
                 [
                   "px-4 py-3 rounded-[12px] text-[15px] font-medium transition-colors border",
                   isActive
-                    ? "bg-green-100 text-green-900 border-green-200"
+                    ? "bg-green-100 text-green-900 border-green-700/20"
                     : "bg-surface text-ink border-line hover:bg-beige",
                 ].join(" ")
               }

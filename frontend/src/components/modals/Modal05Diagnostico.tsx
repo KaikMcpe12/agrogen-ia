@@ -7,6 +7,7 @@ import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { inseminacoesApi } from "@/lib/api/endpoints/inseminacoes";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import type { Inseminacao } from "@/types";
 
 const schema = z.object({
@@ -37,6 +38,8 @@ const resultadoOptions = [
 ];
 
 export function Modal05Diagnostico({ open, onClose, inseminacao }: Props) {
+  useScrollLock(open && !!inseminacao);
+
   const qc = useQueryClient();
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema) as Resolver<FormData>,
@@ -65,9 +68,9 @@ export function Modal05Diagnostico({ open, onClose, inseminacao }: Props) {
   if (!open || !inseminacao) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-surface rounded-[16px] border border-line overflow-hidden shadow-[var(--shadow-lg)] max-h-[90dvh] flex flex-col">
+    <div className="fixed inset-0 z-50 md:flex md:items-center md:justify-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm hidden md:block" onClick={onClose} />
+      <div className="relative bg-surface flex flex-col w-full h-full md:h-auto md:max-w-lg md:rounded-[16px] md:border md:border-line md:max-h-[90dvh] md:shadow-[var(--shadow-lg)] md:mx-4">
         <div className="flex items-center justify-between px-5 py-4 border-b border-line shrink-0">
           <h3 className="text-[17px] font-semibold text-ink" style={{ fontFamily: "var(--font-display)" }}>
             Registrar Diagnóstico de Gestação
