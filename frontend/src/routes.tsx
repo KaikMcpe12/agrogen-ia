@@ -16,6 +16,20 @@ export const router = createBrowserRouter([
       })),
   },
   {
+    path: "/recuperar-senha",
+    lazy: () =>
+      import("@/pages/auth/RecuperarSenha").then((m) => ({
+        Component: m.RecuperarSenhaPage,
+      })),
+  },
+  {
+    path: "/redefinir-senha",
+    lazy: () =>
+      import("@/pages/auth/RedefinirSenha").then((m) => ({
+        Component: m.RedefinirSenhaPage,
+      })),
+  },
+  {
     element: <AppLayout />,
     children: [
       {

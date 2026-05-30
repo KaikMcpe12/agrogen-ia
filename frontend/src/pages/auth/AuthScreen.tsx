@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { authApi } from "@/lib/api/endpoints/auth";
+import { fazendasApi } from "@/lib/api/endpoints/fazendas";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { getApiErrorMessage } from "@/lib/api/error-messages";
 import type { Perfil } from "@/types";
@@ -238,8 +239,18 @@ function RegisterForm() {
         senha: data.senha,
         perfil: data.perfil as Perfil,
       });
-      // Redireciona para login com e-mail pré-preenchido (Adendo TELA-08)
-      void navigate("/login");
+
+      // FLUXO-07: login automático após cadastro
+      const loginRes = await authApi.login(data.email, data.senha);
+      sessionStorage.setItem(STORAGE_KEYS.token, loginRes.data.access_token);
+      if (loginRes.data.usuario.fazenda_ativa_id) {
+        localStorage.setItem(STORAGE_KEYS.fazendaAtivaId, loginRes.data.usuario.fazenda_ativa_id);
+      }
+
+      // Verifica se usuário tem fazendas
+      const fazendasRes = await fazendasApi.listar();
+      const temFazendas = fazendasRes.data.length > 0;
+      void navigate(temFazendas ? "/dashboard" : "/perfil?tab=fazendas&onboarding=true");
     } catch (err) {
       setApiError(getApiErrorMessage(err));
     }

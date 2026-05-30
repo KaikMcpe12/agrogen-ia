@@ -13,4 +13,10 @@ export const authApi = {
 
   me: () =>
     client.get<ApiResponse<{ id: string; nome: string; email: string; perfil: Perfil }>>("/usuarios/me").then((r) => r.data),
+
+  recuperarSenha: (email: string) =>
+    client.post<ApiResponse<{ mensagem: string }>>("/auth/recuperar-senha", { email }).then((r) => r.data),
+
+  redefinirSenha: (token: string, novaSenha: string) =>
+    client.post<ApiResponse<{ mensagem: string }>>("/auth/redefinir-senha", { token, nova_senha: novaSenha }).then((r) => r.data),
 };
