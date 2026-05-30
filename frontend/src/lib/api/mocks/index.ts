@@ -86,6 +86,14 @@ export function setupMocks(client: AxiosInstance): void {
       );
     }
 
+    const sort = params?.["sort"] ?? "nome";
+    const order = params?.["order"] ?? "asc";
+    result = [...result].sort((a, b) => {
+      const va = String(a[sort as keyof typeof a] ?? "");
+      const vb = String(b[sort as keyof typeof b] ?? "");
+      return order === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+
     const page = Number(params?.["page"] ?? 1);
     const limit = Number(params?.["limit"] ?? 20);
     const total = result.length;
@@ -122,6 +130,23 @@ export function setupMocks(client: AxiosInstance): void {
     const id = config.url?.split("/")[2] ?? "";
     const ins = inseminacoes.filter((i) => i.animal.id === id).slice(0, 10);
     return [200, { success: true, data: { inseminacoes: ins, pesagens: [], partos: [] } }];
+  });
+
+  mock.onGet("/animais/counts").reply(async () => {
+    await delay(50, 150);
+    return [200, {
+      success: true,
+      data: {
+        total: animais.length,
+        bovino: animais.filter((a) => a.especie === "BOVINO").length,
+        ovino: animais.filter((a) => a.especie === "OVINO").length,
+        caprino: animais.filter((a) => a.especie === "CAPRINO").length,
+        ativa: animais.filter((a) => a.status === "ATIVA").length,
+        prenha: animais.filter((a) => a.status === "PRENHA").length,
+        em_repouso: animais.filter((a) => a.status === "EM_REPOUSO").length,
+        descartada: animais.filter((a) => a.status === "DESCARTADA").length,
+      },
+    }];
   });
 
   mock.onGet("/animais/racas").reply(async () => {
@@ -169,6 +194,14 @@ export function setupMocks(client: AxiosInstance): void {
     const params = config.params as Record<string, string> | undefined;
     let result = [...inseminacoes];
     if (params?.["resultado"]) result = result.filter((i) => i.resultado === params["resultado"]);
+    if (params?.["animal_id"]) result = result.filter((i) => i.animal.id === params["animal_id"]);
+    const sort = params?.["sort"] ?? "data_inseminacao";
+    const order = params?.["order"] ?? "desc";
+    result = [...result].sort((a, b) => {
+      const va = sort === "data_inseminacao" ? a.data_inseminacao : String(a.resultado);
+      const vb = sort === "data_inseminacao" ? b.data_inseminacao : String(b.resultado);
+      return order === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
 
     const page = Number(params?.["page"] ?? 1);
     const limit = Number(params?.["limit"] ?? 20);
