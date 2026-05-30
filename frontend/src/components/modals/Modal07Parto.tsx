@@ -1,7 +1,7 @@
 import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
+import { X, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
@@ -42,10 +42,12 @@ interface Props {
 export function Modal07Parto({ open, onClose, animalId, onSuccess }: Props) {
   useScrollLock(open);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: { tipo_parto: "SIMPLES", houve_distorcia: "false", houve_obito_matriz: "false" },
   });
+
+  const obitoMatriz = watch("houve_obito_matriz");
 
   const criar = useMutation({
     mutationFn: (data: FormData) =>
@@ -99,6 +101,17 @@ export function Modal07Parto({ open, onClose, animalId, onSuccess }: Props) {
             <Select label="Houve distócia?" required options={simNaoOptions} {...register("houve_distorcia")} />
             <Select label="Óbito da matriz?" required options={simNaoOptions} {...register("houve_obito_matriz")} />
           </div>
+          {obitoMatriz === "true" && (
+            <div className="flex gap-3 p-3 rounded-[12px] bg-danger-bg border border-danger/20">
+              <AlertTriangle size={16} className="text-danger shrink-0 mt-0.5" />
+              <div>
+                <p className="text-[13px] font-semibold text-danger">Óbito da matriz</p>
+                <p className="text-[12px] text-danger/80 mt-0.5">
+                  Ao salvar, o status do animal será atualizado para <strong>Descartada</strong> automaticamente.
+                </p>
+              </div>
+            </div>
+          )}
         </form>
 
         <div className="flex justify-end gap-2 px-5 py-3 bg-beige border-t border-line shrink-0">
