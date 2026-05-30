@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { authApi } from "@/lib/api/endpoints/auth";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { getApiErrorMessage } from "@/lib/api/error-messages";
 import type { Perfil } from "@/types";
 
 /* ── Helpers de máscara ──────────────────────────────────────── */
@@ -46,13 +48,13 @@ function LoginForm() {
     setApiError(null);
     try {
       const res = await authApi.login(data.email, data.senha);
-      localStorage.setItem("agrogen_token", res.data.access_token);
+      localStorage.setItem(STORAGE_KEYS.token, res.data.access_token);
       if (res.data.usuario.fazenda_ativa_id) {
-        localStorage.setItem("agrogen_fazenda_id", res.data.usuario.fazenda_ativa_id);
+        localStorage.setItem(STORAGE_KEYS.fazendaAtivaId, res.data.usuario.fazenda_ativa_id);
       }
       void navigate("/dashboard");
-    } catch {
-      setApiError("E-mail ou senha incorretos. Tente novamente.");
+    } catch (err) {
+      setApiError(getApiErrorMessage(err));
     }
   };
 
@@ -146,8 +148,8 @@ function RegisterForm() {
         perfil: data.perfil as Perfil,
       });
       void navigate("/login");
-    } catch {
-      setApiError("Não foi possível criar a conta. Tente novamente.");
+    } catch (err) {
+      setApiError(getApiErrorMessage(err));
     }
   };
 

@@ -16,9 +16,17 @@ export interface AlertasResponse {
   meta: { total: number; nao_lidos: number; criticos: number };
 }
 
+export interface AlertasContagemResponse {
+  success: boolean;
+  data: { nao_lidos: number; criticos: number; total: number };
+}
+
 export const alertasApi = {
   listar: (params?: AlertasParams) =>
     client.get<AlertasResponse>("/alertas", { params }).then((r) => r.data),
+
+  contagem: () =>
+    client.get<AlertasContagemResponse>("/alertas/contagem").then((r) => r.data),
 
   marcarLido: (id: string) =>
     client.patch<ApiResponse<null>>(`/alertas/${id}/lido`).then((r) => r.data),

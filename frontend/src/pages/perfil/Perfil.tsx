@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { authApi } from "@/lib/api/endpoints/auth";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 const PERFIL_LABELS: Record<string, string> = {
   PRODUTOR: "Produtor Rural",
@@ -14,7 +15,7 @@ const PERFIL_LABELS: Record<string, string> = {
 
 export function PerfilPage() {
   const navigate = useNavigate();
-  const fazendaId = localStorage.getItem("agrogen_fazenda_id");
+  const fazendaId = localStorage.getItem(STORAGE_KEYS.fazendaAtivaId);
 
   const { data, isLoading } = useQuery({
     queryKey: ["me"],
@@ -22,8 +23,9 @@ export function PerfilPage() {
   });
 
   const handleLogout = () => {
-    localStorage.removeItem("agrogen_token");
-    localStorage.removeItem("agrogen_fazenda_id");
+    localStorage.removeItem(STORAGE_KEYS.token);
+    localStorage.removeItem(STORAGE_KEYS.fazendaAtivaId);
+    localStorage.removeItem(STORAGE_KEYS.refreshToken);
     void navigate("/login");
   };
 

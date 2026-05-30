@@ -1,5 +1,6 @@
 import axios from "axios";
 import { setupMocks } from "./mocks/index";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 export const apiClient = axios.create({
   baseURL: import.meta.env["VITE_API_URL"] ?? "https://api.agrogenia.com/api/v1",
@@ -8,8 +9,8 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("agrogen_token");
-  const fazendaId = localStorage.getItem("agrogen_fazenda_id");
+  const token = localStorage.getItem(STORAGE_KEYS.token);
+  const fazendaId = localStorage.getItem(STORAGE_KEYS.fazendaAtivaId);
   if (token) config.headers["Authorization"] = `Bearer ${token}`;
   if (fazendaId) config.headers["X-Fazenda-ID"] = fazendaId;
   return config;
