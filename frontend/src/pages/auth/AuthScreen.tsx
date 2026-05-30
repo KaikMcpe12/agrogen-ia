@@ -101,8 +101,14 @@ function LoginForm() {
 const registerSchema = z
   .object({
     nome: z.string().min(2, "Nome deve ter ao menos 2 caracteres"),
-    cpf: z.string().optional(),
-    telefone: z.string().optional(),
+    cpf: z.string().optional().refine(
+      (v) => !v || /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(v),
+      { message: "CPF inválido" }
+    ),
+    telefone: z.string().optional().refine(
+      (v) => !v || /^\(\d{2}\) \d{5}-\d{4}$/.test(v),
+      { message: "Telefone inválido" }
+    ),
     email: z.string().min(1, "E-mail obrigatório").email("Formato inválido"),
     perfil: z.enum(["PRODUTOR", "TECNICO", "VETERINARIO"] as const),
     senha: z.string().min(6, "Mínimo 6 caracteres"),

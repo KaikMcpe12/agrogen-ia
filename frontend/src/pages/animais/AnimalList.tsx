@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { animaisApi } from "@/lib/api/endpoints/animais";
 import { useDebounce } from "@/hooks/useDebounce";
+import { Modal01NewAnimalStep1, type Step1Data } from "@/components/modals/Modal01NewAnimalStep1";
+import { Modal02NewAnimalStep2 } from "@/components/modals/Modal02NewAnimalStep2";
 import type { Animal, Especie, StatusAnimal } from "@/types";
 
 const ESPECIE_LABELS: Record<Especie, string> = { BOVINO: "🐄 Bovino", OVINO: "🐑 Ovino", CAPRINO: "🐐 Caprino" };
@@ -104,6 +106,9 @@ export function AnimalListPage() {
   const [statusFilter, setStatusFilter] = useState<StatusAnimal | "">("");
   const [page, setPage] = useState(1);
   const debouncedQ = useDebounce(q);
+  const [showModal01, setShowModal01] = useState(false);
+  const [showModal02, setShowModal02] = useState(false);
+  const [step1Data, setStep1Data] = useState<Step1Data | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["animais", debouncedQ, especieFilter, statusFilter, page],
@@ -132,7 +137,7 @@ export function AnimalListPage() {
             <p className="text-[14px] text-ink-3 mt-0.5">{meta.total} animais cadastrados</p>
           )}
         </div>
-        <Button variant="primary" size="sm" onClick={() => void navigate("/animais/novo")}>
+        <Button variant="primary" size="sm" onClick={() => setShowModal01(true)}>
           <Plus size={16} />
           Novo Animal
         </Button>
@@ -252,6 +257,21 @@ export function AnimalListPage() {
           )}
         </>
       )}
+      <Modal01NewAnimalStep1
+        open={showModal01}
+        onClose={() => setShowModal01(false)}
+        onNext={(data) => {
+          setStep1Data(data);
+          setShowModal01(false);
+          setShowModal02(true);
+        }}
+      />
+      <Modal02NewAnimalStep2
+        open={showModal02}
+        onClose={() => { setShowModal02(false); setStep1Data(null); }}
+        onBack={() => { setShowModal02(false); setShowModal01(true); }}
+        step1Data={step1Data}
+      />
     </div>
   );
 }

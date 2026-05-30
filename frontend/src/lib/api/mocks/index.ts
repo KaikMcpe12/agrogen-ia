@@ -135,6 +135,15 @@ export function setupMocks(client: AxiosInstance): void {
     return [201, { success: true, data: newAnimal }];
   });
 
+  mock.onPut(/\/animais\/[^/]+$/).reply(async (config) => {
+    await delay(300, 500);
+    const id = config.url?.split("/").pop() ?? "";
+    const animal = animais.find((a) => a.id === id);
+    if (!animal) return [404, { success: false, error: { codigo: "ANIMAL_NOT_FOUND" } }];
+    const body = config.data ? (JSON.parse(config.data as string) as Partial<typeof animal>) : {};
+    return [200, { success: true, data: { ...animal, ...body } }];
+  });
+
   mock.onDelete(/\/animais\/.+/).reply(async () => {
     await delay();
     return [200, { success: true }];
