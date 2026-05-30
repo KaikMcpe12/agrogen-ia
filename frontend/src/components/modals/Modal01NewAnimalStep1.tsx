@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 const schema = z.object({
   especie: z.enum(["BOVINO", "OVINO", "CAPRINO"] as const),
@@ -36,6 +37,8 @@ const sexoOptions = [
 const ccOptions = [1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: `${n} — ${["Muito magro", "Magro", "Ideal", "Gordo", "Muito gordo"][n - 1]}` }));
 
 export function Modal01NewAnimalStep1({ open, onClose, onNext }: Props) {
+  useScrollLock(open);
+
   const { register, handleSubmit, formState: { errors } } = useForm<Step1Data>({
     resolver: zodResolver(schema) as Resolver<Step1Data>,
     defaultValues: { especie: "BOVINO", sexo: "FEMEA", condicao_corporal: 3 },
@@ -44,9 +47,9 @@ export function Modal01NewAnimalStep1({ open, onClose, onNext }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-surface rounded-[16px] border border-line overflow-hidden shadow-[var(--shadow-lg)] max-h-[90dvh] flex flex-col">
+    <div className="fixed inset-0 z-50 md:flex md:items-center md:justify-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm hidden md:block" onClick={onClose} />
+      <div className="relative bg-surface flex flex-col w-full h-full md:h-auto md:max-w-lg md:rounded-[16px] md:border md:border-line md:max-h-[90dvh] md:shadow-[var(--shadow-lg)] md:mx-4">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-line shrink-0">
           <div>

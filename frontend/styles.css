@@ -129,3 +129,8 @@
     font-family: var(--font-body);
   }
 }
+
+/* ── Utilities ─────────────────────────────────────────────────── */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

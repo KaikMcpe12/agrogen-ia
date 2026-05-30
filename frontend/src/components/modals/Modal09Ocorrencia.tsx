@@ -7,6 +7,7 @@ import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { useMutation } from "@tanstack/react-query";
 import { diarioApi } from "@/lib/api/endpoints/diario";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 const schema = z.object({
   data: z.string().min(1, "Obrigatório"),
@@ -38,6 +39,8 @@ interface Props {
 }
 
 export function Modal09Ocorrencia({ open, onClose, animalId, onSuccess }: Props) {
+  useScrollLock(open);
+
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: { categoria: "SAUDE", resolvida: "false" },
@@ -62,10 +65,15 @@ export function Modal09Ocorrencia({ open, onClose, animalId, onSuccess }: Props)
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center md:justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-surface rounded-[16px] border border-line overflow-hidden shadow-[var(--shadow-lg)]">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+      <div className="relative bg-surface w-full flex flex-col rounded-t-[24px] md:rounded-[16px] md:max-w-md md:border md:border-line md:shadow-[var(--shadow-lg)] md:mx-4 max-h-[85dvh] md:max-h-[90dvh]">
+        {/* Drag handle (mobile only) */}
+        <div className="flex justify-center pt-3 pb-1 shrink-0 md:hidden">
+          <div className="w-10 h-1 bg-line rounded-full" />
+        </div>
+
+        <div className="flex items-center justify-between px-5 py-4 border-b border-line shrink-0">
           <h3 className="text-[17px] font-semibold text-ink" style={{ fontFamily: "var(--font-display)" }}>
             Registrar Ocorrência
           </h3>
@@ -74,7 +82,7 @@ export function Modal09Ocorrencia({ open, onClose, animalId, onSuccess }: Props)
           </button>
         </div>
 
-        <form onSubmit={handleSubmit((d) => criar.mutate(d))} className="px-5 py-4 flex flex-col gap-4">
+        <form onSubmit={handleSubmit((d) => criar.mutate(d))} className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-4">
             <Input label="Data" type="date" required error={errors.data?.message} {...register("data")} />
             <Select label="Categoria" required options={categoriaOptions} error={errors.categoria?.message} {...register("categoria")} />
@@ -95,7 +103,7 @@ export function Modal09Ocorrencia({ open, onClose, animalId, onSuccess }: Props)
           <Select label="Status" required options={resolvidaOptions} {...register("resolvida")} />
         </form>
 
-        <div className="flex justify-end gap-2 px-5 py-3 bg-beige border-t border-line">
+        <div className="flex justify-end gap-2 px-5 py-3 bg-beige border-t border-line shrink-0">
           <Button variant="secondary" size="sm" onClick={onClose}>Cancelar</Button>
           <Button variant="primary" size="sm" onClick={handleSubmit((d) => criar.mutate(d))} loading={criar.isPending}>
             Salvar
