@@ -56,6 +56,16 @@ export function setupMocks(client: AxiosInstance): void {
     return [200, { success: true }];
   });
 
+  mock.onPost("/auth/recuperar-senha").reply(async () => {
+    await delay(400, 700);
+    return [200, { success: true, data: { mensagem: "Se o e-mail estiver cadastrado, você receberá as instruções em breve." } }];
+  });
+
+  mock.onPost("/auth/redefinir-senha").reply(async () => {
+    await delay(300, 500);
+    return [200, { success: true, data: { mensagem: "Senha redefinida com sucesso." } }];
+  });
+
   /* ── Usuário ── */
   mock.onGet("/usuarios/me").reply(async () => {
     await delay();
