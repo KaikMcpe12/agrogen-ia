@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { inseminacoesApi } from "@/lib/api/endpoints/inseminacoes";
 import { animaisApi } from "@/lib/api/endpoints/animais";
-import { useDebounce } from "@/hooks/useDebounce";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import type { TipoInseminacao } from "@/types";
 
@@ -37,7 +36,7 @@ const ccOptions = [1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: String(
 interface Props {
   open: boolean;
   onClose: () => void;
-  preselectedAnimalId?: string;
+  preselectedAnimalId?: string | undefined;
 }
 
 export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Props) {
@@ -45,7 +44,6 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
 
   const qc = useQueryClient();
   const [animalSearch, setAnimalSearch] = useState("");
-  const debouncedSearch = useDebounce(animalSearch, 400);
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema) as Resolver<FormData>,
@@ -60,9 +58,9 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
   const animalId = watch("animal_id");
 
   const { data: animaisData } = useQuery({
-    queryKey: ["animais-search", debouncedSearch],
-    queryFn: () => animaisApi.listar({ q: debouncedSearch, sexo: "FEMEA", status: "ATIVA", limit: 10 }),
-    enabled: debouncedSearch.length > 1 && !preselectedAnimalId,
+    queryKey: ["animais-femeas"],
+    queryFn: () => animaisApi.listar({ sexo: "FEMEA", status: "ATIVA", limit: 100 }),
+    enabled: !preselectedAnimalId,
   });
 
   const { data: reprodutoresData } = useQuery({
@@ -81,7 +79,14 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
 
   if (!open) return null;
 
-  const animaisSugestoes = animaisData?.data ?? [];
+  const todos = animaisData?.data ?? [];
+  const filtrados = animalSearch.length > 0
+    ? todos.filter((a) =>
+        a.nome.toLowerCase().includes(animalSearch.toLowerCase()) ||
+        a.codigo.toLowerCase().includes(animalSearch.toLowerCase())
+      )
+    : todos;
+
   const reprodutores = (reprodutoresData?.data ?? []).map((r) => ({
     value: r.id,
     label: `${r.nome} (${r.raca})`,
@@ -115,10 +120,7 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
               Nova Inseminação
             </h3>
           </div>
-          <button
-            onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-beige"
-          >
+          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-beige">
             <X size={18} />
           </button>
         </div>
@@ -134,11 +136,14 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
                 required
                 placeholder="Buscar por nome ou código…"
                 value={animalSearch}
-                onChange={(e) => setAnimalSearch(e.target.value)}
+                onChange={(e) => {
+                  setAnimalSearch(e.target.value);
+                  setValue("animal_id", "");
+                }}
               />
-              {animaisSugestoes.length > 0 && animalSearch && !animalId && (
-                <div className="mt-1 border border-line rounded-[10px] bg-surface overflow-hidden shadow-[var(--shadow-sm)]">
-                  {animaisSugestoes.map((a) => (
+              {filtrados.length > 0 && !animalId && (
+                <div className="mt-1 border border-line rounded-[10px] bg-surface overflow-hidden shadow-[var(--shadow-sm)] max-h-48 overflow-y-auto">
+                  {filtrados.map((a) => (
                     <button
                       key={a.id}
                       type="button"
@@ -166,7 +171,6 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
           {/* Seção: Evento */}
           <div className="flex flex-col gap-4 border-t border-line pt-4">
             <p className="text-[11px] font-semibold text-ink-4 uppercase tracking-[0.07em]">Evento</p>
-
             <Input
               label="Data e hora"
               type="datetime-local"
@@ -174,8 +178,6 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
               error={errors.data_inseminacao?.message}
               {...register("data_inseminacao")}
             />
-
-            {/* Tipo de IA — radio cards */}
             <div>
               <label className="text-[13px] font-medium text-ink-2 block mb-2">
                 Tipo de IA <span className="text-danger">*</span>
@@ -201,7 +203,6 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
               </div>
               <input type="hidden" {...register("tipo")} />
             </div>
-
             {tipo === "IATF" && (
               <Input
                 label="Protocolo hormonal"
@@ -214,7 +215,6 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
           {/* Seção: Reprodução */}
           <div className="flex flex-col gap-4 border-t border-line pt-4">
             <p className="text-[11px] font-semibold text-ink-4 uppercase tracking-[0.07em]">Reprodução</p>
-
             <Select
               label="Reprodutor / Sêmen"
               required
@@ -223,7 +223,6 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
               error={errors.reprodutor_id?.message}
               {...register("reprodutor_id")}
             />
-
             <div className="grid grid-cols-2 gap-4">
               <Select
                 label="Condição corporal"
@@ -241,7 +240,7 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
             </div>
           </div>
 
-          {/* Warning de intervalo */}
+          {/* Warning */}
           <div className="flex gap-3 p-3.5 rounded-[12px] bg-warn-bg border border-warn/20">
             <AlertTriangle size={18} className="text-warn shrink-0 mt-0.5" />
             <div>

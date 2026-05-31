@@ -10,7 +10,7 @@ import { animaisApi } from "@/lib/api/endpoints/animais";
 import { diarioApi } from "@/lib/api/endpoints/diario";
 import { alertasApi } from "@/lib/api/endpoints/alertas";
 import { useChartTheme } from "@/hooks/useChartTheme";
-import { Modal03NewInseminacao } from "@/components/modals/Modal03NewInseminacao";
+import { ModalNewInseminacaoSelector } from "@/components/modals/ModalInseminacaoSelector";
 import { Modal10DeleteConfirm } from "@/components/modals/Modal10DeleteConfirm";
 import type { Animal, StatusAnimal, Especie } from "@/types";
 
@@ -203,13 +203,13 @@ export function AnimalDetailPage() {
       />
       <AlertsSection animalId={animal.id} />
       <WeightChart animalId={animal.id} />
-      <GeneticData animal={animal} />
+      <GeneticData animal={animal} />   
 
-      <Modal03NewInseminacao
+      <ModalNewInseminacaoSelector
         open={showInseminacao}
         onClose={() => setShowInseminacao(false)}
         preselectedAnimalId={animal.id}
-      />
+      />      
       <Modal10DeleteConfirm
         open={showDelete}
         onClose={() => setShowDelete(false)}
@@ -219,4 +219,4 @@ export function AnimalDetailPage() {
       />
     </div>
   );
-}
+} 

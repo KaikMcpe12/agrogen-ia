@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { inseminacoesApi } from "@/lib/api/endpoints/inseminacoes";
-import { Modal03NewInseminacao } from "@/components/modals/Modal03NewInseminacao";
+// import { Modal03NewInseminacao } from "@/components/modals/Modal03NewInseminacao";
+import { ModalNewInseminacaoSelector } from "@/components/modals/ModalInseminacaoSelector";
 import { Modal05Diagnostico } from "@/components/modals/Modal05Diagnostico";
 import type { Inseminacao } from "@/types";
 
@@ -276,7 +277,8 @@ export function InseminacaoListPage() {
           ))}
       </div>
 
-      <Modal03NewInseminacao open={novaOpen} onClose={() => setNovaOpen(false)} />
+      {/* <Modal03NewInseminacao open={novaOpen} onClose={() => setNovaOpen(false)} /> */}
+      <ModalNewInseminacaoSelector open={novaOpen} onClose={() => setNovaOpen(false)} />
       <Modal05Diagnostico
         open={diagOpen}
         onClose={() => setDiagOpen(false)}
