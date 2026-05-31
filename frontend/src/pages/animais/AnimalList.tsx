@@ -504,7 +504,10 @@ export function AnimalListPage() {
         open={!!deleteAnimal}
         onClose={() => setDeleteAnimal(null)}
         itemName={deleteAnimal?.nome ?? ""}
-        onConfirm={() => deleteMutation.mutate(deleteAnimal!.id)}
+        onConfirm={() => {
+          const id = deleteAnimal?.id;
+          if (id) deleteMutation.mutate(id);
+        }}
         loading={deleteMutation.isPending}
       />
     </div>
