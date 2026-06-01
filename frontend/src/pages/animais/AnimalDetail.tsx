@@ -344,6 +344,7 @@ export function AnimalDetailPage() {
   const [editStep1Data, setEditStep1Data] = useState<Step1Data | null>(null);
   const [showInseminacao, setShowInseminacao] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showDeleteBloqueado, setShowDeleteBloqueado] = useState(false);
   const [showPromover, setShowPromover] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -407,7 +408,13 @@ export function AnimalDetailPage() {
         animal={animal}
         onEdit={handleEdit}
         onInseminar={() => setShowInseminacao(true)}
-        onDelete={() => setShowDelete(true)}
+        onDelete={() => {
+          if (reprodutorVinculado) {
+            setShowDeleteBloqueado(true);
+          } else {
+            setShowDelete(true);
+          }
+        }}
         onPromover={() => setShowPromover(true)}
         {...(reprodutorVinculado ? { reprodutorId: reprodutorVinculado.id } : {})}
       />
@@ -451,6 +458,39 @@ export function AnimalDetailPage() {
         onClose={() => setShowPromover(false)}
         animalPreSelecionado={animal}
       />
+
+      {/* Modal bloqueio exclusão: animal vinculado a reprodutor ativo */}
+      {showDeleteBloqueado && reprodutorVinculado && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center md:justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteBloqueado(false)} />
+          <div className="relative bg-surface w-full flex flex-col rounded-t-[24px] md:rounded-[16px] md:max-w-md md:border md:border-line md:shadow-[var(--shadow-lg)] md:mx-4">
+            <div className="flex justify-center pt-3 pb-1 shrink-0 md:hidden">
+              <div className="w-10 h-1 bg-line rounded-full" />
+            </div>
+            <div className="px-5 py-5 flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-danger-bg flex items-center justify-center shrink-0">
+                  <Trash2 size={18} className="text-danger" />
+                </div>
+                <p className="text-[15px] font-bold text-ink">Exclusão bloqueada</p>
+              </div>
+              <p className="text-[13px] text-ink-2">
+                Este animal está vinculado a um reprodutor ativo.
+                Desative ou exclua o reprodutor antes de excluir o animal.
+              </p>
+              <button
+                onClick={() => { setShowDeleteBloqueado(false); void navigate(`/reprodutores/${reprodutorVinculado.id}`); }}
+                className="text-[13px] text-green-700 hover:underline flex items-center gap-1"
+              >
+                <ExternalLink size={13} /> Ver reprodutor vinculado →
+              </button>
+              <Button variant="secondary" size="sm" onClick={() => setShowDeleteBloqueado(false)}>
+                Fechar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
