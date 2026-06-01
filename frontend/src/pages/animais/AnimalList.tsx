@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, SlidersHorizontal, Eye, Trash2, Pencil, Syringe,
-         ArrowUpDown, ArrowUp, ArrowDown, PawPrint, FilterX, FileUp } from "lucide-react";
+         ArrowUpDown, ArrowUp, ArrowDown, PawPrint, FilterX, FileUp, Dna } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -267,9 +267,14 @@ export function AnimalListPage() {
             </p>
           )}
         </div>
-        <Button variant="primary" size="sm" onClick={() => setShowSelectorModal(true)}>
-          <Plus size={16} /> Novo Animal
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={() => void navigate("/reprodutores")}>
+            <Dna size={15} /> Reprodutores
+          </Button>
+          <Button variant="primary" size="sm" onClick={() => setShowSelectorModal(true)}>
+            <Plus size={16} /> Novo Animal
+          </Button>
+        </div>
       </div>
 
       {/* Search */}

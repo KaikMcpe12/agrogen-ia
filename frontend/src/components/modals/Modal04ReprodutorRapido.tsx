@@ -1,17 +1,19 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X, Dna, Lock } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { X, Dna, Lock, Search } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useDebounce } from "@/hooks/useDebounce";
 import { reprodutoresApi } from "@/lib/api/endpoints/reprodutores";
-import type { Reprodutor, Especie } from "@/types";
+import { animaisApi } from "@/lib/api/endpoints/animais";
+import type { Reprodutor, Especie, Animal } from "@/types";
 
-/* ── Schema dinâmico (base para rápido/completo) ─────────────────── */
+/* ── Schema ─────────────────────────────────────────────────────── */
 
 const baseSchema = z.object({
   nome: z.string().min(3, "Mínimo 3 caracteres"),
@@ -39,7 +41,7 @@ const baseSchema = z.object({
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Obrigatório para Sêmen Externo", path: ["empresa_semen"] });
   }
   if (data.tipo === "ANIMAL_PROPRIO" && !data.animal_id) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Obrigatório para Animal Próprio", path: ["animal_id"] });
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Selecione um animal do rebanho", path: ["animal_id"] });
   }
 });
 
@@ -74,6 +76,8 @@ const TITULO: Record<NonNullable<Modal04Props["mode"]>, string> = {
   edit: "Editar Reprodutor",
 };
 
+const ESPECIE_EMOJI: Record<Especie, string> = { BOVINO: "🐄", OVINO: "🐑", CAPRINO: "🐐" };
+
 export function Modal04ReprodutorRapido({
   open, onClose, onSave, mode = "rapido", reprodutor, especiePreferida, especieLocked,
 }: Modal04Props) {
@@ -81,6 +85,11 @@ export function Modal04ReprodutorRapido({
   const qc = useQueryClient();
   const isEdit = mode === "edit";
   const isCompleto = mode === "create" || isEdit;
+
+  /* Estado do buscador de animal (apenas create/rapido + ANIMAL_PRÓPRIO) */
+  const [animalSearch, setAnimalSearch] = useState("");
+  const [animalSelecionado, setAnimalSelecionado] = useState<Animal | null>(null);
+  const debouncedAnimalSearch = useDebounce(animalSearch, 300);
 
   const defaultValues: Partial<FormData> = {
     especie: especiePreferida ?? reprodutor?.especie ?? "BOVINO",
@@ -104,16 +113,56 @@ export function Modal04ReprodutorRapido({
   const tipo = watch("tipo");
   const especieAtual = watch("especie");
 
+  /* Busca animais MACHO + ATIVA para o picker */
+  const { data: animaisData } = useQuery({
+    queryKey: ["animais", "machos-ativa-picker", debouncedAnimalSearch],
+    queryFn: () => animaisApi.listar({
+      sexo: "MACHO",
+      status: "ATIVA",
+      ...(debouncedAnimalSearch.length >= 2 ? { q: debouncedAnimalSearch } : {}),
+      limit: 10,
+    }),
+    enabled: tipo === "ANIMAL_PROPRIO" && !isEdit && debouncedAnimalSearch.length >= 2,
+  });
+  const sugestoesAnimais = animaisData?.data ?? [];
+
   useEffect(() => {
-    if (open) reset(defaultValues);
+    if (open) {
+      reset(defaultValues);
+      setAnimalSearch("");
+      setAnimalSelecionado(null);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, reprodutor?.id]);
 
-  /* Quando usuário muda tipo, limpa campos condicionais */
+  /* Ao mudar tipo, limpa campos condicionais e estado do animal */
   useEffect(() => {
-    if (tipo === "SEMEN_EXTERNO") setValue("animal_id", "");
-    if (tipo === "ANIMAL_PROPRIO") setValue("empresa_semen", "");
+    if (tipo === "SEMEN_EXTERNO") {
+      setValue("animal_id", "");
+      setAnimalSearch("");
+      setAnimalSelecionado(null);
+    }
+    if (tipo === "ANIMAL_PROPRIO") {
+      setValue("empresa_semen", "");
+    }
   }, [tipo, setValue]);
+
+  /* Ao selecionar um animal: preenche nome, espécie, raça e animal_id */
+  const handleSelecionarAnimal = (animal: Animal) => {
+    setAnimalSelecionado(animal);
+    setAnimalSearch(animal.nome);
+    setValue("nome", animal.nome);
+    setValue("animal_id", animal.id);
+    setValue("especie", animal.especie);
+    setValue("raca", animal.raca_principal);
+  };
+
+  const handleLimparAnimal = () => {
+    setAnimalSelecionado(null);
+    setAnimalSearch("");
+    setValue("nome", "");
+    setValue("animal_id", "");
+  };
 
   const criarMutation = useMutation({
     mutationFn: (data: FormData) => {
@@ -162,15 +211,13 @@ export function Modal04ReprodutorRapido({
   });
 
   const onSubmit = (data: FormData) => {
-    if (isEdit) {
-      editarMutation.mutate(data);
-    } else {
-      criarMutation.mutate(data);
-    }
+    if (isEdit) editarMutation.mutate(data);
+    else criarMutation.mutate(data);
   };
 
   const isPending = criarMutation.isPending || editarMutation.isPending;
   const isAnimalProprio = isEdit && reprodutor?.tipo === "ANIMAL_PROPRIO";
+  const showAnimalPicker = !isEdit && tipo === "ANIMAL_PROPRIO";
 
   if (!open) return null;
 
@@ -202,71 +249,7 @@ export function Modal04ReprodutorRapido({
             </p>
           )}
 
-          {/* Nome */}
-          {isAnimalProprio ? (
-            <div className="flex flex-col gap-1">
-              <label className="text-[13px] font-medium text-ink-2">Nome</label>
-              <div className="flex items-center gap-2 px-3 py-2.5 bg-beige border border-line rounded-[10px] text-[14px] text-ink-3">
-                <Lock size={13} className="text-ink-4 shrink-0" />
-                {reprodutor?.nome}
-              </div>
-              <p className="text-[11px] text-ink-4">Lido do Animal vinculado (somente leitura)</p>
-            </div>
-          ) : (
-            <Input
-              label="Nome / Identificação"
-              required
-              placeholder="Ex: Titan Nelore, Zeus Angus"
-              error={errors.nome?.message}
-              {...register("nome")}
-            />
-          )}
-
-          {/* Espécie e Raça */}
-          <div className="grid grid-cols-2 gap-4">
-            {especieLocked || isEdit ? (
-              <div className="flex flex-col gap-1">
-                <label className="text-[13px] font-medium text-ink-2">Espécie</label>
-                <div
-                  className="flex items-center gap-2 px-3 py-2.5 bg-beige border border-line rounded-[10px] text-[14px] text-ink-3 cursor-not-allowed"
-                  title={especieLocked ? "Espécie definida pelo animal selecionado para inseminação." : "Tipo definido na criação do reprodutor."}
-                >
-                  <Lock size={13} className="text-ink-4 shrink-0" />
-                  {especieAtual === "BOVINO" ? "🐄 Bovino" : especieAtual === "OVINO" ? "🐑 Ovino" : "🐐 Caprino"}
-                </div>
-                <input type="hidden" {...register("especie")} />
-              </div>
-            ) : (
-              <Select
-                label="Espécie"
-                required
-                options={especieOptions}
-                error={errors.especie?.message}
-                {...register("especie")}
-              />
-            )}
-
-            {isAnimalProprio ? (
-              <div className="flex flex-col gap-1">
-                <label className="text-[13px] font-medium text-ink-2">Raça</label>
-                <div className="flex items-center gap-2 px-3 py-2.5 bg-beige border border-line rounded-[10px] text-[14px] text-ink-3">
-                  <Lock size={13} className="text-ink-4 shrink-0" />
-                  {reprodutor?.raca}
-                </div>
-                <p className="text-[11px] text-ink-4">Lida dos dados genéticos do Animal</p>
-              </div>
-            ) : (
-              <Input
-                label="Raça"
-                required
-                placeholder="Ex: Nelore, Dorper"
-                error={errors.raca?.message}
-                {...register("raca")}
-              />
-            )}
-          </div>
-
-          {/* Tipo (read-only em edit) */}
+          {/* ── Tipo ── */}
           {isEdit ? (
             <div className="flex flex-col gap-1">
               <label className="text-[13px] font-medium text-ink-2">Tipo</label>
@@ -288,7 +271,175 @@ export function Modal04ReprodutorRapido({
             />
           )}
 
-          {/* Empresa fornecedora — SEMEN_EXTERNO */}
+          {/* ── Animal Próprio: buscador real ── */}
+          {showAnimalPicker && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[13px] font-medium text-ink-2">
+                Animal do rebanho <span className="text-danger">*</span>
+              </label>
+
+              {animalSelecionado ? (
+                /* Card do animal selecionado */
+                <div className="flex items-center gap-3 px-3 py-2.5 bg-green-700/[0.06] border border-green-700/30 rounded-[10px]">
+                  <span className="text-xl shrink-0">{ESPECIE_EMOJI[animalSelecionado.especie]}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-semibold text-ink truncate">{animalSelecionado.nome}</p>
+                    <p className="text-[11px] font-mono text-ink-4">
+                      {animalSelecionado.codigo} · {animalSelecionado.raca_principal}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLimparAnimal}
+                    className="w-7 h-7 flex items-center justify-center rounded-full text-ink-4 hover:bg-beige hover:text-danger transition-colors shrink-0"
+                    aria-label="Remover seleção"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                /* Campo de busca + dropdown */
+                <div className="relative">
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-4 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={animalSearch}
+                    onChange={(e) => setAnimalSearch(e.target.value)}
+                    placeholder="Buscar por nome ou código (BOV-0001)..."
+                    className="w-full pl-9 pr-3 py-2.5 text-[14px] bg-surface border border-line rounded-[10px] text-ink placeholder:text-ink-4 focus:outline-none focus:ring-2 focus:ring-green-700/20 focus:border-green-700"
+                  />
+                  {sugestoesAnimais.length > 0 && (
+                    <div className="absolute left-0 top-full mt-1 w-full bg-surface border border-line rounded-[10px] shadow-[var(--shadow-md)] z-10 overflow-hidden max-h-48 overflow-y-auto">
+                      {sugestoesAnimais.map((animal) => (
+                        <button
+                          key={animal.id}
+                          type="button"
+                          onClick={() => handleSelecionarAnimal(animal)}
+                          className="w-full flex items-center gap-3 px-3 py-2 hover:bg-beige transition-colors text-left"
+                        >
+                          <span className="text-lg shrink-0">{ESPECIE_EMOJI[animal.especie]}</span>
+                          <div className="min-w-0">
+                            <p className="text-[13px] font-semibold text-ink truncate">{animal.nome}</p>
+                            <p className="text-[11px] font-mono text-ink-4">
+                              {animal.codigo} · {animal.raca_principal}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {debouncedAnimalSearch.length >= 2 && sugestoesAnimais.length === 0 && (
+                    <p className="text-[12px] text-ink-4 mt-1">
+                      Nenhum macho com status ATIVA encontrado para "{debouncedAnimalSearch}".
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Campos ocultos que o react-hook-form usa */}
+              <input type="hidden" {...register("nome")} />
+              <input type="hidden" {...register("animal_id")} />
+              {errors.animal_id && (
+                <p className="text-[12px] text-danger">{errors.animal_id.message}</p>
+              )}
+              <p className="text-[11px] text-ink-4">Apenas machos com status ATIVA. Nome, espécie e raça são preenchidos automaticamente.</p>
+            </div>
+          )}
+
+          {/* ── Nome (SEMEN_EXTERNO create, ou ANIMAL_PRÓPRIO edit) ── */}
+          {!showAnimalPicker && (
+            isAnimalProprio ? (
+              <div className="flex flex-col gap-1">
+                <label className="text-[13px] font-medium text-ink-2">Nome</label>
+                <div className="flex items-center gap-2 px-3 py-2.5 bg-beige border border-line rounded-[10px] text-[14px] text-ink-3">
+                  <Lock size={13} className="text-ink-4 shrink-0" />
+                  {reprodutor?.nome}
+                </div>
+                <p className="text-[11px] text-ink-4">Lido do Animal vinculado (somente leitura)</p>
+              </div>
+            ) : (
+              <Input
+                label="Nome / Identificação"
+                required
+                placeholder="Ex: Titan Nelore, Zeus Angus"
+                error={errors.nome?.message}
+                {...register("nome")}
+              />
+            )
+          )}
+
+          {/* ── Espécie e Raça ── */}
+          {/* Quando ANIMAL_PRÓPRIO em create: espécie e raça vêm do animal selecionado */}
+          {!showAnimalPicker && (
+            <div className="grid grid-cols-2 gap-4">
+              {/* Espécie */}
+              {(especieLocked || isEdit) ? (
+                <div className="flex flex-col gap-1">
+                  <label className="text-[13px] font-medium text-ink-2">Espécie</label>
+                  <div
+                    className="flex items-center gap-2 px-3 py-2.5 bg-beige border border-line rounded-[10px] text-[14px] text-ink-3 cursor-not-allowed"
+                    title={especieLocked ? "Espécie definida pelo animal selecionado para inseminação." : "Definida na criação do reprodutor."}
+                  >
+                    <Lock size={13} className="text-ink-4 shrink-0" />
+                    {especieAtual === "BOVINO" ? "🐄 Bovino" : especieAtual === "OVINO" ? "🐑 Ovino" : "🐐 Caprino"}
+                  </div>
+                  <input type="hidden" {...register("especie")} />
+                </div>
+              ) : (
+                <Select
+                  label="Espécie"
+                  required
+                  options={especieOptions}
+                  error={errors.especie?.message}
+                  {...register("especie")}
+                />
+              )}
+
+              {/* Raça */}
+              {isAnimalProprio ? (
+                <div className="flex flex-col gap-1">
+                  <label className="text-[13px] font-medium text-ink-2">Raça</label>
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-beige border border-line rounded-[10px] text-[14px] text-ink-3">
+                    <Lock size={13} className="text-ink-4 shrink-0" />
+                    {reprodutor?.raca}
+                  </div>
+                  <p className="text-[11px] text-ink-4">Lida dos dados genéticos do Animal</p>
+                </div>
+              ) : (
+                <Input
+                  label="Raça"
+                  required
+                  placeholder="Ex: Nelore, Dorper"
+                  error={errors.raca?.message}
+                  {...register("raca")}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Quando ANIMAL_PRÓPRIO selecionado em create: mostrar espécie/raça como read-only */}
+          {showAnimalPicker && animalSelecionado && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-[13px] font-medium text-ink-2">Espécie</label>
+                <div className="flex items-center gap-2 px-3 py-2.5 bg-beige border border-line rounded-[10px] text-[14px] text-ink-3">
+                  <Lock size={13} className="text-ink-4 shrink-0" />
+                  {ESPECIE_EMOJI[animalSelecionado.especie]} {animalSelecionado.especie === "BOVINO" ? "Bovino" : animalSelecionado.especie === "OVINO" ? "Ovino" : "Caprino"}
+                </div>
+                <input type="hidden" {...register("especie")} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[13px] font-medium text-ink-2">Raça</label>
+                <div className="flex items-center gap-2 px-3 py-2.5 bg-beige border border-line rounded-[10px] text-[14px] text-ink-3">
+                  <Lock size={13} className="text-ink-4 shrink-0" />
+                  {animalSelecionado.raca_principal}
+                </div>
+                <input type="hidden" {...register("raca")} />
+              </div>
+            </div>
+          )}
+
+          {/* ── Empresa fornecedora (SEMEN_EXTERNO) ── */}
           {(!isEdit && tipo === "SEMEN_EXTERNO") || (isEdit && reprodutor?.tipo === "SEMEN_EXTERNO") ? (
             <Input
               label="Empresa / Fornecedor"
@@ -299,17 +450,7 @@ export function Modal04ReprodutorRapido({
             />
           ) : null}
 
-          {/* Animal vinculado — ANIMAL_PROPRIO */}
-          {!isEdit && tipo === "ANIMAL_PROPRIO" && (
-            <Input
-              label="ID do Animal vinculado"
-              required
-              placeholder="Ex: ani-006 ou BOV-0055"
-              hint="Apenas animais machos com status ATIVA"
-              error={errors.animal_id?.message}
-              {...register("animal_id")}
-            />
-          )}
+          {/* ── Animal vinculado (edit, ANIMAL_PRÓPRIO) ── */}
           {isEdit && isAnimalProprio && reprodutor?.animal_id && (
             <div className="flex flex-col gap-1">
               <label className="text-[13px] font-medium text-ink-2">Animal vinculado</label>
@@ -320,7 +461,7 @@ export function Modal04ReprodutorRapido({
             </div>
           )}
 
-          {/* Campos somente modo completo (create / edit) */}
+          {/* ── Campos modo completo (create / edit) ── */}
           {isCompleto && (
             <>
               <Input
@@ -361,7 +502,7 @@ export function Modal04ReprodutorRapido({
             </>
           )}
 
-          {/* Toggle ativo (só em edit) */}
+          {/* ── Toggle ativo (edit) ── */}
           {isEdit && (
             <div className="flex items-center justify-between px-3 py-2.5 bg-beige rounded-[10px]">
               <div>
