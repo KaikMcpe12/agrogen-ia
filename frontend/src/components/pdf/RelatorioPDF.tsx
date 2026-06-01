@@ -228,15 +228,15 @@ export function RelatorioPDF({
 
   const hasCharts = donutData.length > 0 || chartReprodutor.length > 0;
 
-  // Pré-calcula segmentos do donut para evitar IIFE no JSX
-  let donutAngle = 0;
-  const donutSegments = donutData.map((d) => {
+  const donutSegments = donutData.reduce<
+    Array<(typeof donutData)[number] & { startAngle: number; endAngle: number }>
+  >((acc, d) => {
+    const startAngle = acc.length > 0 ? acc[acc.length - 1]!.endAngle : 0;
     const sweep = donutTotal > 0 ? (d.value / donutTotal) * 360 : 0;
-    const endAngle = donutAngle + (sweep >= 360 ? 359.99 : sweep);
-    const seg = { ...d, startAngle: donutAngle, endAngle };
-    donutAngle += sweep;
-    return seg;
-  });
+    const endAngle = startAngle + (sweep >= 360 ? 359.99 : sweep);
+    acc.push({ ...d, startAngle, endAngle });
+    return acc;
+  }, []);
 
   return (
     <Document title="Relatorio Reprodutivo - AgroGen IA">

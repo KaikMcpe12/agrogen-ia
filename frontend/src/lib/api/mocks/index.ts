@@ -24,7 +24,7 @@ export function setupMocks(client: AxiosInstance): void {
   const mock = new MockAdapter(client, { delayResponse: 0, onNoMatch: "passthrough" });
 
   /* ── Auth ── */
-  mock.onPost("/auth/login").reply(async (_config) => {
+  mock.onPost("/auth/login").reply(async () => {
     await delay();
     return [
       200,
@@ -94,7 +94,7 @@ export function setupMocks(client: AxiosInstance): void {
     return [200, { success: true, data: fazendas }];
   });
 
-  mock.onPost("/fazendas").reply(async (_config) => {
+  mock.onPost("/fazendas").reply(async () => {
     await delay(300, 600);
     const novaFazenda = { id: `faz-new-${Date.now()}`, total_animais: 0, created_at: new Date().toISOString() };
     return [201, { success: true, data: novaFazenda }];
@@ -200,7 +200,7 @@ export function setupMocks(client: AxiosInstance): void {
     return [200, { success: true, data: ["Nelore", "Angus", "Brahman", "Gir Leiteiro", "Dorper", "Santa Inês", "Boer", "Saanen"] }];
   });
 
-  mock.onPost("/animais").reply(async (_config) => {
+  mock.onPost("/animais").reply(async () => {
     await delay(300, 600);
     const newAnimal = { id: `ani-new-${Date.now()}`, codigo: "BOV-0099", status: "ATIVA", created_at: new Date().toISOString() };
     return [201, { success: true, data: newAnimal }];

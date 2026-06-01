@@ -39,12 +39,6 @@ function TabDados() {
   });
   const usuario = data?.data;
 
-  useEffect(() => {
-    if (usuario) {
-      setNome(usuario.nome);
-    }
-  }, [usuario]);
-
   const updateMutation = useMutation({
     mutationFn: () => {
       const body: { nome?: string; telefone?: string } = { nome };
@@ -109,7 +103,7 @@ function TabDados() {
               <p className="text-ink-4 font-mono text-[11px] truncate">{usuario.id}</p>
             </div>
             <div className="col-span-2 flex gap-2 mt-2">
-              <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
+              <Button variant="secondary" size="sm" onClick={() => { setNome(usuario.nome); setEditing(true); }}>
                 <Pencil size={13} /> Editar dados
               </Button>
               <Button variant="secondary" size="sm" onClick={() => setModal15(true)}>

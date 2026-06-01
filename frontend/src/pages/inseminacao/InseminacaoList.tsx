@@ -150,8 +150,10 @@ export function InseminacaoListPage() {
 
   useEffect(() => {
     if (animalIdParam) {
-      setNovaOpen(true);
-      setSearchParams({}, { replace: true });
+      setTimeout(() => {
+        setNovaOpen(true);
+        setSearchParams({}, { replace: true });
+      }, 0);
     }
   }, [animalIdParam, setSearchParams]);
 
