@@ -299,41 +299,43 @@ export function Modal04ReprodutorRapido({
                 </div>
               ) : (
                 /* Campo de busca + dropdown */
-                <div className="relative">
-                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-4 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={animalSearch}
-                    onChange={(e) => setAnimalSearch(e.target.value)}
-                    placeholder="Buscar por nome ou código (BOV-0001)..."
-                    className="w-full pl-9 pr-3 py-2.5 text-[14px] bg-surface border border-line rounded-[10px] text-ink placeholder:text-ink-4 focus:outline-none focus:ring-2 focus:ring-green-700/20 focus:border-green-700"
-                  />
-                  {sugestoesAnimais.length > 0 && (
-                    <div className="absolute left-0 top-full mt-1 w-full bg-surface border border-line rounded-[10px] shadow-[var(--shadow-md)] z-10 overflow-hidden max-h-48 overflow-y-auto">
-                      {sugestoesAnimais.map((animal) => (
-                        <button
-                          key={animal.id}
-                          type="button"
-                          onClick={() => handleSelecionarAnimal(animal)}
-                          className="w-full flex items-center gap-3 px-3 py-2 hover:bg-beige transition-colors text-left"
-                        >
-                          <span className="text-lg shrink-0">{ESPECIE_EMOJI[animal.especie]}</span>
-                          <div className="min-w-0">
-                            <p className="text-[13px] font-semibold text-ink truncate">{animal.nome}</p>
-                            <p className="text-[11px] font-mono text-ink-4">
-                              {animal.codigo} · {animal.raca_principal}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                <>
+                  <div className="relative">
+                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-4 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={animalSearch}
+                      onChange={(e) => setAnimalSearch(e.target.value)}
+                      placeholder="Buscar por nome ou código (BOV-0001)..."
+                      className="w-full pl-9 pr-3 py-2.5 text-[14px] bg-surface border border-line rounded-[10px] text-ink placeholder:text-ink-4 focus:outline-none focus:ring-2 focus:ring-green-700/20 focus:border-green-700"
+                    />
+                    {sugestoesAnimais.length > 0 && (
+                      <div className="absolute left-0 top-full mt-1 w-full bg-surface border border-line rounded-[10px] shadow-[var(--shadow-md)] z-10 overflow-hidden max-h-48 overflow-y-auto">
+                        {sugestoesAnimais.map((animal) => (
+                          <button
+                            key={animal.id}
+                            type="button"
+                            onClick={() => handleSelecionarAnimal(animal)}
+                            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-beige transition-colors text-left"
+                          >
+                            <span className="text-lg shrink-0">{ESPECIE_EMOJI[animal.especie]}</span>
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-semibold text-ink truncate">{animal.nome}</p>
+                              <p className="text-[11px] font-mono text-ink-4">
+                                {animal.codigo} · {animal.raca_principal}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   {debouncedAnimalSearch.length >= 2 && sugestoesAnimais.length === 0 && (
-                    <p className="text-[12px] text-ink-4 mt-1">
+                    <p className="text-[12px] text-ink-4">
                       Nenhum macho com status ATIVA encontrado para "{debouncedAnimalSearch}".
                     </p>
                   )}
-                </div>
+                </>
               )}
 
               {/* Campos ocultos que o react-hook-form usa */}

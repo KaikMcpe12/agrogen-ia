@@ -181,34 +181,41 @@ export function Modal17PromoverReprodutor({ open, onClose, animalPreSelecionado 
               </div>
             ) : (
               /* Busca livre */
-              <div className="relative">
-                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-4 pointer-events-none" />
-                <input
-                  type="text"
-                  value={q}
-                  onChange={(e) => { setQ(e.target.value); if (!e.target.value) setAnimalSelecionado(null); }}
-                  placeholder="Buscar por código (BOV-0001) ou nome..."
-                  className="w-full pl-9 pr-3 py-2.5 text-[14px] bg-surface border border-line rounded-[10px] text-ink placeholder:text-ink-4 focus:outline-none focus:ring-2 focus:ring-green-700/20 focus:border-green-700"
-                />
-                {machos.length > 0 && !animalSelecionado && (
-                  <div className="absolute left-0 top-full mt-1 w-full bg-surface border border-line rounded-[10px] shadow-[var(--shadow-md)] z-10 overflow-hidden max-h-48 overflow-y-auto">
-                    {machos.map((animal) => (
-                      <button
-                        key={animal.id}
-                        type="button"
-                        onClick={() => handleSelecionar(animal)}
-                        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-beige transition-colors text-left"
-                      >
-                        <span className="text-lg">{ESPECIE_EMOJI[animal.especie] ?? "🐄"}</span>
-                        <div>
-                          <p className="text-[13px] font-semibold text-ink">{animal.nome}</p>
-                          <p className="text-[11px] font-mono text-ink-4">{animal.codigo} · {animal.raca_principal}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+              <>
+                <div className="relative">
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-4 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={q}
+                    onChange={(e) => { setQ(e.target.value); if (!e.target.value) setAnimalSelecionado(null); }}
+                    placeholder="Buscar por código (BOV-0001) ou nome..."
+                    className="w-full pl-9 pr-3 py-2.5 text-[14px] bg-surface border border-line rounded-[10px] text-ink placeholder:text-ink-4 focus:outline-none focus:ring-2 focus:ring-green-700/20 focus:border-green-700"
+                  />
+                  {machos.length > 0 && !animalSelecionado && (
+                    <div className="absolute left-0 top-full mt-1 w-full bg-surface border border-line rounded-[10px] shadow-[var(--shadow-md)] z-10 overflow-hidden max-h-48 overflow-y-auto">
+                      {machos.map((animal) => (
+                        <button
+                          key={animal.id}
+                          type="button"
+                          onClick={() => handleSelecionar(animal)}
+                          className="w-full flex items-center gap-3 px-3 py-2 hover:bg-beige transition-colors text-left"
+                        >
+                          <span className="text-lg">{ESPECIE_EMOJI[animal.especie] ?? "🐄"}</span>
+                          <div>
+                            <p className="text-[13px] font-semibold text-ink">{animal.nome}</p>
+                            <p className="text-[11px] font-mono text-ink-4">{animal.codigo} · {animal.raca_principal}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {debouncedQ.length >= 2 && machos.length === 0 && !animalSelecionado && (
+                  <p className="text-[12px] text-ink-4">
+                    Nenhum macho com status ATIVA encontrado para "{debouncedQ}".
+                  </p>
                 )}
-              </div>
+              </>
             )}
 
             {/* Banner de idempotência */}
