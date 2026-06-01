@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X, AlertTriangle, Syringe, Plus } from "lucide-react";
+import { X, AlertTriangle, Syringe, Plus, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
@@ -10,11 +11,15 @@ import { Badge } from "@/components/ui/Badge";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { inseminacoesApi } from "@/lib/api/endpoints/inseminacoes";
 import { animaisApi } from "@/lib/api/endpoints/animais";
+import { reprodutoresApi } from "@/lib/api/endpoints/reprodutores";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import { Modal04ReprodutorRapido } from "./Modal04ReprodutorRapido";
 import type { TipoInseminacao, Reprodutor, Animal } from "@/types";
 import { formatDate } from "@/lib/utils";
+
+const RASCUNHO_KEY = "agrogen.inseminacao.rascunho";
+const RASCUNHO_PENDING_KEY = "agrogen.inseminacao.rascunho_pending";
 
 const INTERVALO_MIN: Record<string, number> = { BOVINO: 21, OVINO: 17, CAPRINO: 17 };
 
@@ -53,6 +58,7 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
   useScrollLock(open);
 
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [animalSearch, setAnimalSearch] = useState("");
   const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
   const [modal04Open, setModal04Open] = useState(false);
@@ -92,9 +98,15 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
   });
   const lastIns = lastInseminacaoData?.data[0];
 
+  const animalEspecie = (preselectedAnimal ?? selectedAnimal)?.especie;
+
   const { data: reprodutoresData } = useQuery({
-    queryKey: ["reprodutores"],
-    queryFn: () => import("@/lib/api/mocks/dados").then((m) => ({ data: m.reprodutores })),
+    queryKey: ["reprodutores", { especie: animalEspecie, ativo: true }],
+    queryFn: () => reprodutoresApi.listar({
+      ativo: true,
+      ...(animalEspecie ? { especie: animalEspecie } : {}),
+      limit: 999,
+    }),
   });
 
   const criar = useMutation({
@@ -112,10 +124,23 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
   if (!open) return null;
 
   const animalContexto = preselectedAnimal ?? selectedAnimal;
-  const allReproductores = [...(reprodutoresData?.data ?? []), ...extraReproductores].map((r) => ({
+  const reprodutoresFiltrados = [...(reprodutoresData?.data ?? []), ...extraReproductores];
+  const allReproductores = reprodutoresFiltrados.map((r) => ({
     value: r.id,
-    label: `${r.nome} (${r.raca})`,
+    label: `${r.nome} (${r.raca})${r.tipo === "SEMEN_EXTERNO" ? " — Sêmen Ext." : " — Animal Próprio"}`,
   }));
+
+  const handleGerenciarReprodutores = () => {
+    const formValues = {
+      animal_id: animalId,
+      tipo,
+      data_inseminacao: dataInseminacao,
+    };
+    sessionStorage.setItem(RASCUNHO_KEY, JSON.stringify(formValues));
+    sessionStorage.setItem(RASCUNHO_PENDING_KEY, "true");
+    onClose();
+    void navigate("/reprodutores");
+  };
 
   const intervaloMin = animalContexto ? INTERVALO_MIN[animalContexto.especie] ?? 21 : 21;
   const showIntervaloWarning = (() => {
@@ -281,21 +306,48 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
               <p className="text-[11px] font-semibold text-ink-4 uppercase tracking-[0.07em]">Reprodução</p>
 
               <div>
-                <Select
-                  label="Reprodutor / Sêmen"
-                  required
-                  options={allReproductores}
-                  placeholder="Selecionar reprodutor"
-                  error={errors.reprodutor_id?.message}
-                  {...register("reprodutor_id")}
-                />
-                <button
-                  type="button"
-                  className="mt-1.5 flex items-center gap-1.5 text-[12px] text-green-700 hover:underline"
-                  onClick={() => setModal04Open(true)}
-                >
-                  <Plus size={12} /> Cadastrar novo reprodutor
-                </button>
+                {reprodutoresFiltrados.length === 0 && animalContexto ? (
+                  <div className="flex flex-col gap-2 px-3 py-3 bg-amber-soft border border-amber/30 rounded-[10px]">
+                    <p className="text-[13px] font-semibold text-amber">
+                      Nenhum reprodutor {animalContexto.especie} cadastrado
+                    </p>
+                    <p className="text-[12px] text-ink-3">
+                      Você precisará cadastrar pelo menos um reprodutor desta espécie antes de continuar.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setModal04Open(true)}
+                      className="self-start flex items-center gap-1.5 text-[12px] text-green-700 hover:underline font-medium"
+                    >
+                      <Plus size={12} /> Cadastrar reprodutor {animalContexto.especie}
+                    </button>
+                  </div>
+                ) : (
+                  <Select
+                    label="Reprodutor / Sêmen"
+                    required
+                    options={allReproductores}
+                    placeholder="Selecionar reprodutor"
+                    error={errors.reprodutor_id?.message}
+                    {...register("reprodutor_id")}
+                  />
+                )}
+                <div className="flex items-center justify-between mt-1.5">
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 text-[12px] text-green-700 hover:underline"
+                    onClick={() => setModal04Open(true)}
+                  >
+                    <Plus size={12} /> Cadastrar novo reprodutor
+                  </button>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 text-[12px] text-ink-3 hover:text-green-700 hover:underline"
+                    onClick={handleGerenciarReprodutores}
+                  >
+                    Gerenciar todos <ExternalLink size={11} />
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -354,8 +406,9 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
 
       <Modal04ReprodutorRapido
         open={modal04Open}
+        mode="rapido"
         onClose={() => setModal04Open(false)}
-        {...(animalContexto?.especie ? { especiePreferida: animalContexto.especie } : {})}
+        {...(animalContexto?.especie ? { especiePreferida: animalContexto.especie, especieLocked: true } : {})}
         onSave={(novoRep) => {
           setExtraReproductores((prev) => [...prev, novoRep]);
           setValue("reprodutor_id", novoRep.id);

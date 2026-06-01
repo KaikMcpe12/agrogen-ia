@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { Download, FileText, BarChart2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -714,8 +715,13 @@ export function RelatoriosPage() {
                             {r.tipo_ia}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-[12px] text-gray-600">
-                          {r.reprodutor}
+                        <td className="px-4 py-3 text-[12px]">
+                          <Link
+                            to={`/reprodutores?q=${encodeURIComponent(r.reprodutor)}`}
+                            className="text-green-700 hover:underline"
+                          >
+                            {r.reprodutor}
+                          </Link>
                         </td>
                         <td className="px-4 py-3">
                           <span

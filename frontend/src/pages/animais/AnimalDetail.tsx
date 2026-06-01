@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Syringe, Scale, BookOpen, Trash2, Pencil, Brain } from "lucide-react";
+import { ArrowLeft, Syringe, Scale, BookOpen, Trash2, Pencil, Brain, Beef, ExternalLink } from "lucide-react";
+import { reprodutoresApi } from "@/lib/api/endpoints/reprodutores";
+import { Modal17PromoverReprodutor } from "@/components/modals/Modal17PromoverReprodutor";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -36,11 +38,13 @@ const RESULTADO_LABELS: Record<ResultadoInseminacao, string> = {
 
 /* ── Header do animal ──────────────────────────────────────────── */
 
-function AnimalHeader({ animal, onEdit, onInseminar, onDelete }: {
+function AnimalHeader({ animal, onEdit, onInseminar, onDelete, onPromover, reprodutorId }: {
   animal: Animal;
   onEdit: () => void;
   onInseminar: () => void;
   onDelete: () => void;
+  onPromover: () => void;
+  reprodutorId?: string;
 }) {
   const navigate = useNavigate();
   return (
@@ -77,8 +81,17 @@ function AnimalHeader({ animal, onEdit, onInseminar, onDelete }: {
               <span>Partos: <strong className="text-ink">{animal.num_partos}</strong></span>
             )}
           </div>
+          {/* Link para perfil do reprodutor se já promovido */}
+          {reprodutorId && (
+            <Link
+              to={`/reprodutores/${reprodutorId}`}
+              className="mt-2 inline-flex items-center gap-1 text-[12px] text-green-700 hover:underline"
+            >
+              <ExternalLink size={11} /> Ver perfil do reprodutor
+            </Link>
+          )}
         </div>
-        {/* Botões SUB-01: Editar / Registrar Inseminação / Abrir no Diário */}
+        {/* Botões SUB-01 */}
         <div className="flex gap-2 shrink-0 flex-wrap">
           <Button variant="secondary" size="sm" onClick={() => void navigate(`/diario-de-bordo/${animal.id}`)}>
             <BookOpen size={14} /> Diário
@@ -86,6 +99,12 @@ function AnimalHeader({ animal, onEdit, onInseminar, onDelete }: {
           {animal.sexo === "FEMEA" && animal.status !== "DESCARTADA" && (
             <Button variant="secondary" size="sm" onClick={onInseminar}>
               <Syringe size={14} /> Inseminar
+            </Button>
+          )}
+          {/* FLUXO-11: botão "Tornar reprodutor" para machos ATIVA */}
+          {animal.sexo === "MACHO" && animal.status === "ATIVA" && (
+            <Button variant="secondary" size="sm" onClick={onPromover}>
+              <Beef size={14} /> Tornar reprodutor
             </Button>
           )}
           <Button variant="secondary" size="sm" onClick={onEdit}>
@@ -325,12 +344,20 @@ export function AnimalDetailPage() {
   const [editStep1Data, setEditStep1Data] = useState<Step1Data | null>(null);
   const [showInseminacao, setShowInseminacao] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showPromover, setShowPromover] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["animal", id],
     queryFn: () => animaisApi.buscar(id!),
     enabled: !!id,
   });
+
+  const { data: repData } = useQuery({
+    queryKey: ["reprodutores", "by-animal", id],
+    queryFn: () => reprodutoresApi.listar(id ? { animal_id: id } : {}),
+    enabled: !!id,
+  });
+  const reprodutorVinculado = repData?.data.find((r) => r.ativo);
 
   const deleteMutation = useMutation({
     mutationFn: () => animaisApi.deletar(id!),
@@ -381,6 +408,8 @@ export function AnimalDetailPage() {
         onEdit={handleEdit}
         onInseminar={() => setShowInseminacao(true)}
         onDelete={() => setShowDelete(true)}
+        onPromover={() => setShowPromover(true)}
+        {...(reprodutorVinculado ? { reprodutorId: reprodutorVinculado.id } : {})}
       />
       <AlertsSection animalId={animal.id} />
       <WeightChart animalId={animal.id} onRunPredicao={handleRunPredicao} />
@@ -416,6 +445,11 @@ export function AnimalDetailPage() {
         itemName={animal.nome}
         onConfirm={() => deleteMutation.mutate()}
         loading={deleteMutation.isPending}
+      />
+      <Modal17PromoverReprodutor
+        open={showPromover}
+        onClose={() => setShowPromover(false)}
+        animalPreSelecionado={animal}
       />
     </div>
   );

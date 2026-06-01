@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, Moon, Sun, User, Menu, LogOut, Building2 } from "lucide-react";
+import { Bell, ChevronDown, Moon, Sun, User, Menu, LogOut, Building2, Dna } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { useTheme } from "@/hooks/useTheme";
 import { useFazendaAtiva } from "@/hooks/useFazendaAtiva";
@@ -204,6 +204,14 @@ export function Header({ alertCount = 0, onMenuToggle }: HeaderProps) {
                   >
                     <Building2 size={15} className="text-ink-3" />
                     Fazendas
+                  </NavLink>
+                  <NavLink
+                    to="/reprodutores"
+                    onClick={() => setAvatarOpen(false)}
+                    className="flex items-center gap-2 px-4 py-3 text-[14px] text-ink hover:bg-beige transition-colors"
+                  >
+                    <Dna size={15} className="text-ink-3" />
+                    Reprodutores
                   </NavLink>
                   <button
                     onClick={handleLogout}
