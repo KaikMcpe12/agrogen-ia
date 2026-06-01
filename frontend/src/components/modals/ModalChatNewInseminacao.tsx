@@ -235,7 +235,7 @@ function ActivePromptArea({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setVal("");
+    setTimeout(() => setVal(""), 0);
     if (prompt?.inputType && !prompt.isAnimalSearch) {
       setTimeout(() => inputRef.current?.focus(), 50);
     }
@@ -399,13 +399,17 @@ export function ModalChatNewInseminacao({ open, onClose, preselectedAnimalId, pr
         animal_id: preselectedAnimalId,
         animal_nome: preselectedAnimalNome,
       };
-      setData(initialData);
-      setCurrentStep("data_inseminacao");
-      setTimeout(() => pushQuestion("data_inseminacao", initialData, reprodutores), 100);
+      setTimeout(() => {
+        setData(initialData);
+        setCurrentStep("data_inseminacao");
+        pushQuestion("data_inseminacao", initialData, reprodutores);
+      }, 100);
     } else {
-      setData({});
-      setCurrentStep("animal");
-      setTimeout(() => pushQuestion("animal", {}, reprodutores), 100);
+      setTimeout(() => {
+        setData({});
+        setCurrentStep("animal");
+        pushQuestion("animal", {}, reprodutores);
+      }, 100);
     }
   }, [open, preselectedAnimalId, preselectedAnimalNome, pushQuestion, reprodutores]);
 
@@ -438,7 +442,7 @@ export function ModalChatNewInseminacao({ open, onClose, preselectedAnimalId, pr
           updatedData.data_inseminacao = raw;
           try {
             display = new Date(raw).toLocaleString("pt-BR");
-          } catch (_) { /* noop */ }
+          } catch { /* noop */ }
           break;
         }
         case "tipo": {

@@ -354,7 +354,7 @@ function ActivePromptArea({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setVal("");
+    setTimeout(() => setVal(""), 0);
     if (!disabled && prompt?.inputType) {
       setTimeout(() => inputRef.current?.focus(), 50);
     }
@@ -473,31 +473,31 @@ export function ModalChatNewAnimal({ open, onClose }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const createAnimal = useMutation({
-    mutationFn: (finalData: any) =>
-      animaisApi.criar({
-        especie: finalData.especie,
-        nome: finalData.nome,
-        codigo: finalData.codigo,
-        sexo: finalData.sexo,
-        data_nascimento: finalData.data_nascimento,
-        peso_inicial_kg: finalData.peso_inicial_kg,
-        condicao_corporal: finalData.condicao_corporal,
-        brinco: finalData.brinco,
-        status: "ATIVA",
-        num_partos: finalData.num_partos ?? 0,
-        data_ultimo_parto: finalData.data_ultimo_parto,
-        observacoes: finalData.observacoes,
+    mutationFn: (finalData: AnimalData) => {
+      const payload: import("@/types").Animal = {
+        id: "", codigo: "", nome: finalData.nome ?? "", especie: finalData.especie ?? "BOVINO",
+        raca_principal: finalData.raca_principal ?? "", sexo: finalData.sexo ?? "FEMEA",
+        status: "ATIVA", data_nascimento: finalData.data_nascimento ?? "",
+        idade_meses: 0, peso_inicial_kg: finalData.peso_inicial_kg ?? 0,
+        condicao_corporal: finalData.condicao_corporal ?? 3, num_partos: finalData.num_partos ?? 0,
+        fazenda_id: "", created_at: "",
+        ...(finalData.codigo && { codigo: finalData.codigo }),
+        ...(finalData.brinco && { brinco: finalData.brinco }),
+        ...(finalData.data_ultimo_parto && { data_ultimo_parto: finalData.data_ultimo_parto }),
+        ...(finalData.observacoes && { observacoes: finalData.observacoes }),
         dados_geneticos: {
           raca_principal: finalData.raca_principal ?? "",
-          raca_pai: finalData.raca_pai,
-          raca_mae: finalData.raca_mae,
-          dep_peso_desmame: finalData.dep_peso_desmame,
-          dep_peso_sobrean: finalData.dep_peso_sobrean,
-          dep_fertilidade: finalData.dep_fertilidade,
-          dep_acuracia: finalData.dep_acuracia,
-          heterose_esperada: finalData.heterose_esperada,
+          ...(finalData.raca_pai && { raca_pai: finalData.raca_pai }),
+          ...(finalData.raca_mae && { raca_mae: finalData.raca_mae }),
+          ...(finalData.dep_peso_desmame && { dep_peso_desmame: finalData.dep_peso_desmame }),
+          ...(finalData.dep_peso_sobrean && { dep_peso_sobrean: finalData.dep_peso_sobrean }),
+          ...(finalData.dep_fertilidade && { dep_fertilidade: finalData.dep_fertilidade }),
+          ...(finalData.dep_acuracia && { dep_acuracia: finalData.dep_acuracia }),
+          ...(finalData.heterose_esperada && { heterose_esperada: finalData.heterose_esperada }),
         },
-      }),
+      };
+      return animaisApi.criar(payload);
+    },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["animais"] });
     },
@@ -575,7 +575,7 @@ export function ModalChatNewAnimal({ open, onClose }: Props) {
         }
         case "data_nascimento":
           updatedData.data_nascimento = raw;
-          try { display = new Date(raw + "T12:00:00").toLocaleDateString("pt-BR"); } catch (_) { /* noop */ }
+          try { display = new Date(raw + "T12:00:00").toLocaleDateString("pt-BR"); } catch { /* noop */ }
           break;
         case "peso_inicial_kg":
           updatedData.peso_inicial_kg = parseFloat(raw);
@@ -653,12 +653,12 @@ export function ModalChatNewAnimal({ open, onClose }: Props) {
           break;
         case "data_ultimo_parto":
           updatedData.data_ultimo_parto = raw;
-          try { display = new Date(raw + "T12:00:00").toLocaleDateString("pt-BR"); } catch (_) { /* noop */ }
+          try { display = new Date(raw + "T12:00:00").toLocaleDateString("pt-BR"); } catch { /* noop */ }
           break;
         case "data_ultima_cobertura":
           if (raw !== "Pular") {
             updatedData.data_ultima_cobertura = raw;
-            try { display = new Date(raw + "T12:00:00").toLocaleDateString("pt-BR"); } catch (_) { /* noop */ }
+            try { display = new Date(raw + "T12:00:00").toLocaleDateString("pt-BR"); } catch { /* noop */ }
           } else display = "—";
           break;
         case "gestante":
