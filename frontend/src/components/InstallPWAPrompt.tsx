@@ -31,17 +31,13 @@ export function InstallPWAPrompt() {
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    if (newCount >= 3) {
-      setShow(true);
-    } else {
-      const timer = setTimeout(() => setShow(true), 60_000);
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener("beforeinstallprompt", handler);
-      };
-    }
+    const delay = newCount >= 3 ? 0 : 60_000;
+    const timer = setTimeout(() => setShow(true), delay);
 
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("beforeinstallprompt", handler);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -81,7 +81,7 @@ function TabPredicao() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
-  const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
+  const [userSelectedAnimal, setUserSelectedAnimal] = useState<Animal | null>(null);
   const [predicao, setPredicao] = useState<PredicaoPrenhez | null>(null);
   const [loadingMsg, setLoadingMsg] = useState(0);
   const debouncedSearch = useDebounce(search, 300);
@@ -92,14 +92,10 @@ function TabPredicao() {
   const { data: preselectedData } = useQuery({
     queryKey: ["animal", animalIdParam],
     queryFn: () => animaisApi.buscar(animalIdParam!),
-    enabled: !!animalIdParam && !selectedAnimal,
+    enabled: !!animalIdParam && !userSelectedAnimal,
   });
 
-  useEffect(() => {
-    if (preselectedData?.data && !selectedAnimal) {
-      setSelectedAnimal(preselectedData.data);
-    }
-  }, [preselectedData, selectedAnimal]);
+  const selectedAnimal = userSelectedAnimal ?? preselectedData?.data ?? null;
 
   const { data: animaisData } = useQuery({
     queryKey: ["animais-ia-search", debouncedSearch],
@@ -152,7 +148,7 @@ function TabPredicao() {
                   type="button"
                   className="w-full text-left px-4 py-2.5 text-[13px] hover:bg-beige transition-colors border-b border-line last:border-0"
                   onClick={() => {
-                    setSelectedAnimal(a);
+                    setUserSelectedAnimal(a);
                     setSearch("");
                   }}
                 >
@@ -181,7 +177,7 @@ function TabPredicao() {
                 variant="secondary"
                 size="sm"
                 onClick={() => {
-                  setSelectedAnimal(null);
+                  setUserSelectedAnimal(null);
                   setPredicao(null);
                 }}
               >

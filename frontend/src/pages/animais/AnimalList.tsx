@@ -28,8 +28,7 @@ const STATUS_VARIANT: Record<StatusAnimal, "ok" | "info" | "ghost" | "danger" | 
   REPRODUTOR_ATIVO: "bovino", EM_MONITORAMENTO: "warn",
 };
 
-const SORT_COLS = ["codigo", "nome", "especie", "raca_principal", "sexo", "status", "condicao_corporal"] as const;
-type SortCol = typeof SORT_COLS[number];
+type SortCol = "codigo" | "nome" | "especie" | "raca_principal" | "sexo" | "status" | "condicao_corporal";
 
 const SS_KEY = "agrogen.animaisFilters";
 

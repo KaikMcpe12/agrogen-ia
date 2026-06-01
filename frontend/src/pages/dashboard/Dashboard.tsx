@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -205,18 +205,13 @@ function TimelineSection({ items }: { items: TimelineItem[] }) {
 
 /* ── Urgent Alerts ─────────────────────────────────────────────── */
 
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-
 function UrgentAlerts() {
   const { data } = useQuery({
     queryKey: ["alertas", "urgentes-dashboard"],
     queryFn: () => alertasApi.listar({ lido: false, resolvido: false }),
   });
 
-  const now = Date.now();
-  const alerts = (data?.data ?? [])
-    .filter((a) => new Date(a.data_disparo).getTime() - now <= SEVEN_DAYS_MS)
-    .slice(0, 6);
+  const alerts = useMemo(() => (data?.data ?? []).slice(0, 6), [data]);
 
   if (alerts.length === 0) return null;
 
