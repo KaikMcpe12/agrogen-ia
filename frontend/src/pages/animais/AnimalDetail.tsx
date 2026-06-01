@@ -13,7 +13,7 @@ import { alertasApi } from "@/lib/api/endpoints/alertas";
 import { useChartTheme } from "@/hooks/useChartTheme";
 import { Modal01NewAnimalStep1, type Step1Data } from "@/components/modals/Modal01NewAnimalStep1";
 import { Modal02NewAnimalStep2 } from "@/components/modals/Modal02NewAnimalStep2";
-import { Modal03NewInseminacao } from "@/components/modals/Modal03NewInseminacao";
+import { ModalNewInseminacaoSelector } from "@/components/modals/ModalInseminacaoSelector";
 import { Modal10DeleteConfirm } from "@/components/modals/Modal10DeleteConfirm";
 import { formatDate } from "@/lib/utils";
 import type { Animal, StatusAnimal, Especie, ResultadoInseminacao } from "@/types";
@@ -404,10 +404,11 @@ export function AnimalDetailPage() {
         animal={animal}
       />
 
-      <Modal03NewInseminacao
+      <ModalNewInseminacaoSelector
         open={showInseminacao}
         onClose={() => setShowInseminacao(false)}
         preselectedAnimalId={animal.id}
+        preselectedAnimalNome={animal.nome}
       />
       <Modal10DeleteConfirm
         open={showDelete}

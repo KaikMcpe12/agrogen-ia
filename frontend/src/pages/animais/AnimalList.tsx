@@ -12,6 +12,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { Modal01NewAnimalStep1, type Step1Data } from "@/components/modals/Modal01NewAnimalStep1";
 import { Modal02NewAnimalStep2 } from "@/components/modals/Modal02NewAnimalStep2";
 import { Modal10DeleteConfirm } from "@/components/modals/Modal10DeleteConfirm";
+import { ModalNewAnimalSelector } from "@/components/modals/ModalNewAnimalSelector";
 import type { Animal, Especie, StatusAnimal } from "@/types";
 
 /* ── Constantes ────────────────────────────────────────────────── */
@@ -165,6 +166,7 @@ export function AnimalListPage() {
   const debouncedQ = useDebounce(q, 300);
 
   // Modais
+  const [showSelectorModal, setShowSelectorModal] = useState(false);
   const [showModal01, setShowModal01] = useState(false);
   const [showModal02, setShowModal02] = useState(false);
   const [step1Data, setStep1Data] = useState<Step1Data | null>(null);
@@ -265,7 +267,7 @@ export function AnimalListPage() {
             </p>
           )}
         </div>
-        <Button variant="primary" size="sm" onClick={() => { setEditAnimal(null); setStep1Data(null); setShowModal01(true); }}>
+        <Button variant="primary" size="sm" onClick={() => setShowSelectorModal(true)}>
           <Plus size={16} /> Novo Animal
         </Button>
       </div>
@@ -365,7 +367,7 @@ export function AnimalListPage() {
       ) : animais.length === 0 ? (
         hasActiveFilters
           ? <EmptyFiltroSemResultado onClear={clearFilters} />
-          : <EmptyListaVazia onNew={() => setShowModal01(true)} />
+          : <EmptyListaVazia onNew={() => setShowSelectorModal(true)} />
       ) : (
         <>
           {/* Mobile: cards */}
@@ -462,19 +464,10 @@ export function AnimalListPage() {
         </>
       )}
 
-      {/* Modal Novo Animal (create) */}
-      <Modal01NewAnimalStep1
-        open={showModal01 && !editAnimal}
-        onClose={() => setShowModal01(false)}
-        onNext={(data) => { setStep1Data(data); setShowModal01(false); setShowModal02(true); }}
-        mode="create"
-      />
-      <Modal02NewAnimalStep2
-        open={showModal02 && !editAnimal}
-        onClose={() => { setShowModal02(false); setStep1Data(null); }}
-        onBack={() => { setShowModal02(false); setShowModal01(true); }}
-        step1Data={step1Data}
-        mode="create"
+      {/* Modal Novo Animal — seletor de modo (tradicional ou chat) */}
+      <ModalNewAnimalSelector
+        open={showSelectorModal}
+        onClose={() => setShowSelectorModal(false)}
       />
 
       {/* Modal Editar Animal (edit) */}
