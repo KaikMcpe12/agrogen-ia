@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, PawPrint, Syringe, BookOpen, Menu, User, LogOut, BarChart2, Brain } from "lucide-react";
+import { Home, PawPrint, Syringe, BookOpen, Menu, User, LogOut, BarChart2, Brain, Dna } from "lucide-react";
 import { useState } from "react";
 import { Drawer } from "./Drawer";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
@@ -13,9 +13,10 @@ const PRIMARY_TABS = [
 ];
 
 const MORE_NAV_ITEMS = [
-  { to: "/analise-ia",  label: "Análise IA",  icon: Brain },
-  { to: "/relatorios",  label: "Relatórios",  icon: BarChart2 },
-  { to: "/perfil",      label: "Perfil",      icon: User },
+  { to: "/analise-ia",   label: "Análise IA",   icon: Brain },
+  { to: "/relatorios",   label: "Relatórios",   icon: BarChart2 },
+  { to: "/reprodutores", label: "Reprodutores", icon: Dna },
+  { to: "/perfil",       label: "Perfil",       icon: User },
 ];
 
 export function BottomNav() {
