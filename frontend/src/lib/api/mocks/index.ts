@@ -225,13 +225,82 @@ export function setupMocks(client: AxiosInstance): void {
     await delay();
     const params = config.params as Record<string, string> | undefined;
     let result = [...reprodutores];
+
     if (params?.["especie"]) result = result.filter((r) => r.especie === params["especie"]);
-    return [200, { success: true, data: result }];
+    if (params?.["tipo"]) result = result.filter((r) => r.tipo === params["tipo"]);
+    if (params?.["ativo"] !== undefined && params["ativo"] !== "") {
+      const ativo = params["ativo"] === "true";
+      result = result.filter((r) => r.ativo === ativo);
+    }
+    if (params?.["animal_id"]) result = result.filter((r) => r.animal_id === params["animal_id"]);
+    if (params?.["q"]) {
+      const q = params["q"].toLowerCase();
+      result = result.filter(
+        (r) => r.nome.toLowerCase().includes(q) || (r.registro ?? "").toLowerCase().includes(q)
+      );
+    }
+
+    const sort = params?.["sort"] ?? "nome";
+    const order = params?.["order"] ?? "asc";
+    result = [...result].sort((a, b) => {
+      const va = String(a[sort as keyof typeof a] ?? "");
+      const vb = String(b[sort as keyof typeof b] ?? "");
+      return order === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+
+    const page = Number(params?.["page"] ?? 1);
+    const limit = Number(params?.["limit"] ?? 20);
+    const total = result.length;
+    const start = (page - 1) * limit;
+    const data = result.slice(start, start + limit);
+
+    return [200, {
+      success: true,
+      data,
+      meta: { page, limit, total, total_pages: Math.ceil(total / limit), has_next: start + limit < total, has_prev: page > 1 },
+    }];
   });
 
-  mock.onPost("/reprodutores").reply(async () => {
+  mock.onGet(/\/reprodutores\/[^/]+$/).reply(async (config) => {
     await delay();
-    return [201, { success: true, data: { id: `rep-new-${Date.now()}`, nome: "Novo Reprodutor" } }];
+    const id = config.url?.split("/").pop() ?? "";
+    const rep = reprodutores.find((r) => r.id === id);
+    if (!rep) return [404, { success: false, error: { codigo: "REPRODUTOR_NOT_FOUND" } }];
+    return [200, { success: true, data: rep }];
+  });
+
+  mock.onPost("/reprodutores").reply(async (config) => {
+    await delay(300, 600);
+    const body = config.data ? (JSON.parse(config.data as string) as Partial<(typeof reprodutores)[0]>) : {};
+    const novoRep = {
+      id: `rep-new-${Date.now()}`,
+      ativo: true,
+      total_inseminacoes: 0,
+      taxa_prenhez: 0,
+      total_crias: 0,
+      created_at: new Date().toISOString(),
+      ...body,
+    };
+    return [201, { success: true, data: novoRep }];
+  });
+
+  mock.onPatch(/\/reprodutores\/[^/]+$/).reply(async (config) => {
+    await delay(300, 500);
+    const id = config.url?.split("/").pop() ?? "";
+    const rep = reprodutores.find((r) => r.id === id);
+    if (!rep) return [404, { success: false, error: { codigo: "REPRODUTOR_NOT_FOUND" } }];
+    const body = config.data ? (JSON.parse(config.data as string) as Partial<typeof rep>) : {};
+    return [200, { success: true, data: { ...rep, ...body } }];
+  });
+
+  mock.onDelete(/\/reprodutores\/[^/]+$/).reply(async (config) => {
+    await delay();
+    const id = config.url?.split("/").pop() ?? "";
+    const rep = reprodutores.find((r) => r.id === id);
+    if (rep && (rep.total_inseminacoes ?? 0) > 0) {
+      return [409, { success: false, error: { codigo: "REPRODUTOR_TEM_VINCULOS", total_inseminacoes: rep.total_inseminacoes } }];
+    }
+    return [200, { success: true }];
   });
 
   /* ── Inseminações ── */
