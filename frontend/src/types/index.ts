@@ -62,9 +62,11 @@ export interface DadosGeneticos {
   pai_id?: string | undefined;
   mae_id?: string | undefined;
   dep_peso_desmame?: number | undefined;
+  dep_peso_sobrean?: number | undefined;
   dep_fertilidade?: number | undefined;
   dep_acuracia?: number | undefined;
   coeficiente_endogamia?: number | undefined;
+  heterose_esperada?: number | undefined;
 }
 
 export interface UltimoEvento {
@@ -80,13 +82,17 @@ export interface Animal {
   especie: Especie;
   raca_principal: string;
   sexo: Sexo;
+  linhagem?: string;
+  historico?: string;
   status: StatusAnimal;
   data_nascimento: string;
   idade_meses: number;
   peso_inicial_kg: number;
   condicao_corporal: number;
+  brinco?: string;
   num_partos: number;
   data_ultimo_parto?: string;
+  observacoes?: string;
   dados_geneticos?: DadosGeneticos;
   fazenda_id: string;
   ultimo_evento?: UltimoEvento;
