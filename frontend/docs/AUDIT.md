@@ -346,10 +346,10 @@
 
 | Item | Status | Commit |
 |------|--------|--------|
-| Bloquear exclusão de Animal vinculado a Reprodutor ativo | ❌ | C16 |
-| Diálogo "Desativar reprodutor automaticamente?" ao mudar Animal para DESCARTADA | ❌ | C16 |
+| Bloquear exclusão de Animal vinculado a Reprodutor ativo | ✅ | C16 |
+| Diálogo "Desativar reprodutor automaticamente?" ao mudar Animal para DESCARTADA | ❌ | requer status no Modal01/02 |
 | Nome do Reprodutor ANIMAL_PROPRIO lê sempre de tb_animal (sincronização visual) | ✅ | C11 (mock) |
-| Promoção idempotente: banner com link para perfil existente | ❌ | C14 |
+| Promoção idempotente: banner com link para perfil existente | ✅ | C14 |
 
 ---
 
