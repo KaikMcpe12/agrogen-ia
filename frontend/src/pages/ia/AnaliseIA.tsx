@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { Brain, TrendingUp, Dna, AlertTriangle, Syringe } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -497,7 +497,14 @@ function TabPadroes() {
               <tbody>
                 {padroes.top_reprodutores.map((r, i) => (
                   <tr key={i} className="border-b border-line last:border-0 hover:bg-beige/50 transition-colors">
-                    <td className="px-3 py-2.5 text-[13px] font-medium text-ink">{r.reprodutor}</td>
+                    <td className="px-3 py-2.5">
+                      <Link
+                        to={`/reprodutores?q=${encodeURIComponent(r.reprodutor)}`}
+                        className="text-[13px] font-medium text-green-700 hover:underline"
+                      >
+                        {r.reprodutor}
+                      </Link>
+                    </td>
                     <td className="px-3 py-2.5 text-[13px] text-ink-2">{r.inseminacoes}</td>
                     <td className="px-3 py-2.5">
                       <span className={`text-[13px] font-semibold ${r.taxa_prenhez >= 75 ? "text-ok" : r.taxa_prenhez >= 60 ? "text-warn" : "text-danger"}`}>
