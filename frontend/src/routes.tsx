@@ -95,6 +95,20 @@ export const router = createBrowserRouter([
             Component: m.PerfilPage,
           })),
       },
+      {
+        path: "/reprodutores",
+        lazy: () =>
+          import("@/pages/reprodutores/ReprodutorList").then((m) => ({
+            Component: m.ReprodutorListPage,
+          })),
+      },
+      {
+        path: "/reprodutores/:id",
+        lazy: () =>
+          import("@/pages/reprodutores/ReprodutorDetail").then((m) => ({
+            Component: m.ReprodutorDetailPage,
+          })),
+      },
     ],
   },
 ]);

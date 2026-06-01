@@ -133,9 +133,18 @@ export interface Reprodutor {
   especie: Especie;
   raca: string;
   tipo: TipoReprodutor;
+  ativo: boolean;
+  animal_id?: string;
+  registro?: string;
   empresa_semen?: string;
   dep_peso_desmame?: number;
+  dep_fertilidade?: number;
   dep_acuracia?: number;
+  total_inseminacoes?: number;
+  taxa_prenhez?: number;
+  total_crias?: number;
+  ultima_utilizacao?: string;
+  created_at: string;
 }
 
 export interface DiagnosticoInseminacao {

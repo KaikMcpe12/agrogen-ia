@@ -266,6 +266,93 @@
 
 ---
 
+## Adendo — Gestão de Reprodutores (v1.0)
+
+### TELA-11 — Reprodutores
+
+| Item | Status | Commit |
+|------|--------|--------|
+| Rota /reprodutores acessível pelo menu do avatar | ✅ | C11 |
+| Busca em tempo real por nome ou registro (debounce 300ms) | ✅ | C11 |
+| Filtros chips: Espécie, Tipo (Sêmen Externo/Animal Próprio), Status | ✅ | C11 |
+| Contagem ao lado de cada chip de filtro | ✅ | C11 |
+| Tabela desktop com 9 colunas (seção 3.1.3) | ✅ | C11 |
+| Degradação para cards em mobile (< 768px) | ✅ | C11 |
+| Badge visual diferente: Sêmen Externo (amarelo) vs Animal Próprio (verde) | ✅ | C11 |
+| Botão "Novo Reprodutor" abre MODAL-04 modo completo | ✅ | C11 |
+| Botão "Promover animal a reprodutor" abre MODAL-17 | ❌ | C14 |
+| Empty states cobertos (3 cenários) | ✅ | C11 |
+| FLUXO-14: banner "Retomar inseminação" | ✅ | C11 |
+| FLUXO-12: toggle ativo/inativo com confirmação na desativação | ✅ | C11 |
+| FLUXO-13: exclusão com tratamento de 409 + opção desativar | ✅ | C11 |
+| Paginação 10/20/50 + "Exibindo X de Y" | ✅ | C11 |
+
+### SUB-04 — Perfil do Reprodutor
+
+| Item | Status | Commit |
+|------|--------|--------|
+| Rota /reprodutores/:id | ✅ | C11 (rota) / C12 (página) |
+| Header com botões: Editar, Ativar/Desativar, Excluir, Voltar | ❌ | C12 |
+| Se ANIMAL_PROPRIO: link "Ver perfil do animal →" para SUB-01 | ❌ | C12 |
+| Card de identidade com campos diferenciados por tipo | ❌ | C12 |
+| Card de dados genéticos com tooltips nos DEPs | ❌ | C12 |
+| 4 KPI cards: total inseminações, taxa de prenhez, crias geradas, última utilização | ❌ | C12 |
+| Taxa de prenhez exibe "—" se menos de 5 inseminações com diagnóstico | ❌ | C12 |
+| Tabela das últimas 10 inseminações com links para SUB-01 das matrizes | ❌ | C12 |
+| Link "Ver todas as inseminações deste reprodutor →" | ❌ | C12 |
+| Gráfico de desempenho mensal (opcional, se ≥10 inseminações) | ❌ | C12 |
+
+### Modais
+
+| Item | Status | Commit |
+|------|--------|--------|
+| MODAL-04 revisado com diferenciação rápido/completo | ❌ | C13 |
+| MODAL-04 com espécie pré-preenchida e travada quando aberto de MODAL-03 | ❌ | C13 |
+| MODAL-04 com regra: empresa fornecedora obrigatória se SEMEN_EXTERNO | ❌ | C13 |
+| MODAL-04 com regra: animal vinculado obrigatório se ANIMAL_PROPRIO | ❌ | C13 |
+| MODAL-04 mode=create vs mode=edit no mesmo componente (reuso) | ❌ | C13 |
+| MODAL-16 (= MODAL-04 em mode=edit) com campos read-only conforme tipo | ❌ | C13 |
+| MODAL-16 com tooltip explicando por que tipo não é editável | ❌ | C13 |
+| MODAL-17 Promover Animal a Reprodutor implementado | ❌ | C14 |
+| MODAL-17 com busca filtrada apenas em machos ATIVA | ❌ | C14 |
+| MODAL-17 com detecção de animal já promovido (banner amarelo) | ❌ | C14 |
+| MODAL-17 com toggle "Atualizar status do Animal" (default marcado) | ❌ | C14 |
+
+### Fluxos
+
+| Item | Status | Commit |
+|------|--------|--------|
+| FLUXO-11: promover touro a reprodutor a partir de SUB-01 | ❌ | C14+C15 |
+| FLUXO-12: reativar/desativar reprodutor (confirmação só na desativação) | ✅ | C11 |
+| FLUXO-13: tentativa de exclusão com tratamento de erro 409 + opção desativar | ✅ | C11 |
+| FLUXO-14: atalho "Gerenciar todos os reprodutores" a partir de MODAL-03 com preservação de rascunho | ❌ | C15 |
+
+### Integrações com telas existentes
+
+| Item | Status | Commit |
+|------|--------|--------|
+| SUB-01: botão "Tornar reprodutor" em machos ATIVA | ❌ | C15 |
+| SUB-01: link "Ver perfil do reprodutor →" se já promovido | ❌ | C15 |
+| TELA-02: filtro "É reprodutor?" e badge na coluna Status | ❌ | C15 |
+| MODAL-03: select de reprodutor FILTRADO POR ESPÉCIE da fêmea | ❌ | C15 |
+| MODAL-03: empty state quando sem reprodutores da espécie cadastrados | ❌ | C15 |
+| MODAL-03: link "Gerenciar todos os reprodutores →" no rodapé do dropdown | ❌ | C15 |
+| TELA-04 Seleção Genética: nome do reprodutor como link para SUB-04 | ❌ | C15 |
+| TELA-06 Relatórios: nome do reprodutor no comparativo como link para SUB-04 | ❌ | C15 |
+| SUB-03 Detalhes da Inseminação: card "Reprodutor utilizado" linkável para SUB-04 | ❌ | C15 |
+| Menu do avatar (Header): item "Reprodutores" adicionado | ❌ | C15 |
+
+### Regras de negócio em cascata
+
+| Item | Status | Commit |
+|------|--------|--------|
+| Bloquear exclusão de Animal vinculado a Reprodutor ativo | ❌ | C16 |
+| Diálogo "Desativar reprodutor automaticamente?" ao mudar Animal para DESCARTADA | ❌ | C16 |
+| Nome do Reprodutor ANIMAL_PROPRIO lê sempre de tb_animal (sincronização visual) | ✅ | C11 (mock) |
+| Promoção idempotente: banner com link para perfil existente | ❌ | C14 |
+
+---
+
 ## Próximos commits (plano restante)
 
 | Commit | Foco |
