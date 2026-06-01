@@ -140,6 +140,7 @@ function TabPredicao() {
             placeholder="Buscar por nome ou código…"
             className="w-full px-3 py-2.5 rounded-[10px] border border-line text-[14px] text-ink bg-surface outline-none focus:border-green-700 focus:ring-[3px] focus:ring-green-700/18 transition-all placeholder:text-ink-4"
           />
+          <p className="text-[11px] text-ink-4 mt-0.5">Busca apenas fêmeas com status <strong>ATIVA</strong>.</p>
           {sugestoes.length > 0 && (
             <div className="mt-1 border border-line rounded-[10px] bg-surface overflow-hidden shadow-[var(--shadow-sm)]">
               {sugestoes.map((a) => (
@@ -157,6 +158,12 @@ function TabPredicao() {
                 </button>
               ))}
             </div>
+          )}
+          {debouncedSearch.length > 1 && sugestoes.length === 0 && (
+            <p className="text-[12px] text-ink-4 mt-1">
+              Nenhuma fêmea com status <strong>ATIVA</strong> encontrada para "{debouncedSearch}".
+              Animais com status Prenha ou Em Monitoramento não aparecem aqui.
+            </p>
           )}
         </div>
       ) : (

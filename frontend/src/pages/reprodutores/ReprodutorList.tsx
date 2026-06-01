@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Search, Plus, Eye, Trash2, Pencil, FlaskConical, FilterX,
   ArrowUpDown, ArrowUp, ArrowDown, Dna, ToggleLeft, ToggleRight,
-  ChevronLeft, ChevronRight, Beef, X, RotateCcw, PawPrint,
+  ChevronLeft, ChevronRight, Beef, X, RotateCcw, PawPrint, ArrowLeft,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -453,6 +453,14 @@ export function ReprodutorListPage() {
           </button>
         </div>
       )}
+
+      {/* Botão retornar */}
+      <button
+        onClick={() => navigate(-1)}
+        className="self-start flex items-center gap-1.5 text-[13px] text-ink-3 hover:text-ink transition-colors"
+      >
+        <ArrowLeft size={15} /> Retornar
+      </button>
 
       {/* Cabeçalho */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

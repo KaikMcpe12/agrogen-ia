@@ -218,6 +218,11 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
                     ))}
                   </div>
                 )}
+                {animalSearch.length > 1 && (animaisSugestoesData?.data ?? []).length === 0 && !animalId && (
+                  <p className="text-[12px] text-ink-4 mt-1">
+                    Nenhuma fêmea ATIVA encontrada para "{animalSearch}". Animais com status Prenha ou Em Monitoramento não aparecem aqui.
+                  </p>
+                )}
                 {errors.animal_id && (
                   <p className="text-[12px] text-danger mt-1">{errors.animal_id.message}</p>
                 )}
