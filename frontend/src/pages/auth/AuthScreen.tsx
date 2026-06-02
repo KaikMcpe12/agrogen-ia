@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/Input";
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { MaskedInput } from "@/components/ui/MaskedInput";
@@ -116,24 +117,24 @@ function LoginForm() {
           error={errors.email?.message}
           {...register("email")}
         />
-        <div className="relative">
-          <Input
-            label="Senha"
-            type={showPwd ? "text" : "password"}
-            required
-            placeholder="••••••••"
-            error={errors.senha?.message}
-            {...register("senha")}
-          />
-          <button
-            type="button"
-            className="absolute right-3 top-[34px] text-ink-4 hover:text-ink"
-            onClick={() => setShowPwd((v) => !v)}
-            aria-label={showPwd ? "Ocultar senha" : "Mostrar senha"}
-          >
-            {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-        </div>
+        <Input
+          label="Senha"
+          type={showPwd ? "text" : "password"}
+          required
+          placeholder="••••••••"
+          error={errors.senha?.message}
+          rightIcon={
+            <button
+              type="button"
+              className="text-ink-4 hover:text-ink"
+              onClick={() => setShowPwd((v) => !v)}
+              aria-label={showPwd ? "Ocultar senha" : "Mostrar senha"}
+            >
+              {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          }
+          {...register("senha")}
+        />
 
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-2 text-[13px] text-ink-3 cursor-pointer select-none">
@@ -313,24 +314,24 @@ function RegisterForm() {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <div className="relative">
-              <Input
-                label="Senha"
-                type={showPwd ? "text" : "password"}
-                required
-                placeholder="Mín. 8 caracteres"
-                error={errors.senha?.message}
-                {...register("senha")}
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-[34px] text-ink-4 hover:text-ink"
-                onClick={() => setShowPwd((v) => !v)}
-                aria-label={showPwd ? "Ocultar senha" : "Mostrar senha"}
-              >
-                {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
+            <Input
+              label="Senha"
+              type={showPwd ? "text" : "password"}
+              required
+              placeholder="Mín. 8 caracteres"
+              error={errors.senha?.message}
+              rightIcon={
+                <button
+                  type="button"
+                  className="text-ink-4 hover:text-ink"
+                  onClick={() => setShowPwd((v) => !v)}
+                  aria-label={showPwd ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              }
+              {...register("senha")}
+            />
             <PasswordStrength password={senhaValue} />
           </div>
           <Input
@@ -411,12 +412,12 @@ export function AuthScreen({ initialTab = "login" }: Props) {
           <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 60% 80%, rgba(212,160,23,0.25) 0%, transparent 60%)" }} />
 
           <div className="flex items-center gap-2 z-10">
-            <div className="w-10 h-10 rounded-[10px] flex items-center justify-center text-[18px]" style={{ background: "rgba(255,255,255,0.12)", border: "1.5px solid rgba(255,255,255,0.28)" }}>✦</div>
-            <span className="text-[1.15rem] font-bold tracking-tight">AgroGen <span style={{ color: "#d4a017" }}>IA</span></span>
+            <Logo variant="icon-only" size={40} />
+            <span className="text-[1.15rem] font-bold tracking-tight text-white">AgroGen <span style={{ color: "#d4a017" }}>IA</span></span>
           </div>
 
           <div className="z-10 flex-1 flex flex-col justify-center">
-            <h1 className="font-extrabold leading-tight tracking-tight mb-5" style={{ fontSize: "clamp(2rem, 3.2vw, 2.8rem)", letterSpacing: "-0.03em" }}>
+            <h1 className="font-extrabold leading-tight tracking-tight mb-5 text-white" style={{ fontSize: "clamp(2rem, 3.2vw, 2.8rem)", letterSpacing: "-0.03em" }}>
               Genética inteligente<br />para o{" "}
               <span style={{ color: "#d4a017" }}>sertão que<br />produz.</span>
             </h1>
@@ -444,12 +445,11 @@ export function AuthScreen({ initialTab = "login" }: Props) {
 
         {/* Painel direito (formulário) */}
         <div
-          className="w-full md:w-[520px] md:min-w-[440px] flex flex-col justify-center px-6 py-10 md:px-14 overflow-y-auto"
+          className="w-full md:w-[520px] md:min-w-[440px] flex flex-col md:justify-center px-6 py-10 md:px-14 overflow-y-auto"
           style={{ backgroundColor: "var(--color-beige, #f5efe6)" }}
         >
           <div className="flex items-center gap-2 mb-8">
-            <div className="w-[34px] h-[34px] rounded-[8px] flex items-center justify-center text-[15px] text-white" style={{ background: "#2d6a4f" }}>✦</div>
-            <span className="text-[1.05rem] font-bold tracking-tight text-ink">AgroGen <span style={{ color: "#d4a017" }}>IA</span></span>
+            <Logo size={34} />
           </div>
 
           <div className="flex rounded-[10px] p-1 gap-1 mb-8" style={{ backgroundColor: "#e8e4da" }}>

@@ -1,5 +1,5 @@
 # AUDIT.md — AgroGen IA Frontend
-**Atualizado em:** 2026-05-30  
+**Atualizado em:** 2026-06-02  
 **Fontes lidas:**
 - `AgroGen-IA-Arquitetura-UX.pdf` (22 páginas) ✅
 - `AgroGen-IA-API-RESTful.pdf` (46 páginas) ✅
@@ -23,6 +23,7 @@
 | C8 | `d5f632b` | Perfil 3 abas, MODAL-11 a MODAL-15, FAZ-01/04 |
 | C9 | `50d96ea` | Header: seletor de fazenda, atalho Fazendas |
 | C10 | WIP | OfflineBanner, Relatórios melhorias, polimento final |
+| CFix2 | WIP | Auth: ícone olho via rightIcon, scroll mobile cadastro, cor h1 desktop, Logo real, warning build toast |
 
 ---
 

@@ -3,7 +3,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 
 export const router = createBrowserRouter([
-  { path: "/", element: <Navigate to="/dashboard" replace /> },
+  { path: "/", element: <Navigate to="/login" replace /> },
   {
     path: "/login",
     lazy: () =>
