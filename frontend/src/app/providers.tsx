@@ -4,6 +4,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { showErrorToast } from "@/components/ui/toast";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

@@ -217,6 +217,7 @@ function RegisterForm() {
     defaultValues: { perfil: "PRODUTOR" },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const senhaValue = watch("senha") ?? "";
 
   const onSubmit = async (data: RegisterData) => {
