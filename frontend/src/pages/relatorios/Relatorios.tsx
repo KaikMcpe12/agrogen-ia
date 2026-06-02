@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Download, FileText, BarChart2 } from "lucide-react";
+import { Download, FileText, BarChart2, Loader, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -305,7 +305,7 @@ export function RelatoriosPage() {
         {/* Banner "continue navegando" após 3s — spec seção 6.6 */}
         {pdfLongo && (
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px] bg-ok-bg border border-green-200 text-[13px] text-ok">
-            <span>⏳</span>
+            <Loader size={16} className="animate-spin shrink-0" />
             <span>Geração em andamento. Continue navegando — o download iniciará automaticamente quando estiver pronto.</span>
           </div>
         )}
@@ -313,7 +313,7 @@ export function RelatoriosPage() {
         {/* Feedback de erro do PDF */}
         {pdfError && (
           <div className="flex items-start gap-2 px-3 py-2 rounded-[10px] bg-danger-bg border border-danger/30 text-[12px] text-danger">
-            <span className="shrink-0 mt-0.5">⚠</span>
+            <AlertTriangle size={16} className="shrink-0 mt-0.5" />
             <span>{pdfError}</span>
           </div>
         )}
