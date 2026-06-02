@@ -1,29 +1,78 @@
-import { useState, useEffect } from "react";
-import { WifiOff } from "lucide-react";
+import { useEffect, useState } from "react";
+import { WifiOff, Loader2, Wifi } from "lucide-react";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { useQueueSync } from "@/lib/offline/useQueueSync";
+import { listQueue } from "@/lib/offline/mutationQueue";
+
+type BannerState = "online" | "offline" | "syncing" | "done";
 
 export function OfflineBanner() {
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const isOnline = useOnlineStatus();
+  const { syncing } = useQueueSync();
+  const [pendingCount, setPendingCount] = useState(0);
+  const [bannerState, setBannerState] = useState<BannerState>("online");
 
+  // Atualiza contagem de itens na fila
   useEffect(() => {
-    const goOffline = () => setIsOffline(true);
-    const goOnline = () => setIsOffline(false);
-    window.addEventListener("offline", goOffline);
-    window.addEventListener("online", goOnline);
-    return () => {
-      window.removeEventListener("offline", goOffline);
-      window.removeEventListener("online", goOnline);
-    };
-  }, []);
+    void listQueue().then((q) => setPendingCount(q.length));
+    const interval = setInterval(() => {
+      void listQueue().then((q) => setPendingCount(q.length));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isOnline]);
 
-  if (!isOffline) return null;
+  // Máquina de estados do banner
+  useEffect(() => {
+    if (!isOnline) {
+      setBannerState("offline");
+    } else if (syncing) {
+      setBannerState("syncing");
+    } else if (bannerState === "syncing") {
+      // Acabou de sincronizar
+      setBannerState("done");
+      const t = setTimeout(() => setBannerState("online"), 4000);
+      return () => clearTimeout(t);
+    } else {
+      setBannerState("online");
+    }
+  }, [isOnline, syncing]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (bannerState === "online") return null;
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-center gap-2 px-4 py-2.5 bg-danger text-white text-[13px] font-medium"
       role="alert"
+      aria-live="polite"
+      className={[
+        "flex items-center justify-center gap-2 px-4 py-2.5 text-[13px] font-medium text-white shrink-0",
+        bannerState === "offline" ? "bg-amber-500" : "",
+        bannerState === "syncing" ? "bg-blue-600" : "",
+        bannerState === "done" ? "bg-ok" : "",
+      ].join(" ")}
     >
-      <WifiOff size={15} />
-      Você está offline. Algumas funcionalidades podem estar indisponíveis.
+      {bannerState === "offline" && (
+        <>
+          <WifiOff size={14} />
+          Você está offline. Mudanças serão sincronizadas quando a conexão voltar.
+          {pendingCount > 0 && (
+            <span className="ml-1 bg-white/20 rounded-full px-2 py-0.5 text-[11px]">
+              {pendingCount} ação{pendingCount > 1 ? "ões" : ""} na fila
+            </span>
+          )}
+        </>
+      )}
+      {bannerState === "syncing" && (
+        <>
+          <Loader2 size={14} className="animate-spin" />
+          Conexão restaurada. Sincronizando {pendingCount} ação{pendingCount > 1 ? "ões" : ""}…
+        </>
+      )}
+      {bannerState === "done" && (
+        <>
+          <Wifi size={14} />
+          Sincronização concluída.
+        </>
+      )}
     </div>
   );
 }
