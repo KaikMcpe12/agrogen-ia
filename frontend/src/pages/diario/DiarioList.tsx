@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, type RefObject } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Search, Scale, Baby, ShieldPlus, AlertCircle, FileText, Download, Clock } from "lucide-react";
@@ -99,6 +100,37 @@ function PesagemCard({ p }: { p: Pesagem }) {
   );
 }
 
+function VirtualPesagemCards({ parentRef, pesagens }: { parentRef: RefObject<HTMLDivElement | null>; pesagens: Pesagem[] }) {
+  const virtualizer = useVirtualizer({
+    count: pesagens.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 96,
+    overscan: 5,
+  });
+  return (
+    <div ref={parentRef} className="md:hidden overflow-auto" style={{ maxHeight: "60dvh" }}>
+      <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
+        {virtualizer.getVirtualItems().map((vItem) => (
+          <div
+            key={vItem.key}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: vItem.size,
+              transform: `translateY(${vItem.start}px)`,
+              paddingBottom: "12px",
+            }}
+          >
+            <PesagemCard p={pesagens[vItem.index]!} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PartoCard({ p }: { p: Parto }) {
   return (
     <div className="rounded-[14px] border border-line bg-surface p-4 flex flex-col gap-3">
@@ -157,6 +189,7 @@ export function DiarioContent({ animalId, sexo }: DiarioContentProps) {
   const [modal09Open, setModal09Open] = useState(false);
   const qc = useQueryClient();
   const chartTheme = useChartTheme();
+  const pesagensParentRef = useRef<HTMLDivElement>(null);
 
   const { data: pesagensData, isLoading: pesLoading } = useQuery({
     queryKey: ["diario", animalId, "pesagens"],
@@ -311,10 +344,14 @@ export function DiarioContent({ animalId, sexo }: DiarioContentProps) {
 
           {pesagens.length > 0 ? (
             <>
-              {/* Mobile: cards */}
-              <div className="flex flex-col gap-3 md:hidden">
-                {pesagens.map((p) => <PesagemCard key={p.id} p={p} />)}
-              </div>
+              {/* Mobile: cards — virtualizado se >50 itens */}
+              {pesagens.length > 50 ? (
+                <VirtualPesagemCards parentRef={pesagensParentRef} pesagens={pesagens} />
+              ) : (
+                <div className="flex flex-col gap-3 md:hidden">
+                  {pesagens.map((p) => <PesagemCard key={p.id} p={p} />)}
+                </div>
+              )}
 
               {/* Desktop: table */}
               <div className="hidden md:block overflow-hidden rounded-[14px] border border-line bg-surface">
