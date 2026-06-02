@@ -54,7 +54,7 @@ export function ModalNewInseminacaoSelector({ open, onClose, preselectedAnimalId
           <h3 className="text-[17px] font-semibold text-ink" style={{ fontFamily: "var(--font-display)" }}>
             Nova Inseminação
           </h3>
-          <button onClick={handleClose} className="w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-beige transition-colors">
+          <button onClick={handleClose} className="w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-beige transition-colors" aria-label="Fechar">
             <X size={18} />
           </button>
         </div>

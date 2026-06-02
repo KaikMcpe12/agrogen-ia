@@ -74,6 +74,7 @@ export function ModalNewAnimalSelector({ open, onClose }: Props) {
           <button
             onClick={handleClose}
             className="w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-beige transition-colors"
+            aria-label="Fechar"
           >
             <X size={18} />
           </button>

@@ -52,7 +52,7 @@ export function Modal11FazendaForm({ open, onClose, mode, fazenda, onSuccess }: 
   const qc = useQueryClient();
   const isEdit = mode === "edit";
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: isEdit && fazenda
       ? {

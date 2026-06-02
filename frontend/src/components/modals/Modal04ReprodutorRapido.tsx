@@ -105,7 +105,7 @@ export function Modal04ReprodutorRapido({
     ativo: reprodutor?.ativo ?? true,
   };
 
-  const { register, handleSubmit, watch, reset, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, reset, setValue, formState: { errors } } = useForm<FormData>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(baseSchema) as Resolver<FormData>,
     defaultValues,
   });

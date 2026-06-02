@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
+import { MaskedInput } from "@/components/ui/MaskedInput";
 import { authApi } from "@/lib/api/endpoints/auth";
 import { fazendasApi } from "@/lib/api/endpoints/fazendas";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
@@ -76,7 +77,13 @@ function TabDados() {
         {editing ? (
           <div className="flex flex-col gap-3">
             <Input label="Nome completo" required value={nome} onChange={(e) => setNome(e.target.value)} />
-            <Input label="Telefone" placeholder="(88) 90000-0000" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+            <MaskedInput
+              mask="(00) 00000-0000"
+              label="Telefone"
+              placeholder="(88) 90000-0000"
+              value={telefone}
+              onAccept={(v) => setTelefone(v)}
+            />
             {error && <p className="text-[12px] text-danger">{error}</p>}
             <div className="flex gap-2 justify-end mt-1">
               <Button variant="secondary" size="sm" onClick={() => setEditing(false)}>Cancelar</Button>

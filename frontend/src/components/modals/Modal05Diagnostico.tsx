@@ -56,7 +56,7 @@ export function Modal05Diagnostico({ open, onClose, inseminacao }: Props) {
     : "";
 
   const qc = useQueryClient();
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: { metodo: "ULTRASSONOGRAFIA" },
   });
@@ -98,7 +98,7 @@ export function Modal05Diagnostico({ open, onClose, inseminacao }: Props) {
           <h3 className="text-[17px] font-semibold text-ink" style={{ fontFamily: "var(--font-display)" }}>
             Registrar Diagnóstico de Gestação
           </h3>
-          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-beige">
+          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-beige" aria-label="Fechar">
             <X size={18} />
           </button>
         </div>

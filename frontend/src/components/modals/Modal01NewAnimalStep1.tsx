@@ -47,7 +47,7 @@ export function Modal01NewAnimalStep1({ open, onClose, onNext, mode = "create", 
 
   const isEdit = mode === "edit";
 
-  const { register, handleSubmit, formState: { errors } } = useForm<Step1Data>({
+  const { register, handleSubmit, formState: { errors } } = useForm<Step1Data>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(schema) as Resolver<Step1Data>,
     defaultValues: isEdit && animal
       ? {

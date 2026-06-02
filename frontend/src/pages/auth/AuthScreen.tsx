@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import { useForm, Controller, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
@@ -7,28 +7,16 @@ import { Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
+import { MaskedInput } from "@/components/ui/MaskedInput";
 import { authApi } from "@/lib/api/endpoints/auth";
 import { fazendasApi } from "@/lib/api/endpoints/fazendas";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { getApiErrorMessage } from "@/lib/api/error-messages";
 import type { Perfil } from "@/types";
 
-/* ── Helpers de máscara ──────────────────────────────────────── */
-
-function maskCPF(value: string) {
-  let v = value.replace(/\D/g, "").slice(0, 11);
-  if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
-  else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
-  else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, "$1.$2");
-  return v;
-}
-
-function maskPhone(value: string) {
-  let v = value.replace(/\D/g, "").slice(0, 11);
-  if (v.length > 6) v = v.replace(/(\d{2})(\d{5})(\d{1,4})/, "($1) $2-$3");
-  else if (v.length > 2) v = v.replace(/(\d{2})(\d{1,5})/, "($1) $2");
-  return v;
-}
+/* ── Máscaras via react-imask ──────────────────────────────── */
+const CPF_MASK = "000.000.000-00";
+const PHONE_MASK = "(00) 00000-0000";
 
 function validateCPF(cpf: string): boolean {
   const clean = cpf.replace(/\D/g, "");
@@ -88,7 +76,7 @@ function LoginForm() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [showPwd, setShowPwd] = useState(false);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginData>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(loginSchema) as Resolver<LoginData>,
     defaultValues: { lembrar: false },
   });
@@ -222,7 +210,7 @@ function RegisterForm() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [showPwd, setShowPwd] = useState(false);
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<RegisterData>({
+  const { register, handleSubmit, watch, control, formState: { errors, isSubmitting } } = useForm<RegisterData>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(registerSchema) as Resolver<RegisterData>,
     defaultValues: { perfil: "PRODUTOR" },
   });
@@ -256,9 +244,6 @@ function RegisterForm() {
     }
   };
 
-  const cpfReg = register("cpf");
-  const telReg = register("telefone");
-
   return (
     <div>
       <h2 className="text-[1.4rem] font-bold text-ink mb-1 tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
@@ -276,26 +261,36 @@ function RegisterForm() {
         />
 
         <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="CPF"
-            required
-            placeholder="000.000.000-00"
-            error={errors.cpf?.message}
-            {...cpfReg}
-            onChange={(e) => {
-              e.target.value = maskCPF(e.target.value);
-              void cpfReg.onChange(e);
-            }}
+          <Controller
+            name="cpf"
+            control={control}
+            render={({ field }) => (
+              <MaskedInput
+                mask={CPF_MASK}
+                label="CPF"
+                required
+                placeholder="000.000.000-00"
+                error={errors.cpf?.message}
+                value={field.value ?? ""}
+                onAccept={(v) => field.onChange(v)}
+                onBlur={field.onBlur}
+              />
+            )}
           />
-          <Input
-            label="Telefone"
-            placeholder="(88) 90000-0000"
-            error={errors.telefone?.message}
-            {...telReg}
-            onChange={(e) => {
-              e.target.value = maskPhone(e.target.value);
-              void telReg.onChange(e);
-            }}
+          <Controller
+            name="telefone"
+            control={control}
+            render={({ field }) => (
+              <MaskedInput
+                mask={PHONE_MASK}
+                label="Telefone"
+                placeholder="(88) 90000-0000"
+                error={errors.telefone?.message}
+                value={field.value ?? ""}
+                onAccept={(v) => field.onChange(v)}
+                onBlur={field.onBlur}
+              />
+            )}
           />
         </div>
 

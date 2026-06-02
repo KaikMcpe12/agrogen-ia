@@ -65,7 +65,7 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
   const [extraReproductores, setExtraReproductores] = useState<Reprodutor[]>([]);
   const debouncedSearch = useDebounce(animalSearch, 400);
 
-  const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<FormData>({
+  const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<FormData>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: {
       tipo: "IATF",

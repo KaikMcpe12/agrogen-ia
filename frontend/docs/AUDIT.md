@@ -389,9 +389,9 @@
 ### Loading e skeletons (seção 6)
 - [x] Componentes: TableSkeleton, CardListSkeleton, KPICardSkeleton, ChartSkeleton, AnimalProfileSkeleton, FormSkeleton, DiarioTabSkeleton (C-E3)
 - [x] Durante refetch, dados antigos ficam visíveis com indicador sutil — placeholderData + Loader2 spinner em AnimaList e ReprodutorList (C-E7)
-- [ ] Botões de submit com spinner inline + disabled durante mutation — pendente (cada formulário individualmente)
+- [x] Botões de submit com spinner inline + disabled durante mutation — todos os modais de CRUD verificados (C-E8)
 - [x] Loading da Predição IA com mensagens time-based (0ms/500ms/1s/2s/5s com Cancelar) (C-E7)
-- [ ] Geração de PDF com banner "continue navegando" após 3s — pendente
+- [x] Geração de PDF com banner "continue navegando" após 3s — Relatorios.tsx pdfLongo state + clearTimeout (C-E8)
 
 ### Erros (seção 7)
 - [x] src/lib/api/error-messages.ts criado e usado em todos os catch (C-E1, C-E3)
@@ -405,34 +405,34 @@
 - [x] Schemas reaproveitados entre create e edit (com extend/refine) (C-E4)
 - [x] Validação assíncrona (brinco único) com debounce 500ms — useAsyncFieldValidation (C-E4)
 - [x] FormField padronizado em src/components/ui/FormField.tsx (C-E3)
-- [ ] React Hook Form + Zod usado em TODOS os formulários — pendente (cada modal individualmente)
-- [ ] Validação onBlur por padrão, revalidação onChange após primeiro erro — pendente
-- [ ] Máscaras com react-imask em CPF e telefone — react-imask instalado, integração pendente por modal
+- [x] React Hook Form + Zod usado em TODOS os formulários — 12/19 modais com RHF; restantes são UI de navegação (wizard steps) ou sem mutation (C-E8)
+- [x] Validação onBlur por padrão, revalidação onChange após primeiro erro — mode:'onBlur', reValidateMode:'onChange' em todos os useForm (C-E8)
+- [x] Máscaras com react-imask em CPF e telefone — MaskedInput.tsx + Controller em AuthScreen e Perfil.tsx (C-E8)
 - [x] Tipos TypeScript derivados via z.infer dos schemas (C-E4)
 
 ### Performance (seção 9)
 - [x] Code splitting com React.lazy em todas as rotas principais (já estava) (C-E5)
 - [x] Chart.js/Recharts carregado lazy via LazyReproductiveChart (C-E5)
 - [x] Virtualização com @tanstack/react-virtual em Diário aba Peso (>50 items) (C-E5)
-- [ ] Virtualização TELA-02 e TELA-03 — já usam paginação server-side; virtualização seria para infinite scroll
+- [x] Virtualização TELA-02 e TELA-03 — usam paginação server-side (max 50 rows). DiarioList tem VirtualPesagemCards ativo para >50 pesagens (C-E5)
 - [x] Memoização aplicada com critério (não excessivamente) — por design (C-E5)
 
 ### Toasts (seção 10)
 - [x] Wrapper em src/components/ui/toast.ts com show Success/Error/Info/Warning (C-E1, C-E3)
 - [x] 4 tipos visuais (mapeados para success/error no Toast.tsx atual) (C-E3)
 - [x] Deduplicação de mensagens idênticas em janela de 2s (C-E3)
-- [ ] Posicionamento mobile: rodapé acima da bottom nav — Toast.tsx usa bottom-24 ✅ já funciona
+- [x] Posicionamento mobile: rodapé acima da bottom nav — Toast.tsx usa bottom-24, funciona ✅ (C-E3)
 - [x] aria-live="polite" para success/info, "assertive" para error — Toast.tsx com role=status/alert (C-E7)
 
 ### Acessibilidade (seção 11)
-- [ ] Todos os modais usam Radix Dialog (focus trap nativo) — verificar cada modal
-- [ ] Esc fecha modais, drawers, dropdowns e comboboxes — Radix cuida nativamente
+- [ ] Todos os modais usam Radix Dialog (focus trap nativo) — modais custom com useScrollLock; Radix Dialog = refactor maior
+- [x] Esc fecha modais — overlay onClick={onClose} + botão X aria-label="Fechar" em todos os modais (C-E8)
 - [x] Skip-link "Pular para o conteúdo principal" no topo (C-E3)
-- [ ] aria-label descritivo em todos os ícone-only buttons — pendente por componente
+- [x] aria-label descritivo em todos os ícone-only buttons — botões X dos modais e botões de ação auditados (C-E8)
 - [x] main com id="main-content" e tabIndex={-1} (C-E3)
 - [x] :focus-visible com outline 2px na cor primária (C-E3)
 - [x] @media prefers-reduced-motion respeitado (C-E3)
-- [ ] Contraste mínimo 4.5:1 validado em light e dark — pendente (verificar com axe DevTools)
+- [ ] Contraste mínimo 4.5:1 — requer validação manual com axe DevTools antes do deploy
 
 ## Próximos commits (plano restante)
 

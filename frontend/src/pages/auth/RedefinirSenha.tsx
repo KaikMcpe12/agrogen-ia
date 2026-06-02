@@ -32,7 +32,7 @@ export function RedefinirSenhaPage() {
 
   const token = searchParams.get("token");
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(schema) as Resolver<FormData>,
   });
 
