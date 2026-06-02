@@ -42,13 +42,12 @@ export function InstallPWAPrompt() {
   }, []);
 
   const handleInstall = async () => {
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        dismiss();
-      }
-    }
+    if (!deferredPrompt) return;
+    await deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+    if (outcome === "accepted") dismiss();
+    // Se "dismissed" pelo usuário no diálogo nativo: mantém o banner aberto
   };
 
   const dismiss = (forever = true) => {
@@ -64,33 +63,39 @@ export function InstallPWAPrompt() {
 
   return (
     <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm">
-      <div className="bg-surface border border-line rounded-[16px] shadow-[var(--shadow-lg)] p-4 flex gap-3">
-        <div className="w-10 h-10 rounded-[10px] bg-green-100 flex items-center justify-center shrink-0">
-          <Download size={18} className="text-green-900" />
-        </div>
-        <div className="flex-1">
-          <p className="text-[14px] font-semibold text-ink">Instalar AgroGen IA no seu celular</p>
-          <p className="text-[12px] text-ink-3 mt-0.5">Acesso rápido, funciona offline</p>
-        </div>
-        <div className="flex flex-col gap-1 shrink-0">
-          <Button variant="primary" size="sm" onClick={() => void handleInstall()}>
-            Instalar
-          </Button>
+      <div className="bg-surface border border-line rounded-[16px] shadow-[var(--shadow-lg)] p-4">
+        {/* Linha do header */}
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-[10px] bg-green-100 flex items-center justify-center shrink-0">
+            <Download size={18} className="text-green-900" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[14px] font-semibold text-ink">Instalar AgroGen IA</p>
+            <p className="text-[12px] text-ink-3 mt-0.5">Acesso rápido, funciona offline</p>
+          </div>
           <button
             onClick={() => dismiss()}
-            className="text-[11px] text-ink-4 hover:text-ink transition-colors text-center"
+            className="w-7 h-7 flex items-center justify-center rounded-[6px] text-ink-4 hover:text-ink hover:bg-beige transition-colors shrink-0"
+            aria-label="Fechar"
+          >
+            <X size={14} />
+          </button>
+        </div>
+        {/* Linha de ações */}
+        <div className="flex items-center gap-2 mt-3">
+          {deferredPrompt && (
+            <Button variant="primary" size="sm" onClick={() => void handleInstall()} className="flex-1">
+              Instalar
+            </Button>
+          )}
+          <button
+            onClick={() => dismiss()}
+            className="flex-1 py-2 text-[13px] text-ink-4 hover:text-ink transition-colors text-center rounded-[8px] hover:bg-beige"
             aria-label="Agora não"
           >
             Agora não
           </button>
         </div>
-        <button
-          onClick={() => dismiss()}
-          className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-ink-4 hover:text-ink"
-          aria-label="Fechar"
-        >
-          <X size={14} />
-        </button>
       </div>
     </div>
   );

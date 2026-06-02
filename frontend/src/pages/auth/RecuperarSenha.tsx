@@ -3,9 +3,11 @@ import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Sun, Moon } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/Logo";
+import { useTheme } from "@/hooks/useTheme";
 import { authApi } from "@/lib/api/endpoints/auth";
 import { getApiErrorMessage } from "@/lib/api/error-messages";
 
@@ -18,6 +20,7 @@ type FormData = z.infer<typeof schema>;
 export function RecuperarSenhaPage() {
   const [success, setSuccess] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const { isDark, toggle } = useTheme();
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(schema) as Resolver<FormData>,
@@ -34,14 +37,17 @@ export function RecuperarSenhaPage() {
   };
 
   return (
-    <div className="min-h-dvh flex items-center justify-center bg-bg px-4">
+    <div className="relative min-h-dvh flex items-center justify-center bg-bg px-4">
+      <button
+        onClick={toggle}
+        className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-beige transition-colors"
+        aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
+      >
+        {isDark ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
       <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-[2rem] font-bold" style={{ fontFamily: "var(--font-display)" }}>
-            <span className="text-green-900">AgroGen</span>{" "}
-            <span className="text-amber font-extrabold">IA</span>
-          </h1>
+        <div className="flex justify-center mb-8">
+          <Logo size={36} />
         </div>
 
         <div className="bg-surface rounded-[18px] border border-line p-7 shadow-[var(--shadow-sm)]">

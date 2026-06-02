@@ -3,9 +3,11 @@ import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2, AlertTriangle, Sun, Moon } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/Logo";
+import { useTheme } from "@/hooks/useTheme";
 import { authApi } from "@/lib/api/endpoints/auth";
 import { getApiErrorMessage } from "@/lib/api/error-messages";
 
@@ -31,6 +33,7 @@ export function RedefinirSenhaPage() {
   const [showPwd, setShowPwd] = useState(false);
 
   const token = searchParams.get("token");
+  const { isDark, toggle } = useTheme();
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(schema) as Resolver<FormData>,
@@ -49,14 +52,17 @@ export function RedefinirSenhaPage() {
   };
 
   return (
-    <div className="min-h-dvh flex items-center justify-center bg-bg px-4">
+    <div className="relative min-h-dvh flex items-center justify-center bg-bg px-4">
+      <button
+        onClick={toggle}
+        className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-beige transition-colors"
+        aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
+      >
+        {isDark ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
       <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-[2rem] font-bold" style={{ fontFamily: "var(--font-display)" }}>
-            <span className="text-green-900">AgroGen</span>{" "}
-            <span className="text-amber font-extrabold">IA</span>
-          </h1>
+        <div className="flex justify-center mb-8">
+          <Logo size={36} />
         </div>
 
         <div className="bg-surface rounded-[18px] border border-line p-7 shadow-[var(--shadow-sm)]">
@@ -91,24 +97,24 @@ export function RedefinirSenhaPage() {
               </p>
 
               <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-                <div className="relative">
-                  <Input
-                    label="Nova senha"
-                    type={showPwd ? "text" : "password"}
-                    required
-                    placeholder="Mínimo 8 caracteres"
-                    error={errors.novaSenha?.message}
-                    {...register("novaSenha")}
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-[34px] text-ink-4 hover:text-ink"
-                    onClick={() => setShowPwd((v) => !v)}
-                    aria-label={showPwd ? "Ocultar senha" : "Mostrar senha"}
-                  >
-                    {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
+                <Input
+                  label="Nova senha"
+                  type={showPwd ? "text" : "password"}
+                  required
+                  placeholder="Mínimo 8 caracteres"
+                  error={errors.novaSenha?.message}
+                  rightIcon={
+                    <button
+                      type="button"
+                      className="text-ink-4 hover:text-ink"
+                      onClick={() => setShowPwd((v) => !v)}
+                      aria-label={showPwd ? "Ocultar senha" : "Mostrar senha"}
+                    >
+                      {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  }
+                  {...register("novaSenha")}
+                />
 
                 <Input
                   label="Confirmar nova senha"
