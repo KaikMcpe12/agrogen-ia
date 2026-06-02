@@ -182,10 +182,13 @@ export function RelatoriosPage() {
 
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [pdfLongo, setPdfLongo] = useState(false);
 
   const handleExportPDF = async () => {
     setPdfLoading(true);
     setPdfError(null);
+    setPdfLongo(false);
+    const timer = setTimeout(() => setPdfLongo(true), 3000);
     try {
       if (!hasFilter || isLoading || rows.length === 0) {
         setPdfError("Selecione um período e aguarde os dados carregarem antes de exportar.");
@@ -250,7 +253,9 @@ export function RelatoriosPage() {
       setPdfError(msg);
       console.error("Erro ao gerar PDF:", err);
     } finally {
+      clearTimeout(timer);
       setPdfLoading(false);
+      setPdfLongo(false);
     }
   };
 
@@ -293,6 +298,14 @@ export function RelatoriosPage() {
             </Button>
           </div>
         </div>
+
+        {/* Banner "continue navegando" após 3s — spec seção 6.6 */}
+        {pdfLongo && (
+          <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px] bg-ok-bg border border-green-200 text-[13px] text-ok">
+            <span>⏳</span>
+            <span>Geração em andamento. Continue navegando — o download iniciará automaticamente quando estiver pronto.</span>
+          </div>
+        )}
 
         {/* Feedback de erro do PDF */}
         {pdfError && (

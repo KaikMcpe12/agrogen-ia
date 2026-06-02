@@ -61,7 +61,7 @@ export function Modal17PromoverReprodutor({ open, onClose, animalPreSelecionado 
 
   const debouncedQ = useDebounce(q, 300);
 
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: { atualizar_status: true },
   });

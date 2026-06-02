@@ -49,7 +49,7 @@ interface Props {
 export function Modal08Sanitario({ open, onClose, animalId, onSuccess }: Props) {
   useScrollLock(open);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: { tipo: "VACINA" },
   });
@@ -83,7 +83,7 @@ export function Modal08Sanitario({ open, onClose, animalId, onSuccess }: Props) 
           <h3 className="text-[17px] font-semibold text-ink" style={{ fontFamily: "var(--font-display)" }}>
             Registrar Evento Sanitário
           </h3>
-          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-beige">
+          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-beige" aria-label="Fechar">
             <X size={18} />
           </button>
         </div>

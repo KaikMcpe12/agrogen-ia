@@ -34,7 +34,7 @@ export function Modal02NewAnimalStep2({ open, onClose, onBack, step1Data, mode =
   const qc = useQueryClient();
   const isEdit = mode === "edit";
 
-  const { register, handleSubmit, formState: { errors } } = useForm<Step2Data>({
+  const { register, handleSubmit, formState: { errors } } = useForm<Step2Data>({ mode: 'onBlur', reValidateMode: 'onChange',
     resolver: zodResolver(schema) as Resolver<Step2Data>,
     defaultValues: isEdit && animal?.dados_geneticos
       ? {
