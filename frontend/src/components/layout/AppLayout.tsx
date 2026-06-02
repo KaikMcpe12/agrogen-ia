@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { Header } from "./Header";
 import { BottomNav } from "./BottomNav";
 import { MobileNavDrawer } from "./MobileNavDrawer";
+import { SkipLink } from "./SkipLink";
 import { InstallPWAPrompt } from "@/components/InstallPWAPrompt";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { useQuery } from "@tanstack/react-query";
@@ -22,10 +23,11 @@ export function AppLayout() {
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden bg-bg">
+      <SkipLink />
       <OfflineBanner />
       <Header alertCount={alertCount} onMenuToggle={() => setDrawerOpen(true)} />
       <MobileNavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-      <main id="main-content" className="flex-1 min-h-0 overflow-y-auto pb-6">
+      <main id="main-content" tabIndex={-1} className="flex-1 min-h-0 overflow-y-auto pb-6">
         <Outlet />
       </main>
       <BottomNav />
