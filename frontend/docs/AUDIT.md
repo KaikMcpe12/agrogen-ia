@@ -353,6 +353,87 @@
 
 ---
 
+---
+
+## Checklist de Engenharia — AgroGen-IA-Engenharia-Frontend.pdf v1.0
+**Atualizado em:** 2026-06-01 | **Documento lido:** `uploads/AgroGen-IA-Engenharia-Frontend.pdf`
+
+### TanStack Query (seção 2)
+- [x] QueryClient configurado globalmente em src/app/providers.tsx (C-E1)
+- [x] Query keys seguem padrão ['dominio','list'|'detail',params] — aplicado em todas as páginas/modais (C-E1)
+- [x] staleTime customizado por recurso (sino 60s, dashboard 5min+polling, raças/protocolos — N/A por ora) (C-E1)
+- [x] Toda mutation tem onSuccess com invalidateQueries explícito (C-E1, C-E6)
+- [x] Pré-população de cache (setQueryData) em mutations de create (C-E6)
+- [x] Optimistic updates: marcar alerta lido/resolvido, toggle ativo de reprodutor (C-E6)
+- [x] Matriz de invalidação por mutation respeitada (tabela 2.5) — hooks em src/lib/api/hooks/ (C-E6)
+
+### Axios e autenticação (seção 3)
+- [x] Instância única em src/lib/api/client.ts; nada de import axios direto fora dela (C-E1)
+- [x] Interceptor de request injeta Authorization e X-Fazenda-ID (C-E1)
+- [x] Interceptor de response trata 401 com refresh token + deduplicação via refreshPromise (C-E1)
+- [x] Refresh token rotacionado a cada uso (C-E1)
+- [x] Lembrar-me: refresh_token em localStorage/sessionStorage (C-E1)
+- [x] AbortSignal repassado em todos os endpoints de query (spread condicional por exactOptionalPropertyTypes) (C-E1)
+- [x] useAuth com login, logout, isAuthenticated (C-E1)
+
+### Offline-first (seção 4)
+- [x] Hook useOnlineStatus criado (C-E2)
+- [x] Banner global de status offline implementado (5 estados via enum de estado) (C-E2)
+- [x] Mutation queue persistida em IndexedDB via idb-keyval (C-E2)
+- [x] Hook useQueueSync processa queue sequencialmente quando online (C-E2)
+- [x] Mutations relevantes (animal, inseminação, pesagem, parto, sanitário, ocorrência) são offline-aware (C-E2)
+- [x] Indicadores visuais: contador de ações pendentes no banner (C-E2)
+- [x] Limite de 50 mutations na queue com bloqueio gracioso (C-E2)
+- [x] Mutations não permitidas offline (login, predição IA, exclusões) bloqueadas com mensagem — login/delete são online-only por design (C-E2)
+
+### Loading e skeletons (seção 6)
+- [x] Componentes: TableSkeleton, CardListSkeleton, KPICardSkeleton, ChartSkeleton, AnimalProfileSkeleton, FormSkeleton, DiarioTabSkeleton (C-E3)
+- [ ] Durante refetch, dados antigos ficam visíveis com indicador sutil (placeholderData: keepPreviousData) — pendente
+- [ ] Botões de submit com spinner inline + disabled durante mutation — pendente (cada formulário individualmente)
+- [ ] Loading da Predição IA com mensagens rotativas — pendente
+- [ ] Geração de PDF com banner "continue navegando" após 3s — pendente
+
+### Erros (seção 7)
+- [x] src/lib/api/error-messages.ts criado e usado em todos os catch (C-E1, C-E3)
+- [x] ErrorBoundary global envolve a aplicação (C-E3)
+- [x] Rota catch-all (*) com NotFoundPage amigável (C-E3)
+- [ ] Tela de erro inline com botão "Tentar de novo" em queries que falham — pendente por tela
+- [x] Mensagens sempre em pt-BR, nunca expondo códigos técnicos (C-E1)
+
+### Formulários (seção 8)
+- [x] Schemas em src/lib/schemas/ — um arquivo por entidade (C-E4)
+- [x] Schemas reaproveitados entre create e edit (com extend/refine) (C-E4)
+- [x] Validação assíncrona (brinco único) com debounce 500ms — useAsyncFieldValidation (C-E4)
+- [x] FormField padronizado em src/components/ui/FormField.tsx (C-E3)
+- [ ] React Hook Form + Zod usado em TODOS os formulários — pendente (cada modal individualmente)
+- [ ] Validação onBlur por padrão, revalidação onChange após primeiro erro — pendente
+- [ ] Máscaras com react-imask em CPF e telefone — react-imask instalado, integração pendente por modal
+- [x] Tipos TypeScript derivados via z.infer dos schemas (C-E4)
+
+### Performance (seção 9)
+- [x] Code splitting com React.lazy em todas as rotas principais (já estava) (C-E5)
+- [x] Chart.js/Recharts carregado lazy via LazyReproductiveChart (C-E5)
+- [x] Virtualização com @tanstack/react-virtual em Diário aba Peso (>50 items) (C-E5)
+- [ ] Virtualização TELA-02 e TELA-03 — já usam paginação server-side; virtualização seria para infinite scroll
+- [x] Memoização aplicada com critério (não excessivamente) — por design (C-E5)
+
+### Toasts (seção 10)
+- [x] Wrapper em src/components/ui/toast.ts com show Success/Error/Info/Warning (C-E1, C-E3)
+- [x] 4 tipos visuais (mapeados para success/error no Toast.tsx atual) (C-E3)
+- [x] Deduplicação de mensagens idênticas em janela de 2s (C-E3)
+- [ ] Posicionamento mobile: rodapé acima da bottom nav — Toast.tsx usa bottom-24 ✅ já funciona
+- [ ] aria-live="polite"/"assertive" distintos — pendente (Toast.tsx usa provider sem aria-live)
+
+### Acessibilidade (seção 11)
+- [ ] Todos os modais usam Radix Dialog (focus trap nativo) — verificar cada modal
+- [ ] Esc fecha modais, drawers, dropdowns e comboboxes — Radix cuida nativamente
+- [x] Skip-link "Pular para o conteúdo principal" no topo (C-E3)
+- [ ] aria-label descritivo em todos os ícone-only buttons — pendente por componente
+- [x] main com id="main-content" e tabIndex={-1} (C-E3)
+- [x] :focus-visible com outline 2px na cor primária (C-E3)
+- [x] @media prefers-reduced-motion respeitado (C-E3)
+- [ ] Contraste mínimo 4.5:1 validado em light e dark — pendente (verificar com axe DevTools)
+
 ## Próximos commits (plano restante)
 
 | Commit | Foco |
