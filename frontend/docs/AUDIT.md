@@ -382,9 +382,9 @@
 - [x] Mutation queue persistida em IndexedDB via idb-keyval (C-E2)
 - [x] Hook useQueueSync processa queue sequencialmente quando online (C-E2)
 - [x] Mutations relevantes (animal, inseminação, pesagem, parto, sanitário, ocorrência) são offline-aware (C-E2)
-- [x] Indicadores visuais: contador de ações pendentes no banner (C-E2)
+- [x] Indicadores visuais: badge "PENDENTE" em animais offline (AnimalList), ícone relógio em inseminações offline (C-E9)
 - [x] Limite de 50 mutations na queue com bloqueio gracioso (C-E2)
-- [x] Mutations não permitidas offline (login, predição IA, exclusões) bloqueadas com mensagem — login/delete são online-only por design (C-E2)
+- [x] Mutations não permitidas offline com mensagem explícita — predição IA disabled+title, PDF disabled+title, exclusão showWarningToast (C-E9)
 
 ### Loading e skeletons (seção 6)
 - [x] Componentes: TableSkeleton, CardListSkeleton, KPICardSkeleton, ChartSkeleton, AnimalProfileSkeleton, FormSkeleton, DiarioTabSkeleton (C-E3)
@@ -399,6 +399,15 @@
 - [x] Rota catch-all (*) com NotFoundPage amigável (C-E3)
 - [x] Tela de erro inline com botão "Tentar de novo" — ErrorState em AnimaList, ReprodutorList, InseminacaoList (C-E7)
 - [x] Mensagens sempre em pt-BR, nunca expondo códigos técnicos (C-E1)
+
+### Filtros (seção 5)
+- [x] Chips/pills exibem contagem ao lado de cada opção — AnimalList conta por espécie/status (C-E9)
+- [x] Range numérico usa dois inputs (não slider) para peso e idade — FilterDrawerAnimais (C-E9)
+- [x] Date range com atalhos: Hoje, 7 dias, Este mês, Último trimestre, Este ano, Tudo — FilterDrawerAnimais e FilterDrawerInseminacoes (C-E9)
+- [x] useDebounce com 300ms para busca textual; 500ms para validação assíncrona (C-E1, C-E4)
+- [x] Filtros persistidos em sessionStorage — AnimalList e ReprodutorList (C-E9); InseminacaoList sem estado persistido (stateless por tab)
+- [x] Botão "Limpar filtros" visível apenas quando há filtros ativos — AnimalList hasActiveFilters (C-E9)
+- [x] DRAWER-02 (animais) e DRAWER-03 (inseminações) implementados com campos: raça, brinco, peso, idade, partos, CC, data nascimento, resultado, tipo IA, período, técnico (C-E9)
 
 ### Formulários (seção 8)
 - [x] Schemas em src/lib/schemas/ — um arquivo por entidade (C-E4)
@@ -419,7 +428,7 @@
 
 ### Toasts (seção 10)
 - [x] Wrapper em src/components/ui/toast.ts com show Success/Error/Info/Warning (C-E1, C-E3)
-- [x] 4 tipos visuais (mapeados para success/error no Toast.tsx atual) (C-E3)
+- [x] 4 tipos visuais com durações distintas — success verde 4s, error vermelho 6s, info azul 4s, warning âmbar 5s (C-E9)
 - [x] Deduplicação de mensagens idênticas em janela de 2s (C-E3)
 - [x] Posicionamento mobile: rodapé acima da bottom nav — Toast.tsx usa bottom-24, funciona ✅ (C-E3)
 - [x] aria-live="polite" para success/info, "assertive" para error — Toast.tsx com role=status/alert (C-E7)

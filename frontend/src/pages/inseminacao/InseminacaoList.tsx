@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { Plus, AlertCircle } from "lucide-react";
+import { Plus, AlertCircle, Clock } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -37,7 +37,12 @@ function InseminacaoRow({ ins, onDiag }: { ins: Inseminacao; onDiag: () => void 
         <p className="text-[11px] font-mono text-ink-4">{ins.animal.codigo}</p>
       </td>
       <td className="px-4 py-3 text-[13px] text-ink-2">
-        {new Date(ins.data_inseminacao).toLocaleDateString("pt-BR")}
+        <span className="flex items-center gap-1">
+          {String(ins.id).startsWith("local:") && (
+            <Clock size={12} className="text-ink-4 shrink-0" aria-label="Aguardando sincronização" />
+          )}
+          {new Date(ins.data_inseminacao).toLocaleDateString("pt-BR")}
+        </span>
       </td>
       <td className="px-4 py-3">
         <span className="text-[12px] font-mono text-ink-3 bg-beige px-2 py-0.5 rounded-[6px]">
