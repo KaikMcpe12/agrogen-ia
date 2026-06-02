@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, exc
 from fastapi import HTTPException, status
 
-from backend.models.models import AnimalModel
+from backend.models.animal_model import AnimalModel
 from schemas import AnimalCreate, AnimalUpdate
 from backend.models.enums import EspecieAnimal
 

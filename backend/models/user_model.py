@@ -2,7 +2,9 @@ import uuid
 
 from sqlalchemy import Column, String, Boolean
 from sqlalchemy.dialects.postgresql import UUID
-from endpoint.database import Base
+
+class Base(DeclarativeBase):
+    pass
 
 class User(Base):
     __tablename__ = "usuarios"
