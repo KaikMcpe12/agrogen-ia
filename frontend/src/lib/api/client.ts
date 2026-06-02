@@ -1,6 +1,7 @@
 import axios from "axios";
 import { setupMocks } from "./mocks/index";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { showErrorToast } from "@/components/ui/toast";
 
 export const apiClient = axios.create({
   baseURL: import.meta.env["VITE_API_URL"] ?? "/api/v1",
@@ -82,8 +83,6 @@ apiClient.interceptors.response.use(
 
     // 403: sem permissão
     if (status === 403) {
-      // Import dinâmico para evitar dependência circular na inicialização
-      const { showErrorToast } = await import("@/components/ui/toast");
       showErrorToast("Você não tem permissão para esta ação.");
     }
 
