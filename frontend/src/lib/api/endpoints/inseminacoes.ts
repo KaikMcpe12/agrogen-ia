@@ -1,0 +1,47 @@
+import client from "../client";
+import type { Inseminacao, PaginatedResponse, ApiResponse, ResultadoInseminacao, TipoInseminacao } from "@/types";
+
+export interface InseminacoesParams {
+  fazenda_id?: string;
+  animal_id?: string;
+  resultado?: ResultadoInseminacao;
+  tecnico_id?: string;
+  data_inicio?: string;
+  data_fim?: string;
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: "asc" | "desc";
+}
+
+export const inseminacoesApi = {
+  listar: (params?: InseminacoesParams, signal?: AbortSignal) =>
+    client.get<PaginatedResponse<Inseminacao>>("/inseminacoes", { params, ...(signal ? { signal } : {}) }).then((r) => r.data),
+
+  pendentes: (signal?: AbortSignal) =>
+    client.get<ApiResponse<Inseminacao[]>>("/inseminacoes/pendentes-diagnostico", { ...(signal ? { signal } : {}) }).then((r) => r.data),
+
+  criar: (body: {
+    animal_id: string;
+    reprodutor_id: string;
+    data_inseminacao: string;
+    tipo: TipoInseminacao;
+    protocolo_descricao?: string | undefined;
+    condicao_corporal_momento: number;
+    temperatura_ambiente_c?: number | undefined;
+    observacoes?: string | undefined;
+  }) => client.post<ApiResponse<{ id: string; resultado: string; alerta_criado?: { id: string } }>>("/inseminacoes", body).then((r) => r.data),
+
+  registrarDiagnostico: (inseminacaoId: string, body: {
+    data_diagnostico: string;
+    metodo: string;
+    resultado: "PRENHA" | "VAZIA" | "INCONCLUSIVO";
+    data_parto_prevista?: string | undefined;
+    veterinario_id?: string | undefined;
+    observacoes?: string | undefined;
+  }) =>
+    client.post<ApiResponse<{ id: string; resultado: string; animal_status_atualizado: string; alerta_resolvido: boolean }>>(
+      `/inseminacoes/${inseminacaoId}/diagnostico`,
+      body
+    ).then((r) => r.data),
+};
