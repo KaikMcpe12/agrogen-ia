@@ -1,2 +1,9 @@
-.env
-*.txt
+backend/.env
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+
+frontend/.env.local
+frontend/node_modules/
+frontend/dist/
