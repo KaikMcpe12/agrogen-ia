@@ -47,6 +47,7 @@ export function Modal07Parto({ open, onClose, animalId, onSuccess }: Props) {
     defaultValues: { tipo_parto: "SIMPLES", houve_distorcia: "false", houve_obito_matriz: "false" },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const obitoMatriz = watch("houve_obito_matriz");
 
   const criar = useMutation({

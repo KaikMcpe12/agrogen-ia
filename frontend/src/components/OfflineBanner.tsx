@@ -21,8 +21,9 @@ export function OfflineBanner() {
     return () => clearInterval(interval);
   }, [isOnline]);
 
-  // Máquina de estados do banner
+  // Máquina de estados do banner — setState síncrono em efeito é intencional (state machine externa)
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (!isOnline) {
       setBannerState("offline");
     } else if (syncing) {
@@ -35,6 +36,7 @@ export function OfflineBanner() {
     } else {
       setBannerState("online");
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [isOnline, syncing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (bannerState === "online") return null;

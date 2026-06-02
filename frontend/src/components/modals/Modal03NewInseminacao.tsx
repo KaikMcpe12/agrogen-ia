@@ -74,6 +74,7 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const tipo = watch("tipo");
   const animalId = watch("animal_id");
   const dataInseminacao = watch("data_inseminacao");

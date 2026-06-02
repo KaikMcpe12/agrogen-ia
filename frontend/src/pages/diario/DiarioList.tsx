@@ -101,6 +101,7 @@ function PesagemCard({ p }: { p: Pesagem }) {
 }
 
 function VirtualPesagemCards({ parentRef, pesagens }: { parentRef: RefObject<HTMLDivElement | null>; pesagens: Pesagem[] }) {
+  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: pesagens.length,
     getScrollElement: () => parentRef.current,
