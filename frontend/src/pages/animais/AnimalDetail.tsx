@@ -197,8 +197,8 @@ function GeneticData({ animal }: { animal: Animal }) {
 
 function HistoricoReprodutivo({ animalId }: { animalId: string }) {
   const { data } = useQuery({
-    queryKey: ["inseminacoes", "animal", animalId],
-    queryFn: () => inseminacoesApi.listar({ animal_id: animalId, limit: 5, sort: "data_inseminacao", order: "desc" }),
+    queryKey: ["inseminacoes", "list", { animal_id: animalId }],
+    queryFn: ({ signal }) => inseminacoesApi.listar({ animal_id: animalId, limit: 5, sort: "data_inseminacao", order: "desc" }, signal),
   });
   const inseminacoes = data?.data ?? [];
 
@@ -251,7 +251,7 @@ function HistoricoReprodutivo({ animalId }: { animalId: string }) {
 function WeightChart({ animalId, onRunPredicao }: { animalId: string; onRunPredicao: () => void }) {
   const { data } = useQuery({
     queryKey: ["diario", animalId, "pesagens"],
-    queryFn: () => diarioApi.pesagens(animalId),
+    queryFn: ({ signal }) => diarioApi.pesagens(animalId, signal),
   });
   const theme = useChartTheme();
   const pesagens = data?.data ?? [];
@@ -307,8 +307,8 @@ function WeightChart({ animalId, onRunPredicao }: { animalId: string; onRunPredi
 
 function AlertsSection({ animalId }: { animalId: string }) {
   const { data } = useQuery({
-    queryKey: ["alertas", "animal", animalId],
-    queryFn: () => alertasApi.listar({ resolvido: false }),
+    queryKey: ["alertas", "list", { resolvido: false }],
+    queryFn: ({ signal }) => alertasApi.listar({ resolvido: false }, signal),
   });
   const myAlerts = (data?.data ?? []).filter((a) => a.animal.id === animalId);
   if (myAlerts.length === 0) return null;
@@ -348,14 +348,14 @@ export function AnimalDetailPage() {
   const [showPromover, setShowPromover] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["animal", id],
-    queryFn: () => animaisApi.buscar(id!),
+    queryKey: ["animais", "detail", id],
+    queryFn: ({ signal }) => animaisApi.buscar(id!, signal),
     enabled: !!id,
   });
 
   const { data: repData } = useQuery({
-    queryKey: ["reprodutores", "by-animal", id],
-    queryFn: () => reprodutoresApi.listar(id ? { animal_id: id } : {}),
+    queryKey: ["reprodutores", "list", { animal_id: id }],
+    queryFn: ({ signal }) => reprodutoresApi.listar(id ? { animal_id: id } : {}, signal),
     enabled: !!id,
   });
   const reprodutorVinculado = repData?.data.find((r) => r.ativo);
@@ -363,7 +363,7 @@ export function AnimalDetailPage() {
   const deleteMutation = useMutation({
     mutationFn: () => animaisApi.deletar(id!),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["animais"] });
+      void qc.invalidateQueries({ queryKey: ["animais", "list"] });
       void navigate("/animais");
     },
   });

@@ -39,11 +39,11 @@ export interface AtualizarReprodutorBody {
 }
 
 export const reprodutoresApi = {
-  listar: (params?: ReprodutoresParams) =>
-    client.get<PaginatedResponse<Reprodutor>>("/reprodutores", { params }).then((r) => r.data),
+  listar: (params?: ReprodutoresParams, signal?: AbortSignal) =>
+    client.get<PaginatedResponse<Reprodutor>>("/reprodutores", { params, ...(signal ? { signal } : {}) }).then((r) => r.data),
 
-  buscar: (id: string) =>
-    client.get<ApiResponse<Reprodutor>>(`/reprodutores/${id}`).then((r) => r.data),
+  buscar: (id: string, signal?: AbortSignal) =>
+    client.get<ApiResponse<Reprodutor>>(`/reprodutores/${id}`, { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criar: (body: CriarReprodutorBody) =>
     client.post<ApiResponse<Reprodutor>>("/reprodutores", body).then((r) => r.data),

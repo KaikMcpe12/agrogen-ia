@@ -86,7 +86,8 @@ export function Modal11FazendaForm({ open, onClose, mode, fazenda, onSuccess }: 
       return fazendasApi.criar(payload);
     },
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["fazendas"] });
+      void qc.invalidateQueries({ queryKey: ["fazendas", "list"] });
+      void qc.invalidateQueries({ queryKey: ["usuarios", "me"] });
       reset();
       onSuccess?.();
       onClose();

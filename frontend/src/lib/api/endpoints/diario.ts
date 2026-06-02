@@ -9,14 +9,14 @@ interface PesagensResponse {
 }
 
 export const diarioApi = {
-  pesagens: (animalId: string) =>
-    client.get<PesagensResponse>(`/diario/${animalId}/pesagens`).then((r) => r.data),
+  pesagens: (animalId: string, signal?: AbortSignal) =>
+    client.get<PesagensResponse>(`/diario/${animalId}/pesagens`, { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criarPesagem: (animalId: string, body: { data: string; peso_kg: number; estagio: EstagioPesagem; observacao?: string | undefined }) =>
     client.post<ApiResponse<{ id: string; gmd_calculado?: number }>>(`/diario/${animalId}/pesagens`, body).then((r) => r.data),
 
-  partos: (animalId: string) =>
-    client.get<PaginatedResponse<Parto>>(`/diario/${animalId}/partos`).then((r) => r.data),
+  partos: (animalId: string, signal?: AbortSignal) =>
+    client.get<PaginatedResponse<Parto>>(`/diario/${animalId}/partos`, { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criarParto: (animalId: string, body: {
     data_parto: string;
@@ -30,8 +30,8 @@ export const diarioApi = {
   }) =>
     client.post<ApiResponse<{ id: string }>>(`/diario/${animalId}/partos`, body).then((r) => r.data),
 
-  sanitario: (animalId: string) =>
-    client.get<PaginatedResponse<EventoSanitario>>(`/diario/${animalId}/sanitario`).then((r) => r.data),
+  sanitario: (animalId: string, signal?: AbortSignal) =>
+    client.get<PaginatedResponse<EventoSanitario>>(`/diario/${animalId}/sanitario`, { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criarEventoSanitario: (animalId: string, body: {
     tipo: TipoSanitario;
@@ -45,8 +45,8 @@ export const diarioApi = {
   }) =>
     client.post<ApiResponse<{ id: string }>>(`/diario/${animalId}/sanitario`, body).then((r) => r.data),
 
-  ocorrencias: (animalId: string) =>
-    client.get<PaginatedResponse<Ocorrencia>>(`/diario/${animalId}/ocorrencias`).then((r) => r.data),
+  ocorrencias: (animalId: string, signal?: AbortSignal) =>
+    client.get<PaginatedResponse<Ocorrencia>>(`/diario/${animalId}/ocorrencias`, { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criarOcorrencia: (animalId: string, body: {
     data: string;

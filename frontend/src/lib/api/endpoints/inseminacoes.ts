@@ -15,11 +15,11 @@ export interface InseminacoesParams {
 }
 
 export const inseminacoesApi = {
-  listar: (params?: InseminacoesParams) =>
-    client.get<PaginatedResponse<Inseminacao>>("/inseminacoes", { params }).then((r) => r.data),
+  listar: (params?: InseminacoesParams, signal?: AbortSignal) =>
+    client.get<PaginatedResponse<Inseminacao>>("/inseminacoes", { params, ...(signal ? { signal } : {}) }).then((r) => r.data),
 
-  pendentes: () =>
-    client.get<ApiResponse<Inseminacao[]>>("/inseminacoes/pendentes-diagnostico").then((r) => r.data),
+  pendentes: (signal?: AbortSignal) =>
+    client.get<ApiResponse<Inseminacao[]>>("/inseminacoes/pendentes-diagnostico", { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criar: (body: {
     animal_id: string;

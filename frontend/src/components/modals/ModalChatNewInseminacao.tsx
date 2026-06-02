@@ -4,6 +4,7 @@ import { useScrollLock } from "@/hooks/useScrollLock";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { inseminacoesApi } from "@/lib/api/endpoints/inseminacoes";
 import { animaisApi } from "@/lib/api/endpoints/animais";
+import { reprodutoresApi } from "@/lib/api/endpoints/reprodutores";
 import type { TipoInseminacao } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -177,8 +178,8 @@ function AnimalSearchPrompt({
   }, []);
 
   const { data } = useQuery({
-    queryKey: ["animais-femeas-chat"],
-    queryFn: () => animaisApi.listar({ sexo: "FEMEA", status: "ATIVA", limit: 100 }),
+    queryKey: ["animais", "list", { sexo: "FEMEA", status: "ATIVA", limit: 100 }],
+    queryFn: ({ signal }) => animaisApi.listar({ sexo: "FEMEA", status: "ATIVA", limit: 100 }, signal),
   });
 
   const todos = data?.data ?? [];
@@ -354,8 +355,8 @@ export function ModalChatNewInseminacao({ open, onClose, preselectedAnimalId, pr
   const initializedRef = useRef(false);
 
   const { data: reprodutoresData } = useQuery({
-    queryKey: ["reprodutores"],
-    queryFn: () => import("@/lib/api/mocks/dados").then((m) => ({ data: m.reprodutores })),
+    queryKey: ["reprodutores", "list", { ativo: true }],
+    queryFn: ({ signal }) => reprodutoresApi.listar({ ativo: true, limit: 999 }, signal),
   });
 
   const reprodutores = reprodutoresData?.data ?? [];
@@ -363,8 +364,9 @@ export function ModalChatNewInseminacao({ open, onClose, preselectedAnimalId, pr
   const criar = useMutation({
     mutationFn: inseminacoesApi.criar,
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["inseminacoes"] });
-      void qc.invalidateQueries({ queryKey: ["alertas"] });
+      void qc.invalidateQueries({ queryKey: ["inseminacoes", "list"] });
+      void qc.invalidateQueries({ queryKey: ["alertas", "list"] });
+      void qc.invalidateQueries({ queryKey: ["alertas", "contagem"] });
     },
   });
 

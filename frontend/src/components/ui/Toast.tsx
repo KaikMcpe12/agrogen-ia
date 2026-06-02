@@ -1,4 +1,5 @@
-import { createContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useEffect, useState, useCallback, type ReactNode } from "react";
+import { registerToastFn } from "./toast";
 import { X, CheckCircle, AlertCircle } from "lucide-react";
 
 interface ToastItem {
@@ -35,6 +36,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     success: (msg: string) => add(msg, "success"),
     error: (msg: string) => add(msg, "error"),
   };
+
+  useEffect(() => {
+    registerToastFn((msg, type) => add(msg, type));
+  }, [add]);
 
   return (
     <ToastContext.Provider value={{ toast }}>

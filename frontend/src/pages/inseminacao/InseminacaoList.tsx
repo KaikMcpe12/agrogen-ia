@@ -153,14 +153,16 @@ export function InseminacaoListPage() {
   }, [animalIdParam, setSearchParams]);
 
   const { data: historico, isLoading: histLoading } = useQuery({
-    queryKey: ["inseminacoes"],
-    queryFn: () => inseminacoesApi.listar({ limit: 20 }),
+    queryKey: ["inseminacoes", "list", { limit: 20 }],
+    queryFn: ({ signal }) => inseminacoesApi.listar({ limit: 20 }, signal),
+    staleTime: 2 * 60 * 1000,
     enabled: tab === "historico",
   });
 
   const { data: pendentes, isLoading: pendLoading } = useQuery({
-    queryKey: ["inseminacoes-pendentes"],
-    queryFn: () => inseminacoesApi.pendentes(),
+    queryKey: ["inseminacoes", "pendentes-diagnostico"],
+    queryFn: ({ signal }) => inseminacoesApi.pendentes(signal),
+    staleTime: 1 * 60 * 1000,
     enabled: tab === "pendentes",
   });
 

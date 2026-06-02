@@ -11,8 +11,8 @@ export const authApi = {
   logout: () =>
     client.post<ApiResponse<null>>("/auth/logout").then((r) => r.data),
 
-  me: () =>
-    client.get<ApiResponse<{ id: string; nome: string; email: string; perfil: Perfil }>>("/usuarios/me").then((r) => r.data),
+  me: (signal?: AbortSignal) =>
+    client.get<ApiResponse<{ id: string; nome: string; email: string; perfil: Perfil }>>("/usuarios/me", { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   recuperarSenha: (email: string) =>
     client.post<ApiResponse<{ mensagem: string }>>("/auth/recuperar-senha", { email }).then((r) => r.data),

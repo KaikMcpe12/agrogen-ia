@@ -170,14 +170,14 @@ export function ReprodutorDetailPage() {
   const [show409, setShow409] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["reprodutor", id],
-    queryFn: () => reprodutoresApi.buscar(id!),
+    queryKey: ["reprodutores", "detail", id],
+    queryFn: ({ signal }) => reprodutoresApi.buscar(id!, signal),
     enabled: !!id,
   });
 
   const { data: insDataRaw } = useQuery({
-    queryKey: ["inseminacoes", { reprodutor_id: id }],
-    queryFn: () => inseminacoesApi.listar({ limit: 10 }),
+    queryKey: ["inseminacoes", "list", { reprodutor_id: id }],
+    queryFn: ({ signal }) => inseminacoesApi.listar({ limit: 10 }, signal),
     enabled: !!id,
   });
 
@@ -189,8 +189,8 @@ export function ReprodutorDetailPage() {
   const toggleMutation = useMutation({
     mutationFn: (ativo: boolean) => reprodutoresApi.atualizar(id!, { ativo }),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["reprodutor", id] });
-      void qc.invalidateQueries({ queryKey: ["reprodutores"] });
+      void qc.invalidateQueries({ queryKey: ["reprodutores", "detail", id] });
+      void qc.invalidateQueries({ queryKey: ["reprodutores", "list"] });
       setShowConfirmDesativar(false);
     },
   });
@@ -198,7 +198,7 @@ export function ReprodutorDetailPage() {
   const deleteMutation = useMutation({
     mutationFn: () => reprodutoresApi.deletar(id!),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["reprodutores"] });
+      void qc.invalidateQueries({ queryKey: ["reprodutores", "list"] });
       navigate("/reprodutores");
     },
     onError: (err: { response?: { status?: number } }) => {

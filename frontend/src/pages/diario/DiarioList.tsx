@@ -159,31 +159,31 @@ export function DiarioContent({ animalId, sexo }: DiarioContentProps) {
   const chartTheme = useChartTheme();
 
   const { data: pesagensData, isLoading: pesLoading } = useQuery({
-    queryKey: ["pesagens", animalId],
-    queryFn: () => diarioApi.pesagens(animalId),
+    queryKey: ["diario", animalId, "pesagens"],
+    queryFn: ({ signal }) => diarioApi.pesagens(animalId, signal),
     enabled: tab === "peso",
   });
 
   const { data: partosData, isLoading: parLoading } = useQuery({
-    queryKey: ["partos", animalId],
-    queryFn: () => diarioApi.partos(animalId),
+    queryKey: ["diario", animalId, "partos"],
+    queryFn: ({ signal }) => diarioApi.partos(animalId, signal),
     enabled: tab === "paricao",
   });
 
   const { data: sanitarioData, isLoading: sanLoading } = useQuery({
-    queryKey: ["sanitario", animalId],
-    queryFn: () => diarioApi.sanitario(animalId),
+    queryKey: ["diario", animalId, "sanitario"],
+    queryFn: ({ signal }) => diarioApi.sanitario(animalId, signal),
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: ocorrenciasData, isLoading: ocoLoading } = useQuery({
-    queryKey: ["ocorrencias", animalId],
-    queryFn: () => diarioApi.ocorrencias(animalId),
+    queryKey: ["diario", animalId, "ocorrencias"],
+    queryFn: ({ signal }) => diarioApi.ocorrencias(animalId, signal),
     enabled: tab === "ocorrencias",
   });
 
   const invalidateCurrent = () => {
-    const key =
+    const subKey =
       tab === "peso"
         ? "pesagens"
         : tab === "paricao"
@@ -191,7 +191,7 @@ export function DiarioContent({ animalId, sexo }: DiarioContentProps) {
         : tab === "sanitario"
         ? "sanitario"
         : "ocorrencias";
-    void qc.invalidateQueries({ queryKey: [key, animalId] });
+    void qc.invalidateQueries({ queryKey: ["diario", animalId, subKey] });
   };
 
   const pesagens = pesagensData?.data ?? [];
@@ -616,8 +616,8 @@ export function DiarioListPage() {
   const lastIds = getLastAnimaisIds();
 
   const { data: animaisData } = useQuery({
-    queryKey: ["animais-diario-search", debouncedSearch],
-    queryFn: () => animaisApi.listar({ q: debouncedSearch, limit: 8 }),
+    queryKey: ["animais", "list", { q: debouncedSearch, limit: 8 }],
+    queryFn: ({ signal }) => animaisApi.listar({ q: debouncedSearch, limit: 8 }, signal),
     enabled: debouncedSearch.length > 1,
   });
 
