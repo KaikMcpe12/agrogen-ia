@@ -108,9 +108,11 @@ class AnimalRepository:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e.orig))
 
     async def soft_delete(self, animal_id: UUID) -> bool:
-        db_animal = await self.get_by_id(animal_id)
+        db_animal = await self.get_by_id(animal_id, incluir_inativos=True)
         if not db_animal:
             return False
+        if not db_animal.ativo:
+            return True
             
         db_animal.ativo = False
         await self.session.commit()
