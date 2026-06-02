@@ -7,11 +7,9 @@ import { STORAGE_KEYS } from "@/lib/storage-keys";
 function ThemeInit() {
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.theme);
-    const theme =
-      stored ??
-      (window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "light"
-        : "dark");
+    const theme = stored ?? "light";
+    // Para preferência do sistema no futuro (lógica corrigida):
+    // const theme = stored ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     document.documentElement.setAttribute("data-theme", theme);
   }, []);
   return null;

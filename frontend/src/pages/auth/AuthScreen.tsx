@@ -3,9 +3,10 @@ import { useForm, Controller, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Sun, Moon } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Logo } from "@/components/Logo";
+import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { MaskedInput } from "@/components/ui/MaskedInput";
@@ -393,6 +394,7 @@ interface Props {
 export function AuthScreen({ initialTab = "login" }: Props) {
   const [tab, setTab] = useState<"login" | "register">(initialTab);
   const navigate = useNavigate();
+  const { isDark, toggle } = useTheme();
 
   const switchTab = (t: "login" | "register") => {
     setTab(t);
@@ -448,8 +450,15 @@ export function AuthScreen({ initialTab = "login" }: Props) {
           className="w-full md:w-[520px] md:min-w-[440px] flex flex-col md:justify-center px-6 py-10 md:px-14 overflow-y-auto"
           style={{ backgroundColor: "var(--color-beige, #f5efe6)" }}
         >
-          <div className="flex items-center gap-2 mb-8">
+          <div className="flex items-center justify-between mb-8">
             <Logo size={34} />
+            <button
+              onClick={toggle}
+              className="w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-black/5 transition-colors"
+              aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
+            >
+              {isDark ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
           </div>
 
           <div className="flex rounded-[10px] p-1 gap-1 mb-8" style={{ backgroundColor: "#e8e4da" }}>
