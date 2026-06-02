@@ -72,6 +72,12 @@ export function Header({ alertCount = 0, onMenuToggle }: HeaderProps) {
     void navigate("/login");
   };
 
+  useEffect(() => {
+    const handler = () => setAlertDrawerOpen(true);
+    window.addEventListener("open-alert-drawer", handler);
+    return () => window.removeEventListener("open-alert-drawer", handler);
+  }, []);
+
   return (
     <>
       <header className="z-30 bg-surface border-b border-line shrink-0" style={{ boxShadow: "var(--shadow-sm)" }}>
@@ -86,7 +92,7 @@ export function Header({ alertCount = 0, onMenuToggle }: HeaderProps) {
           </button>
 
           {/* Logo */}
-          <NavLink to="/dashboard" className="shrink-0">
+          <NavLink to="/dashboard" className="shrink-0 flex items-center">
             <Logo size={32} />
           </NavLink>
 

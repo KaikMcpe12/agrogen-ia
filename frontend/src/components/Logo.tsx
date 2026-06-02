@@ -59,7 +59,7 @@ export function Logo({ variant = "full", size = 36, className = "" }: LogoProps)
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <BovineIcon size={size} />
-      <span
+      <div
         style={{
           fontFamily: "var(--font-display)",
           fontSize: size * 0.56,
@@ -67,9 +67,12 @@ export function Logo({ variant = "full", size = 36, className = "" }: LogoProps)
           color: "var(--color-ink)",
           lineHeight: 1,
           letterSpacing: "-0.02em",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.25em",
         }}
       >
-        AgroGen{" "}
+        <span>AgroGen</span>
         <span
           style={{
             color: "var(--color-amber)",
@@ -78,7 +81,7 @@ export function Logo({ variant = "full", size = 36, className = "" }: LogoProps)
         >
           IA
         </span>
-      </span>
+      </div>
     </div>
   );
 }
