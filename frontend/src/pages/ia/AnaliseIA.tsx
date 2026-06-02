@@ -67,12 +67,12 @@ function GaugeSVG({ pct }: { pct: number }) {
   );
 }
 
+// Mensagens decorativas — spec seção 6.5 (tempos aproximados)
 const LOADING_MESSAGES = [
-  "Lendo histórico reprodutivo…",
-  "Cruzando dados genéticos…",
-  "Calculando score de prenhez…",
-  "Avaliando fatores determinantes…",
-  "Gerando recomendações…",
+  "Lendo o histórico do animal...",       // 0 - 500ms
+  "Cruzando com dados genéticos...",      // 500ms - 1s
+  "Calculando a probabilidade...",        // 1s - 2s
+  "Quase pronto...",                      // >2s
 ];
 
 /* ── Aba: Predição ─────────────────────────────────────────────── */
@@ -84,6 +84,7 @@ function TabPredicao() {
   const [userSelectedAnimal, setUserSelectedAnimal] = useState<Animal | null>(null);
   const [predicao, setPredicao] = useState<PredicaoPrenhez | null>(null);
   const [loadingMsg, setLoadingMsg] = useState(0);
+  const [loadingTooLong, setLoadingTooLong] = useState(false);
   const debouncedSearch = useDebounce(search, 300);
   const chartTheme = useChartTheme();
 
@@ -114,11 +115,19 @@ function TabPredicao() {
   });
 
   useEffect(() => {
-    if (!rodar.isPending) return;
-    const interval = setInterval(() => {
-      setLoadingMsg((m) => (m + 1) % LOADING_MESSAGES.length);
-    }, 1500);
-    return () => clearInterval(interval);
+    if (!rodar.isPending) {
+      setLoadingMsg(0);
+      setLoadingTooLong(false);
+      return;
+    }
+    // Progressão time-based conforme spec seção 6.5
+    const timers = [
+      setTimeout(() => setLoadingMsg(1), 500),
+      setTimeout(() => setLoadingMsg(2), 1000),
+      setTimeout(() => setLoadingMsg(3), 2000),
+      setTimeout(() => setLoadingTooLong(true), 5000),
+    ];
+    return () => timers.forEach(clearTimeout);
   }, [rodar.isPending]);
 
   const sugestoes = animaisData?.data ?? [];
@@ -204,14 +213,25 @@ function TabPredicao() {
             </div>
           </Card>
 
-          {/* Loading com mensagens rotativas */}
+          {/* Loading com mensagens rotativas — spec seção 6.5 */}
           {rodar.isPending && (
             <div className="text-center py-12">
               <div className="w-10 h-10 border-[3px] border-green-700 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
               <p className="text-[15px] font-semibold text-ink">Analisando…</p>
-              <p className="text-[13px] text-ink-4 font-mono mt-1 h-5 transition-all">
+              <p className="text-[13px] text-ink-4 font-mono mt-1 h-5 transition-all" aria-live="polite">
                 {LOADING_MESSAGES[loadingMsg]}
               </p>
+              {loadingTooLong && (
+                <div className="mt-4 flex flex-col items-center gap-2">
+                  <p className="text-[12px] text-ink-3">Está demorando mais que o esperado...</p>
+                  <button
+                    className="text-[13px] text-danger hover:underline"
+                    onClick={() => rodar.reset()}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

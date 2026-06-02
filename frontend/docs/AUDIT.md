@@ -388,16 +388,16 @@
 
 ### Loading e skeletons (seção 6)
 - [x] Componentes: TableSkeleton, CardListSkeleton, KPICardSkeleton, ChartSkeleton, AnimalProfileSkeleton, FormSkeleton, DiarioTabSkeleton (C-E3)
-- [ ] Durante refetch, dados antigos ficam visíveis com indicador sutil (placeholderData: keepPreviousData) — pendente
+- [x] Durante refetch, dados antigos ficam visíveis com indicador sutil — placeholderData + Loader2 spinner em AnimaList e ReprodutorList (C-E7)
 - [ ] Botões de submit com spinner inline + disabled durante mutation — pendente (cada formulário individualmente)
-- [ ] Loading da Predição IA com mensagens rotativas — pendente
+- [x] Loading da Predição IA com mensagens time-based (0ms/500ms/1s/2s/5s com Cancelar) (C-E7)
 - [ ] Geração de PDF com banner "continue navegando" após 3s — pendente
 
 ### Erros (seção 7)
 - [x] src/lib/api/error-messages.ts criado e usado em todos os catch (C-E1, C-E3)
 - [x] ErrorBoundary global envolve a aplicação (C-E3)
 - [x] Rota catch-all (*) com NotFoundPage amigável (C-E3)
-- [ ] Tela de erro inline com botão "Tentar de novo" em queries que falham — pendente por tela
+- [x] Tela de erro inline com botão "Tentar de novo" — ErrorState em AnimaList, ReprodutorList, InseminacaoList (C-E7)
 - [x] Mensagens sempre em pt-BR, nunca expondo códigos técnicos (C-E1)
 
 ### Formulários (seção 8)
@@ -422,7 +422,7 @@
 - [x] 4 tipos visuais (mapeados para success/error no Toast.tsx atual) (C-E3)
 - [x] Deduplicação de mensagens idênticas em janela de 2s (C-E3)
 - [ ] Posicionamento mobile: rodapé acima da bottom nav — Toast.tsx usa bottom-24 ✅ já funciona
-- [ ] aria-live="polite"/"assertive" distintos — pendente (Toast.tsx usa provider sem aria-live)
+- [x] aria-live="polite" para success/info, "assertive" para error — Toast.tsx com role=status/alert (C-E7)
 
 ### Acessibilidade (seção 11)
 - [ ] Todos os modais usam Radix Dialog (focus trap nativo) — verificar cada modal

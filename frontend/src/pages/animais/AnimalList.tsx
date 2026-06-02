@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, SlidersHorizontal, Eye, Trash2, Pencil, Syringe,
-         ArrowUpDown, ArrowUp, ArrowDown, PawPrint, FilterX, FileUp, Dna } from "lucide-react";
+         ArrowUpDown, ArrowUp, ArrowDown, PawPrint, FilterX, FileUp, Dna, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { animaisApi } from "@/lib/api/endpoints/animais";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Modal01NewAnimalStep1, type Step1Data } from "@/components/modals/Modal01NewAnimalStep1";
@@ -210,9 +211,10 @@ export function AnimalListPage() {
     page,
     limit: filters.limit,
   };
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ["animais", "list", animaisFiltros],
     queryFn: ({ signal }) => animaisApi.listar(animaisFiltros, signal),
+    placeholderData: (prev) => prev,
   });
 
   // Contagens para chips (stale OK)
@@ -260,7 +262,10 @@ export function AnimalListPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-[22px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>Animais</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-[22px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>Animais</h1>
+            {isFetching && !isLoading && <Loader2 size={16} className="animate-spin text-ink-4" aria-label="Atualizando" />}
+          </div>
           {meta && (
             <p className="text-[13px] text-ink-3 mt-0.5">
               Exibindo {(page - 1) * filters.limit + 1}–{Math.min(page * filters.limit, meta.total)} de {meta.total} animais
@@ -363,7 +368,9 @@ export function AnimalListPage() {
       </div>
 
       {/* Content */}
-      {isLoading ? (
+      {error ? (
+        <ErrorState error={error} onRetry={() => void refetch()} />
+      ) : isLoading ? (
         <div className="flex flex-col gap-3">
           {[...Array(5)].map((_, i) => (
             <Card key={i} className="h-16 animate-pulse bg-beige">{null}</Card>
