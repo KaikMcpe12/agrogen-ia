@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 # from database import get_async_session 
 
 from schemas import AnimalCreate, AnimalUpdate, AnimalResponse
-from backend.repositories.repository import AnimalRepository
+from backend.repositories.animal_repository import AnimalRepository
 from backend.models.enums import EspecieAnimal
 
 router = APIRouter(prefix="/animals", tags=["Animais"])
