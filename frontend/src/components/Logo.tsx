@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 interface LogoProps {
   variant?: "full" | "icon-only";
   size?: number;
@@ -5,6 +7,7 @@ interface LogoProps {
 }
 
 function BovineIcon({ size = 36 }: { size?: number }) {
+  const gradId = useId();
   return (
     <svg
       width={size}
@@ -15,7 +18,7 @@ function BovineIcon({ size = 36 }: { size?: number }) {
       aria-hidden="true"
     >
       {/* Circuit base */}
-      <rect width="36" height="36" rx="10" fill="url(#logo-grad)" />
+      <rect width="36" height="36" rx="10" fill={`url(#${gradId})`} />
       {/* Bovine head outline */}
       <path
         d="M11 10 Q11 7 14 7 L15 9 M25 10 Q25 7 22 7 L21 9"
@@ -42,7 +45,7 @@ function BovineIcon({ size = 36 }: { size?: number }) {
       <line x1="7" y1="18" x2="10" y2="18" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
       <line x1="26" y1="18" x2="29" y2="18" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
       <defs>
-        <linearGradient id="logo-grad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+        <linearGradient id={gradId} x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
           <stop stopColor="#1B4332" />
           <stop offset="1" stopColor="#40916C" />
         </linearGradient>
