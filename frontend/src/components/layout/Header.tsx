@@ -35,8 +35,8 @@ export function Header({ alertCount = 0, onMenuToggle }: HeaderProps) {
   const navigate = useNavigate();
 
   const { data: fazendasData } = useQuery({
-    queryKey: ["fazendas"],
-    queryFn: () => fazendasApi.listar(),
+    queryKey: ["fazendas", "list"],
+    queryFn: ({ signal }) => fazendasApi.listar(signal),
     staleTime: 5 * 60 * 1000,
   });
   const fazendas = fazendasData?.data ?? [];
@@ -54,7 +54,14 @@ export function Header({ alertCount = 0, onMenuToggle }: HeaderProps) {
   const handleChangeFazenda = (id: string) => {
     setFazendaId(id);
     setFazendaOpen(false);
-    void qc.invalidateQueries();
+    // Invalida tudo que depende de fazenda (tabela 2.5 — troca de fazenda ativa)
+    void qc.invalidateQueries({ queryKey: ["dashboard"] });
+    void qc.invalidateQueries({ queryKey: ["animais"] });
+    void qc.invalidateQueries({ queryKey: ["inseminacoes"] });
+    void qc.invalidateQueries({ queryKey: ["alertas"] });
+    void qc.invalidateQueries({ queryKey: ["diario"] });
+    void qc.invalidateQueries({ queryKey: ["relatorios"] });
+    void qc.invalidateQueries({ queryKey: ["reprodutores"] });
   };
 
   const handleLogout = () => {

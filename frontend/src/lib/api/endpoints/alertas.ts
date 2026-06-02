@@ -22,11 +22,11 @@ export interface AlertasContagemResponse {
 }
 
 export const alertasApi = {
-  listar: (params?: AlertasParams) =>
-    client.get<AlertasResponse>("/alertas", { params }).then((r) => r.data),
+  listar: (params?: AlertasParams, signal?: AbortSignal) =>
+    client.get<AlertasResponse>("/alertas", { params, ...(signal ? { signal } : {}) }).then((r) => r.data),
 
-  contagem: () =>
-    client.get<AlertasContagemResponse>("/alertas/contagem").then((r) => r.data),
+  contagem: (signal?: AbortSignal) =>
+    client.get<AlertasContagemResponse>("/alertas/contagem", { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   marcarLido: (id: string) =>
     client.patch<ApiResponse<null>>(`/alertas/${id}/lido`).then((r) => r.data),

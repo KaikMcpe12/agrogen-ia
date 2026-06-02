@@ -2,8 +2,8 @@ import client from "../client";
 import type { Fazenda, ApiResponse } from "@/types";
 
 export const fazendasApi = {
-  listar: () =>
-    client.get<ApiResponse<Fazenda[]>>("/fazendas").then((r) => r.data),
+  listar: (signal?: AbortSignal) =>
+    client.get<ApiResponse<Fazenda[]>>("/fazendas", { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criar: (body: Partial<Fazenda>) =>
     client.post<ApiResponse<Fazenda>>("/fazendas", body).then((r) => r.data),

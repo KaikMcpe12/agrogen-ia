@@ -13,7 +13,8 @@ export function AppLayout() {
 
   const { data: alertasData } = useQuery({
     queryKey: ["alertas", "contagem"],
-    queryFn: () => alertasApi.contagem(),
+    queryFn: ({ signal }) => alertasApi.contagem(signal),
+    staleTime: 60 * 1000,
     refetchInterval: 60 * 1000,
   });
 

@@ -80,8 +80,10 @@ export function Modal05Diagnostico({ open, onClose, inseminacao }: Props) {
           : {}),
       }),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["inseminacoes"] });
-      void qc.invalidateQueries({ queryKey: ["alertas"] });
+      void qc.invalidateQueries({ queryKey: ["inseminacoes", "list"] });
+      void qc.invalidateQueries({ queryKey: ["inseminacoes", "pendentes-diagnostico"] });
+      void qc.invalidateQueries({ queryKey: ["alertas", "list"] });
+      void qc.invalidateQueries({ queryKey: ["alertas", "contagem"] });
       onClose();
     },
   });

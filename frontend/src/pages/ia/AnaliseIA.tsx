@@ -90,17 +90,17 @@ function TabPredicao() {
   const animalIdParam = searchParams.get("animal_id");
 
   const { data: preselectedData } = useQuery({
-    queryKey: ["animal", animalIdParam],
-    queryFn: () => animaisApi.buscar(animalIdParam!),
+    queryKey: ["animais", "detail", animalIdParam],
+    queryFn: ({ signal }) => animaisApi.buscar(animalIdParam!, signal),
     enabled: !!animalIdParam && !userSelectedAnimal,
   });
 
   const selectedAnimal = userSelectedAnimal ?? preselectedData?.data ?? null;
 
   const { data: animaisData } = useQuery({
-    queryKey: ["animais-ia-search", debouncedSearch],
-    queryFn: () =>
-      animaisApi.listar({ q: debouncedSearch, sexo: "FEMEA", status: "ATIVA", limit: 8 }),
+    queryKey: ["animais", "list", { q: debouncedSearch, sexo: "FEMEA", status: "ATIVA", limit: 8 }],
+    queryFn: ({ signal }) =>
+      animaisApi.listar({ q: debouncedSearch, sexo: "FEMEA", status: "ATIVA", limit: 8 }, signal),
     enabled: debouncedSearch.length > 1 && !selectedAnimal,
   });
 
@@ -108,7 +108,8 @@ function TabPredicao() {
     mutationFn: () => iaApi.predicao({ animal_id: selectedAnimal!.id }),
     onSuccess: (data) => {
       setPredicao(data.data);
-      void qc.invalidateQueries({ queryKey: ["alertas"] });
+      void qc.invalidateQueries({ queryKey: ["alertas", "list"] });
+      void qc.invalidateQueries({ queryKey: ["alertas", "contagem"] });
     },
   });
 
@@ -353,8 +354,8 @@ function TabPadroes() {
   const chartTheme = useChartTheme();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["padroes-fertilidade"],
-    queryFn: () => iaApi.padroes(),
+    queryKey: ["ia", "padroes-fertilidade"],
+    queryFn: ({ signal }) => iaApi.padroes(undefined, signal),
   });
 
   const padroes = data?.data;

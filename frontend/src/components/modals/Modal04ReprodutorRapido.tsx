@@ -114,14 +114,10 @@ export function Modal04ReprodutorRapido({
   const especieAtual = watch("especie");
 
   /* Busca animais MACHO + ATIVA para o picker */
+  const machosPicker = { sexo: "MACHO" as const, status: "ATIVA" as const, q: debouncedAnimalSearch || undefined, limit: 10 };
   const { data: animaisData } = useQuery({
-    queryKey: ["animais", "machos-ativa-picker", debouncedAnimalSearch],
-    queryFn: () => animaisApi.listar({
-      sexo: "MACHO",
-      status: "ATIVA",
-      ...(debouncedAnimalSearch.length >= 2 ? { q: debouncedAnimalSearch } : {}),
-      limit: 10,
-    }),
+    queryKey: ["animais", "list", machosPicker],
+    queryFn: ({ signal }) => animaisApi.listar(machosPicker, signal),
     enabled: tipo === "ANIMAL_PROPRIO" && !isEdit && debouncedAnimalSearch.length >= 2,
   });
   const sugestoesAnimais = animaisData?.data ?? [];
@@ -181,7 +177,7 @@ export function Modal04ReprodutorRapido({
       return reprodutoresApi.criar(body);
     },
     onSuccess: (res) => {
-      void qc.invalidateQueries({ queryKey: ["reprodutores"] });
+      void qc.invalidateQueries({ queryKey: ["reprodutores", "list"] });
       if (onSave) onSave(res.data);
       onClose();
     },
@@ -203,8 +199,8 @@ export function Modal04ReprodutorRapido({
       return reprodutoresApi.atualizar(reprodutor!.id, body);
     },
     onSuccess: (res) => {
-      void qc.invalidateQueries({ queryKey: ["reprodutores"] });
-      if (reprodutor?.id) void qc.invalidateQueries({ queryKey: ["reprodutor", reprodutor.id] });
+      void qc.invalidateQueries({ queryKey: ["reprodutores", "list"] });
+      if (reprodutor?.id) void qc.invalidateQueries({ queryKey: ["reprodutores", "detail", reprodutor.id] });
       if (onSave) onSave(res.data);
       onClose();
     },

@@ -25,14 +25,14 @@ export interface AnimaisCounts {
 }
 
 export const animaisApi = {
-  listar: (params?: AnimaisParams) =>
-    client.get<PaginatedResponse<Animal>>("/animais", { params }).then((r) => r.data),
+  listar: (params?: AnimaisParams, signal?: AbortSignal) =>
+    client.get<PaginatedResponse<Animal>>("/animais", { params, ...(signal ? { signal } : {}) }).then((r) => r.data),
 
-  buscar: (id: string) =>
-    client.get<ApiResponse<Animal>>(`/animais/${id}`).then((r) => r.data),
+  buscar: (id: string, signal?: AbortSignal) =>
+    client.get<ApiResponse<Animal>>(`/animais/${id}`, { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
-  counts: () =>
-    client.get<ApiResponse<AnimaisCounts>>("/animais/counts").then((r) => r.data),
+  counts: (signal?: AbortSignal) =>
+    client.get<ApiResponse<AnimaisCounts>>("/animais/counts", { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criar: (body: Partial<Animal>) =>
     client.post<ApiResponse<Pick<Animal, "id" | "codigo" | "nome" | "status" | "created_at">>>("/animais", body).then((r) => r.data),
@@ -43,6 +43,6 @@ export const animaisApi = {
   deletar: (id: string) =>
     client.delete<ApiResponse<null>>(`/animais/${id}`).then((r) => r.data),
 
-  listarRacas: () =>
-    client.get<ApiResponse<string[]>>("/animais/racas").then((r) => r.data),
+  listarRacas: (signal?: AbortSignal) =>
+    client.get<ApiResponse<string[]>>("/animais/racas", { ...(signal ? { signal } : {}) }).then((r) => r.data),
 };

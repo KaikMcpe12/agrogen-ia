@@ -91,25 +91,20 @@ export function RelatoriosPage() {
   const debouncedFim = useDebounce(dataFim, 500);
   const debouncedEspecie = useDebounce(especie, 500);
 
+  const relatorioFiltros = {
+    data_inicio: debouncedInicio || undefined,
+    data_fim: debouncedFim || undefined,
+    especie: debouncedEspecie || undefined,
+  };
   const { data, isLoading } = useQuery({
-    queryKey: [
-      "relatorio-reprodutivo",
-      debouncedInicio,
-      debouncedFim,
-      debouncedEspecie,
-    ],
-    queryFn: () =>
-      relatoriosApi.reprodutivo({
-        data_inicio: debouncedInicio || undefined,
-        data_fim: debouncedFim || undefined,
-        especie: debouncedEspecie || undefined,
-      }),
+    queryKey: ["relatorios", "reprodutivo", relatorioFiltros],
+    queryFn: ({ signal }) => relatoriosApi.reprodutivo(relatorioFiltros, signal),
     enabled: tipo === "reprodutivo",
   });
 
   const { data: fazendasData } = useQuery({
-    queryKey: ["fazendas"],
-    queryFn: () => fazendasApi.listar(),
+    queryKey: ["fazendas", "list"],
+    queryFn: ({ signal }) => fazendasApi.listar(signal),
     staleTime: 5 * 60 * 1000,
   });
   const fazendas = fazendasData?.data ?? [];

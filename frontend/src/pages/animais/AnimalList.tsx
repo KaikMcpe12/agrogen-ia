@@ -201,24 +201,24 @@ export function AnimalListPage() {
   };
 
   // Query principal
+  const animaisFiltros = {
+    q: debouncedQ || undefined,
+    especie: filters.especie || undefined,
+    status: filters.status || undefined,
+    sort: filters.sort,
+    order: filters.order,
+    page,
+    limit: filters.limit,
+  };
   const { data, isLoading } = useQuery({
-    queryKey: ["animais", debouncedQ, filters.especie, filters.status, filters.sort, filters.order, filters.limit, page],
-    queryFn: () =>
-      animaisApi.listar({
-        q: debouncedQ || undefined,
-        especie: filters.especie || undefined,
-        status: filters.status || undefined,
-        sort: filters.sort,
-        order: filters.order,
-        page,
-        limit: filters.limit,
-      }),
+    queryKey: ["animais", "list", animaisFiltros],
+    queryFn: ({ signal }) => animaisApi.listar(animaisFiltros, signal),
   });
 
   // Contagens para chips (stale OK)
   const { data: countsData } = useQuery({
-    queryKey: ["animais-counts"],
-    queryFn: animaisApi.counts,
+    queryKey: ["animais", "counts"],
+    queryFn: ({ signal }) => animaisApi.counts(signal),
     staleTime: 2 * 60 * 1000,
   });
   const counts = countsData?.data;
@@ -229,8 +229,8 @@ export function AnimalListPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => animaisApi.deletar(id),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["animais"] });
-      void qc.invalidateQueries({ queryKey: ["animais-counts"] });
+      void qc.invalidateQueries({ queryKey: ["animais", "list"] });
+      void qc.invalidateQueries({ queryKey: ["animais", "counts"] });
       setDeleteAnimal(null);
     },
   });

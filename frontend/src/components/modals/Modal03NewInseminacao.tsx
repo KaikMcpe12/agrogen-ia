@@ -79,21 +79,21 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
   const dataInseminacao = watch("data_inseminacao");
 
   const { data: animaisSugestoesData } = useQuery({
-    queryKey: ["animais-search", debouncedSearch],
-    queryFn: () => animaisApi.listar({ q: debouncedSearch, sexo: "FEMEA", status: "ATIVA", limit: 10 }),
+    queryKey: ["animais", "list", { q: debouncedSearch, sexo: "FEMEA", status: "ATIVA", limit: 10 }],
+    queryFn: ({ signal }) => animaisApi.listar({ q: debouncedSearch, sexo: "FEMEA", status: "ATIVA", limit: 10 }, signal),
     enabled: debouncedSearch.length > 1 && !preselectedAnimalId,
   });
 
   const { data: preselectedData } = useQuery({
-    queryKey: ["animal", preselectedAnimalId],
-    queryFn: () => animaisApi.buscar(preselectedAnimalId!),
+    queryKey: ["animais", "detail", preselectedAnimalId],
+    queryFn: ({ signal }) => animaisApi.buscar(preselectedAnimalId!, signal),
     enabled: !!preselectedAnimalId,
   });
   const preselectedAnimal = preselectedData?.data ?? null;
 
   const { data: lastInseminacaoData } = useQuery({
-    queryKey: ["inseminacoes", "last", animalId],
-    queryFn: () => inseminacoesApi.listar({ animal_id: animalId, limit: 1, sort: "data_inseminacao", order: "desc" }),
+    queryKey: ["inseminacoes", "list", { animal_id: animalId, limit: 1 }],
+    queryFn: ({ signal }) => inseminacoesApi.listar({ animal_id: animalId, limit: 1, sort: "data_inseminacao", order: "desc" }, signal),
     enabled: !!animalId,
   });
   const lastIns = lastInseminacaoData?.data[0];
@@ -101,19 +101,20 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
   const animalEspecie = (preselectedAnimal ?? selectedAnimal)?.especie;
 
   const { data: reprodutoresData } = useQuery({
-    queryKey: ["reprodutores", { especie: animalEspecie, ativo: true }],
-    queryFn: () => reprodutoresApi.listar({
+    queryKey: ["reprodutores", "list", { especie: animalEspecie, ativo: true }],
+    queryFn: ({ signal }) => reprodutoresApi.listar({
       ativo: true,
       ...(animalEspecie ? { especie: animalEspecie } : {}),
       limit: 999,
-    }),
+    }, signal),
   });
 
   const criar = useMutation({
     mutationFn: inseminacoesApi.criar,
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["inseminacoes"] });
-      void qc.invalidateQueries({ queryKey: ["alertas"] });
+      void qc.invalidateQueries({ queryKey: ["inseminacoes", "list"] });
+      void qc.invalidateQueries({ queryKey: ["alertas", "list"] });
+      void qc.invalidateQueries({ queryKey: ["alertas", "contagem"] });
       reset();
       setSelectedAnimal(null);
       setAnimalSearch("");

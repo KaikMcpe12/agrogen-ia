@@ -43,10 +43,16 @@ const staticMessages: Record<string, string> = {
   // Fazendas
   FAZENDA_NOT_FOUND: "Fazenda não encontrada.",
 
+  // Reprodutores
+  REPRODUTOR_TEM_VINCULOS: "Reprodutor com inseminações não pode ser excluído.",
+
   // Genérico
-  VALIDATION_ERROR: "Dados inválidos. Verifique os campos e tente novamente.",
-  NETWORK_ERROR: "Algo deu errado do nosso lado. Tente novamente em instantes.",
-  UNKNOWN_ERROR: "Algo deu errado do nosso lado. Tente novamente em instantes.",
+  VALIDATION_ERROR: "Há campos com erro.",
+  FORBIDDEN: "Seu perfil não tem permissão para esta ação.",
+  NETWORK_ERROR: "Sem conexão. Verifique sua internet.",
+  INTERNAL_SERVER_ERROR: "Algo deu errado do nosso lado. Tente novamente.",
+  UNKNOWN_ERROR: "Ocorreu um erro. Tente novamente.",
+  DEFAULT: "Ocorreu um erro. Tente novamente.",
 };
 
 // Mensagens com interpolação — recebem dados dinâmicos (ex: {N}, {X})

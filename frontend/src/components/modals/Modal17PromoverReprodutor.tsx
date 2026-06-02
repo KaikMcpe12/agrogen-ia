@@ -68,8 +68,8 @@ export function Modal17PromoverReprodutor({ open, onClose, animalPreSelecionado 
 
   /* Busca animais MACHO ATIVA */
   const { data: animaisData } = useQuery({
-    queryKey: ["animais", "machos-ativa", debouncedQ],
-    queryFn: () => animaisApi.listar({ sexo: "MACHO", status: "ATIVA", q: debouncedQ || undefined, limit: 10 }),
+    queryKey: ["animais", "list", { sexo: "MACHO", status: "ATIVA", q: debouncedQ, limit: 10 }],
+    queryFn: ({ signal }) => animaisApi.listar({ sexo: "MACHO", status: "ATIVA", q: debouncedQ || undefined, limit: 10 }, signal),
     enabled: !animalPreSelecionado && debouncedQ.length >= 2,
   });
 
@@ -125,8 +125,8 @@ export function Modal17PromoverReprodutor({ open, onClose, animalPreSelecionado 
       return res;
     },
     onSuccess: (res) => {
-      void qc.invalidateQueries({ queryKey: ["reprodutores"] });
-      void qc.invalidateQueries({ queryKey: ["animais"] });
+      void qc.invalidateQueries({ queryKey: ["reprodutores", "list"] });
+      void qc.invalidateQueries({ queryKey: ["animais", "list"] });
       onClose();
       navigate(`/reprodutores/${res.data.id}`);
     },

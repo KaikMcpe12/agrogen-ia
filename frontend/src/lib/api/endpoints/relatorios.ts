@@ -21,8 +21,13 @@ export interface RelatorioParams {
 }
 
 export const relatoriosApi = {
-  reprodutivo: (params?: RelatorioParams) =>
-    client.get<PaginatedResponse<RelatorioReprodutivoRow> & { success: boolean }>("/relatorios/reprodutivo", { params }).then((r) => r.data),
+  reprodutivo: (params?: RelatorioParams, signal?: AbortSignal) =>
+    client
+      .get<PaginatedResponse<RelatorioReprodutivoRow> & { success: boolean }>("/relatorios/reprodutivo", {
+        params,
+        ...(signal ? { signal } : {}),
+      })
+      .then((r) => r.data),
 
   exportarPDF: (tipo: "reprodutivo") =>
     client.get<ApiResponse<{ url: string }>>(`/relatorios/${tipo}/exportar`).then((r) => r.data),

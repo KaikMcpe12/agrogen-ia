@@ -23,8 +23,8 @@ export function DiarioAnimalPage() {
   const { id } = useParams<{ id: string }>();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["animal", id],
-    queryFn: () => animaisApi.buscar(id!),
+    queryKey: ["animais", "detail", id],
+    queryFn: ({ signal }) => animaisApi.buscar(id!, signal),
     enabled: !!id,
   });
 

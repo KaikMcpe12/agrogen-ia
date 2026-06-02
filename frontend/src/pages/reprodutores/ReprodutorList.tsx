@@ -338,13 +338,13 @@ export function ReprodutorListPage() {
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ["reprodutores", queryParams],
-    queryFn: () => reprodutoresApi.listar(queryParams),
+    queryKey: ["reprodutores", "list", queryParams],
+    queryFn: ({ signal }) => reprodutoresApi.listar(queryParams, signal),
   });
 
   const { data: countsData } = useQuery({
     queryKey: ["reprodutores", "counts"],
-    queryFn: () => reprodutoresApi.listar({ limit: 999 }),
+    queryFn: ({ signal }) => reprodutoresApi.listar({ limit: 999 }, signal),
     staleTime: 30_000,
   });
 
@@ -367,7 +367,7 @@ export function ReprodutorListPage() {
     mutationFn: ({ id, ativo }: { id: string; ativo: boolean }) =>
       reprodutoresApi.atualizar(id, { ativo }),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["reprodutores"] });
+      void qc.invalidateQueries({ queryKey: ["reprodutores", "list"] });
       setConfirmDesativarRep(null);
     },
   });
@@ -375,7 +375,7 @@ export function ReprodutorListPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => reprodutoresApi.deletar(id),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["reprodutores"] });
+      void qc.invalidateQueries({ queryKey: ["reprodutores", "list"] });
       setDeleteRep(null);
     },
     onError: (err: { response?: { status?: number; data?: { error?: { total_inseminacoes?: number } } } }, id) => {
@@ -760,7 +760,7 @@ export function ReprodutorListPage() {
         open={showModal04}
         onClose={() => { setShowModal04(false); setEditRep(null); setModal04Especie(undefined); }}
         onSave={() => {
-          void qc.invalidateQueries({ queryKey: ["reprodutores"] });
+          void qc.invalidateQueries({ queryKey: ["reprodutores", "list"] });
           setShowModal04(false);
           setEditRep(null);
         }}

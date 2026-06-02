@@ -34,8 +34,9 @@ function TabDados() {
   const [error, setError] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["me"],
-    queryFn: () => authApi.me(),
+    queryKey: ["usuarios", "me"],
+    queryFn: ({ signal }) => authApi.me(signal),
+    staleTime: 60 * 60 * 1000,
   });
   const usuario = data?.data;
 
@@ -46,7 +47,7 @@ function TabDados() {
       return authApi.atualizarPerfil(body);
     },
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["me"] });
+      void qc.invalidateQueries({ queryKey: ["usuarios", "me"] });
       setEditing(false);
     },
     onError: (err) => setError(getApiErrorMessage(err)),
@@ -134,14 +135,14 @@ function TabFazendas({ onboarding }: { onboarding: boolean }) {
   }, [onboarding, modal11Mode]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["fazendas"],
-    queryFn: () => fazendasApi.listar(),
+    queryKey: ["fazendas", "list"],
+    queryFn: ({ signal }) => fazendasApi.listar(signal),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => fazendasApi.deletar(id),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["fazendas"] });
+      void qc.invalidateQueries({ queryKey: ["fazendas", "list"] });
       setDeleteId(null);
     },
   });

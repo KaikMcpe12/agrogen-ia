@@ -63,9 +63,11 @@ export function Modal02NewAnimalStep2({ open, onClose, onBack, step1Data, mode =
       return animaisApi.criar(payload);
     },
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["animais"] });
+      void qc.invalidateQueries({ queryKey: ["animais", "list"] });
+      void qc.invalidateQueries({ queryKey: ["animais", "counts"] });
+      void qc.invalidateQueries({ queryKey: ["dashboard", "kpis"] });
       if (isEdit && animal) {
-        void qc.invalidateQueries({ queryKey: ["animal", animal.id] });
+        void qc.invalidateQueries({ queryKey: ["animais", "detail", animal.id] });
       }
       onClose();
     },

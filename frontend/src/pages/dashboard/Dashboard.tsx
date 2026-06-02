@@ -103,8 +103,8 @@ const PERIOD_OPTIONS = [
 function ReproductiveChart() {
   const [meses, setMeses] = useState(6);
   const { data } = useQuery({
-    queryKey: ["dashboard", "grafico", meses],
-    queryFn: () => dashboardApi.grafico(undefined, meses),
+    queryKey: ["dashboard", "grafico", { meses }],
+    queryFn: ({ signal }) => dashboardApi.grafico(undefined, meses, signal),
   });
   const theme = useChartTheme();
   const points = data?.data ?? [];
@@ -207,8 +207,8 @@ function TimelineSection({ items }: { items: TimelineItem[] }) {
 
 function UrgentAlerts() {
   const { data } = useQuery({
-    queryKey: ["alertas", "urgentes-dashboard"],
-    queryFn: () => alertasApi.listar({ lido: false, resolvido: false }),
+    queryKey: ["alertas", "list", { lido: false, resolvido: false }],
+    queryFn: ({ signal }) => alertasApi.listar({ lido: false, resolvido: false }, signal),
   });
 
   const alerts = useMemo(() => (data?.data ?? []).slice(0, 6), [data]);
@@ -312,12 +312,13 @@ function EmptySemAnimais() {
 export function DashboardPage() {
   const { data: kpisData, isLoading, dataUpdatedAt } = useQuery({
     queryKey: ["dashboard", "kpis"],
-    queryFn: () => dashboardApi.kpis(),
+    queryFn: ({ signal }) => dashboardApi.kpis(undefined, signal),
+    staleTime: 5 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
   });
   const { data: timelineData } = useQuery({
     queryKey: ["dashboard", "timeline"],
-    queryFn: () => dashboardApi.timeline(),
+    queryFn: ({ signal }) => dashboardApi.timeline(signal),
   });
 
   const kpis = kpisData?.data;

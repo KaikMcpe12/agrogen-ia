@@ -64,15 +64,19 @@ export function AlertDrawer({ open, onClose }: AlertDrawerProps) {
   const qc = useQueryClient();
   const navigate = useNavigate();
 
+  const alertasFiltros = filter === "nao_lidos" ? { lido: false } : {};
   const { data } = useQuery({
-    queryKey: ["alertas", filter],
-    queryFn: () => alertasApi.listar(filter === "nao_lidos" ? { lido: false } : {}),
+    queryKey: ["alertas", "list", alertasFiltros],
+    queryFn: ({ signal }) => alertasApi.listar(alertasFiltros, signal),
     enabled: open,
   });
 
   const markRead = useMutation({
     mutationFn: alertasApi.marcarLido,
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["alertas"] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["alertas", "list"] });
+      void qc.invalidateQueries({ queryKey: ["alertas", "contagem"] });
+    },
   });
 
   const allAlertas = data?.data ?? [];
