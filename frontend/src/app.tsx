@@ -10,8 +10,8 @@ function ThemeInit() {
     const theme =
       stored ??
       (window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light");
+        ? "light"
+        : "dark");
     document.documentElement.setAttribute("data-theme", theme);
   }, []);
   return null;
