@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { iaApi } from "@/lib/api/endpoints/ia";
 import { animaisApi } from "@/lib/api/endpoints/animais";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useChartTheme } from "@/hooks/useChartTheme";
 import {
   BarChart,
@@ -79,6 +80,7 @@ const LOADING_MESSAGES = [
 function TabPredicao() {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const isOnline = useOnlineStatus();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [userSelectedAnimal, setUserSelectedAnimal] = useState<Animal | null>(null);
@@ -206,9 +208,16 @@ function TabPredicao() {
                   size="sm"
                   onClick={() => rodar.mutate()}
                   loading={rodar.isPending}
+                  disabled={!isOnline}
+                  title={!isOnline ? "Predição IA requer conexão com a internet" : undefined}
                 >
                   <Brain size={15} /> Rodar Predição
                 </Button>
+              )}
+              {!isOnline && !predicao && (
+                <p className="text-[12px] text-ink-3">
+                  A Predição IA requer conexão. Disponível quando online.
+                </p>
               )}
             </div>
           </Card>

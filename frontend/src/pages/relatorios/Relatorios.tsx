@@ -10,6 +10,7 @@ import { relatoriosApi } from "@/lib/api/endpoints/relatorios";
 import { fazendasApi } from "@/lib/api/endpoints/fazendas";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useFazendaAtiva } from "@/hooks/useFazendaAtiva";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { pdf } from "@react-pdf/renderer";
 import { RelatorioPDF } from "@/components/pdf/RelatorioPDF";
 import {
@@ -82,6 +83,7 @@ const BADGE_CLASSES: Record<string, string> = {
 
 export function RelatoriosPage() {
   const { fazendaId } = useFazendaAtiva();
+  const isOnline = useOnlineStatus();
   const [tipo, setTipo] = useState<TipoRelatorio>("reprodutivo");
   const [dataInicio, setDataInicio] = useState(() => getPeriod("mes").inicio);
   const [dataFim, setDataFim] = useState(() => getPeriod("mes").fim);
@@ -292,7 +294,8 @@ export function RelatoriosPage() {
               size="sm"
               onClick={handleExportPDF}
               loading={pdfLoading}
-              disabled={!hasFilter || isLoading || rows.length === 0}
+              disabled={!hasFilter || isLoading || rows.length === 0 || !isOnline}
+              title={!isOnline ? "Geração de PDF requer conexão com a internet" : undefined}
             >
               <FileText size={14} /> PDF
             </Button>

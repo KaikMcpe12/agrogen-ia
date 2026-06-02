@@ -14,6 +14,8 @@ import { Modal01NewAnimalStep1, type Step1Data } from "@/components/modals/Modal
 import { Modal02NewAnimalStep2 } from "@/components/modals/Modal02NewAnimalStep2";
 import { Modal10DeleteConfirm } from "@/components/modals/Modal10DeleteConfirm";
 import { ModalNewAnimalSelector } from "@/components/modals/ModalNewAnimalSelector";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { showWarningToast } from "@/components/ui/toast";
 import type { Animal, Especie, StatusAnimal } from "@/types";
 
 /* ── Constantes ────────────────────────────────────────────────── */
@@ -130,9 +132,15 @@ function AnimalCard({ animal, onView, onEdit, onInseminar, onDelete }: {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-[14px] font-semibold text-ink truncate">{animal.nome}</p>
-            <Badge variant={STATUS_VARIANT[animal.status]}>{STATUS_LABELS[animal.status]}</Badge>
+            {String(animal.id).startsWith("local:") ? (
+              <span className="text-[11px] font-semibold bg-line text-ink-3 px-2 py-0.5 rounded-full">PENDENTE</span>
+            ) : (
+              <Badge variant={STATUS_VARIANT[animal.status]}>{STATUS_LABELS[animal.status]}</Badge>
+            )}
           </div>
-          <p className="text-[12px] font-mono text-ink-4">{animal.codigo} · {animal.raca_principal}</p>
+          <p className="text-[12px] font-mono text-ink-4">
+            {String(animal.id).startsWith("local:") ? "aguardando sync" : animal.codigo} · {animal.raca_principal}
+          </p>
         </div>
       </div>
       <div className="flex gap-1 mt-2 pt-2 border-t border-line">
@@ -173,6 +181,15 @@ export function AnimalListPage() {
   const [step1Data, setStep1Data] = useState<Step1Data | null>(null);
   const [editAnimal, setEditAnimal] = useState<Animal | null>(null);
   const [deleteAnimal, setDeleteAnimal] = useState<Animal | null>(null);
+  const isOnline = useOnlineStatus();
+
+  const handleDeleteClick = (animal: Animal) => {
+    if (!isOnline) {
+      showWarningToast("Exclusão requer conexão com a internet.");
+      return;
+    }
+    setDeleteAnimal(animal);
+  };
 
   // Persiste filtros no sessionStorage
   useEffect(() => {
@@ -391,7 +408,7 @@ export function AnimalListPage() {
                 onView={() => void navigate(`/animais/${a.id}`)}
                 onEdit={() => openEdit(a)}
                 onInseminar={() => handleInseminar(a)}
-                onDelete={() => setDeleteAnimal(a)}
+                onDelete={() => handleDeleteClick(a)}
               />
             ))}
           </div>
@@ -418,7 +435,13 @@ export function AnimalListPage() {
                     className={`border-b border-line hover:bg-beige/50 transition-colors cursor-pointer ${a.status === "DESCARTADA" ? "opacity-50" : ""}`}
                     onClick={() => void navigate(`/animais/${a.id}`)}
                   >
-                    <td className="px-4 py-3"><span className="text-[12px] font-mono text-ink-3">{a.codigo}</span></td>
+                    <td className="px-4 py-3">
+                      {String(a.id).startsWith("local:") ? (
+                        <span className="text-[11px] font-semibold bg-line text-ink-3 px-2 py-0.5 rounded-full">PENDENTE</span>
+                      ) : (
+                        <span className="text-[12px] font-mono text-ink-3">{a.codigo}</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 font-medium text-[14px] text-ink">{a.nome}</td>
                     <td className="px-4 py-3"><Badge variant={ESPECIE_VARIANT[a.especie]}>{ESPECIE_LABELS[a.especie]}</Badge></td>
                     <td className="px-4 py-3 text-[13px] text-ink-2">{a.raca_principal}</td>
@@ -432,7 +455,7 @@ export function AnimalListPage() {
                         {a.sexo === "FEMEA" && a.status !== "DESCARTADA" && (
                           <button onClick={() => handleInseminar(a)} className="w-8 h-8 flex items-center justify-center rounded-[8px] text-green-700 hover:bg-green-100" aria-label="Registrar inseminação"><Syringe size={14} /></button>
                         )}
-                        <button onClick={() => setDeleteAnimal(a)} className="w-8 h-8 flex items-center justify-center rounded-[8px] text-ink-4 hover:bg-danger-bg hover:text-danger" aria-label="Excluir animal"><Trash2 size={14} /></button>
+                        <button onClick={() => handleDeleteClick(a)} className="w-8 h-8 flex items-center justify-center rounded-[8px] text-ink-4 hover:bg-danger-bg hover:text-danger" aria-label="Excluir animal"><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>
