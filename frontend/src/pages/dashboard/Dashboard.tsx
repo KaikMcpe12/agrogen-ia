@@ -247,10 +247,7 @@ function UrgentAlerts() {
       </div>
       <button
         className="mt-3 w-full text-[13px] text-green-700 font-medium hover:underline"
-        onClick={() => {
-          const el = document.getElementById("alertas");
-          el?.scrollIntoView({ behavior: "smooth" });
-        }}
+        onClick={() => window.dispatchEvent(new CustomEvent("open-alert-drawer"))}
       >
         Ver todos os alertas →
       </button>
