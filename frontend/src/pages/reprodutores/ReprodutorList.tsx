@@ -4,11 +4,12 @@ import { useNavigate } from "react-router-dom";
 import {
   Search, Plus, Eye, Trash2, Pencil, FlaskConical, FilterX,
   ArrowUpDown, ArrowUp, ArrowDown, Dna, ToggleLeft, ToggleRight,
-  ChevronLeft, ChevronRight, Beef, X, RotateCcw, PawPrint, ArrowLeft,
+  ChevronLeft, ChevronRight, Beef, X, RotateCcw, PawPrint, ArrowLeft, Loader2,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { reprodutoresApi } from "@/lib/api/endpoints/reprodutores";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Modal04ReprodutorRapido } from "@/components/modals/Modal04ReprodutorRapido";
@@ -337,9 +338,10 @@ export function ReprodutorListPage() {
     order: filters.order,
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ["reprodutores", "list", queryParams],
     queryFn: ({ signal }) => reprodutoresApi.listar(queryParams, signal),
+    placeholderData: (prev) => prev,
   });
 
   const { data: countsData } = useQuery({
@@ -465,9 +467,12 @@ export function ReprodutorListPage() {
       {/* Cabeçalho */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[24px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>
-            Reprodutores
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-[24px] font-bold text-ink" style={{ fontFamily: "var(--font-display)" }}>
+              Reprodutores
+            </h1>
+            {isFetching && !isLoading && <Loader2 size={15} className="animate-spin text-ink-4" aria-label="Atualizando" />}
+          </div>
           <p className="text-[13px] text-ink-3">Catálogo de sêmen externo e animais próprios promovidos</p>
         </div>
         <div className="flex gap-2">
@@ -566,7 +571,9 @@ export function ReprodutorListPage() {
       </div>
 
       {/* Conteúdo */}
-      {isLoading ? (
+      {error ? (
+        <ErrorState error={error} onRetry={() => void refetch()} />
+      ) : isLoading ? (
         <div className="flex items-center justify-center py-16">
           <div className="flex items-center gap-3 text-ink-3">
             <Dna size={20} className="animate-spin" />

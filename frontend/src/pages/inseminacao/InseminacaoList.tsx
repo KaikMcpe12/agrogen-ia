@@ -5,6 +5,7 @@ import { Plus, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { inseminacoesApi } from "@/lib/api/endpoints/inseminacoes";
 import { ModalNewInseminacaoSelector } from "@/components/modals/ModalInseminacaoSelector";
 import { Modal05Diagnostico } from "@/components/modals/Modal05Diagnostico";
@@ -152,10 +153,11 @@ export function InseminacaoListPage() {
     }
   }, [animalIdParam, setSearchParams]);
 
-  const { data: historico, isLoading: histLoading } = useQuery({
+  const { data: historico, isLoading: histLoading, error: histError, refetch: histRefetch } = useQuery({
     queryKey: ["inseminacoes", "list", { limit: 20 }],
     queryFn: ({ signal }) => inseminacoesApi.listar({ limit: 20 }, signal),
     staleTime: 2 * 60 * 1000,
+    placeholderData: (prev) => prev,
     enabled: tab === "historico",
   });
 
@@ -222,7 +224,9 @@ export function InseminacaoListPage() {
 
         {/* Tab: Histórico */}
         {tab === "historico" &&
-          (histLoading ? (
+          (histError ? (
+            <ErrorState error={histError} onRetry={() => void histRefetch()} />
+          ) : histLoading ? (
             <div className="flex flex-col gap-3">
               {[...Array(4)].map((_, i) => (
                 <Card key={i} className="h-14 animate-pulse bg-beige">
