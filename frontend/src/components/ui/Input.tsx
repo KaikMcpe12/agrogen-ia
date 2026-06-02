@@ -6,6 +6,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   required?: boolean;
   hint?: string;
   leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
 }
 
 export function Input({
@@ -14,6 +15,7 @@ export function Input({
   required,
   hint,
   leftIcon,
+  rightIcon,
   className = "",
   id,
   ...props
@@ -50,10 +52,16 @@ export function Input({
               ? "border-danger focus:ring-danger/20"
               : "border-line",
             leftIcon ? "pl-10" : "",
+            rightIcon ? "pr-10" : "",
             className,
           ].join(" ")}
           style={{ minHeight: 44 }}
         />
+        {rightIcon && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-ink-4">
+            {rightIcon}
+          </span>
+        )}
       </div>
       {hint && !error && (
         <p className="text-[12px] text-ink-3">{hint}</p>
