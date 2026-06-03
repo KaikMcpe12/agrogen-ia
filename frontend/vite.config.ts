@@ -12,7 +12,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["logo.svg", "logo-192.svg", "logo-512.svg"],
+      includeAssets: ["favicon.svg", "logo.svg", "logo-192.svg", "logo-512.svg"],
       manifest: {
         name: "AgroGen IA",
         short_name: "AgroGen",
