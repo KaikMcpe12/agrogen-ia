@@ -12,20 +12,20 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg", "logo.svg", "logo-192.png", "logo-512.png"],
+      includeAssets: ["favicon.svg", "logo.svg", "logo-192.png", "logo-512.png", "logo-512-maskable.png"],
       manifest: {
         name: "AgroGen IA",
         short_name: "AgroGen",
         description: "Gestão inteligente do rebanho com inteligência artificial",
         theme_color: "#2D6A4F",
-        background_color: "#FAFAFA",
+        background_color: "#ffffff",
         display: "standalone",
         start_url: "/",
         id: "/",
         icons: [
           { src: "/logo-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
           { src: "/logo-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-          { src: "/logo-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+          { src: "/logo-512-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
       },
       workbox: {
