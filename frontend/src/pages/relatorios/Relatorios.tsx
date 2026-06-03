@@ -226,7 +226,25 @@ export function RelatoriosPage() {
       const logoSvgEl = document.querySelector<SVGSVGElement>(
         "#relatorio-print-area svg[aria-hidden='true']"
       );
-      const logoImg = logoSvgEl ? await svgToPng(logoSvgEl, 72, 72) : "";
+      let logoImg = "";
+      if (logoSvgEl) {
+        logoImg = await svgToPng(logoSvgEl, 72, 72);
+      } else {
+        const logoImgEl = document.querySelector<HTMLImageElement>(
+          "#relatorio-print-area img[aria-hidden='true']"
+        );
+        if (logoImgEl) {
+          try {
+            const svgText = await fetch(logoImgEl.src).then((r) => r.text());
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+            const parsedSvg = svgDoc.documentElement as unknown as SVGSVGElement;
+            logoImg = await svgToPng(parsedSvg, 72, 72);
+          } catch {
+            logoImg = "";
+          }
+        }
+      }
 
       const blob = await pdf(
         <RelatorioPDF
@@ -433,7 +451,7 @@ export function RelatoriosPage() {
         {/* Header interno */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 px-6 sm:px-8 py-6 border-b border-gray-100 print-no-break">
           <div className="flex flex-col gap-1.5">
-            <Logo variant="full" size={26} />
+            <Logo variant="full" size={36} />
             <h2
               className="text-[20px] font-bold text-gray-900 mt-1"
               style={{ fontFamily: "var(--font-display)" }}
