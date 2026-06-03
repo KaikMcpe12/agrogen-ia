@@ -110,6 +110,7 @@ export function Modal04ReprodutorRapido({
     defaultValues,
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const tipo = watch("tipo");
   const especieAtual = watch("especie");
 

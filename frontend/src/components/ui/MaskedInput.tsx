@@ -1,5 +1,4 @@
 // react-imask wrapper compatível com exactOptionalPropertyTypes
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { IMaskInput } from "react-imask";
 
 interface MaskedInputProps {

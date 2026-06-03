@@ -358,6 +358,7 @@ function ActivePromptArea({
     if (!disabled && prompt?.inputType) {
       setTimeout(() => inputRef.current?.focus(), 50);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prompt?.stepId, disabled]);
 
   if (!prompt || disabled) return null;

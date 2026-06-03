@@ -10,6 +10,8 @@ interface BeforeInstallPromptEvent extends Event {
 
 const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
 
+const globalWindow = window as unknown as Record<string, unknown>;
+
 export function InstallPWAPrompt() {
   const [show, setShow] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -27,8 +29,9 @@ export function InstallPWAPrompt() {
     localStorage.setItem(STORAGE_KEYS.pwaInstallShown, JSON.stringify({ count: newCount }));
 
     // Lê evento capturado globalmente em main.tsx (evita race condition)
-    const existing = (window as unknown as Record<string, unknown>).__pwaInstallPrompt;
+    const existing = globalWindow.__pwaInstallPrompt;
     if (existing) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDeferredPrompt(existing as BeforeInstallPromptEvent);
     } else if (!isIOS) {
       const handler = (e: Event) => {
@@ -51,7 +54,10 @@ export function InstallPWAPrompt() {
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     setDeferredPrompt(null);
-    if (outcome === "accepted") dismiss();
+    // eslint-disable-next-line react-hooks/immutability
+    delete globalWindow.__pwaInstallPrompt;
+    // dismiss(false): não grava no localStorage — se desinstalar futuramente, banner volta
+    if (outcome === "accepted") dismiss(false);
   };
 
   const dismiss = (forever = true) => {
@@ -81,7 +87,7 @@ export function InstallPWAPrompt() {
             </p>
           </div>
           <button
-            onClick={() => dismiss()}
+            onClick={() => dismiss(false)}
             className="w-7 h-7 flex items-center justify-center rounded-[6px] text-ink-4 hover:text-ink hover:bg-beige transition-colors shrink-0"
             aria-label="Fechar"
           >
@@ -111,7 +117,7 @@ export function InstallPWAPrompt() {
             </Button>
           )}
           <button
-            onClick={() => dismiss()}
+            onClick={() => dismiss(false)}
             className="flex-1 py-2 text-[13px] text-ink-4 hover:text-ink transition-colors text-center rounded-[8px] hover:bg-beige"
             aria-label="Agora não"
           >

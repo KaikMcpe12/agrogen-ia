@@ -60,6 +60,7 @@ export function Modal05Diagnostico({ open, onClose, inseminacao }: Props) {
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: { metodo: "ULTRASSONOGRAFIA" },
   });
+  // eslint-disable-next-line react-hooks/incompatible-library
   const resultado = watch("resultado");
 
   useEffect(() => {

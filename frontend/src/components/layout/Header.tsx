@@ -93,7 +93,8 @@ export function Header({ alertCount = 0, onMenuToggle }: HeaderProps) {
 
           {/* Logo */}
           <NavLink to="/dashboard" className="shrink-0 flex items-center">
-            <Logo size={32} />
+            <span className="md:hidden"><Logo size={40} /></span>
+            <span className="hidden md:flex"><Logo size={44} /></span>
           </NavLink>
 
           {/* Desktop nav */}

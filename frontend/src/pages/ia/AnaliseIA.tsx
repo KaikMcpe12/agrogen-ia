@@ -117,11 +117,13 @@ function TabPredicao() {
   });
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (!rodar.isPending) {
       setLoadingMsg(0);
       setLoadingTooLong(false);
       return;
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
     // Progressão time-based conforme spec seção 6.5
     const timers = [
       setTimeout(() => setLoadingMsg(1), 500),

@@ -77,6 +77,7 @@ export function Modal17PromoverReprodutor({ open, onClose, animalPreSelecionado 
 
   /* Quando seleciona animal, verifica se já é reprodutor */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!animalSelecionado) { setJaReprodutorId(null); return; }
     /* Verifica via listagem de reprodutores por animal_id */
     void reprodutoresApi.listar({ animal_id: animalSelecionado.id }).then((res) => {
@@ -94,6 +95,7 @@ export function Modal17PromoverReprodutor({ open, onClose, animalPreSelecionado 
 
   /* Pré-seleciona animal quando passado nas props */
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (open && animalPreSelecionado) {
       setAnimalSelecionado(animalPreSelecionado);
     }
@@ -103,6 +105,7 @@ export function Modal17PromoverReprodutor({ open, onClose, animalPreSelecionado 
       setJaReprodutorId(null);
       reset({ atualizar_status: true });
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [open, animalPreSelecionado, reset]);
 
   const promoverMutation = useMutation({

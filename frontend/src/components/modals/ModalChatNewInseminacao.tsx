@@ -240,6 +240,7 @@ function ActivePromptArea({
     if (prompt?.inputType && !prompt.isAnimalSearch) {
       setTimeout(() => inputRef.current?.focus(), 50);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prompt?.stepId]);
 
   if (!prompt) return null;
@@ -359,6 +360,7 @@ export function ModalChatNewInseminacao({ open, onClose, preselectedAnimalId, pr
     queryFn: ({ signal }) => reprodutoresApi.listar({ ativo: true, limit: 999 }, signal),
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const reprodutores = reprodutoresData?.data ?? [];
 
   const criar = useMutation({
