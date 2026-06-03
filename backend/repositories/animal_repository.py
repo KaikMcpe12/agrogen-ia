@@ -4,9 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, exc
 from fastapi import HTTPException, status
 
-from backend.models.animal_model import AnimalModel
+from models.animal_model import AnimalModel
 from schemas import AnimalCreate, AnimalUpdate
-from backend.models.enums import EspecieAnimal
+from models.enums import EspecieAnimal
 
 class AnimalRepository:
     def __init__(self, session: AsyncSession):

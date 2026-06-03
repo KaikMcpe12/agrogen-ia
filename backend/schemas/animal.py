@@ -4,7 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from typing import Optional
 
-from backend.models.enums import EspecieAnimal, SexoAnimal, StatusAnimal
+from models.enums import EspecieAnimal, SexoAnimal, StatusAnimal
 
 class AnimalBase(BaseModel):
     fazenda_id: UUID

@@ -1,11 +1,11 @@
 from datetime import date, datetime
 from uuid import UUID, uuid4
-from sqlalchemy import String, Numeric, SmallInteger, Integer, Boolean, DateTime, Text, UniqueConstraint, CheckConstraint
+from sqlalchemy import String, Numeric, SmallInteger, Integer, Boolean, DateTime, text, Text, UniqueConstraint, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, ENUM as PG_ENUM
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
 
-from backend.models.enums import EspecieAnimal, SexoAnimal, StatusAnimal
+from models.enums import EspecieAnimal, SexoAnimal, StatusAnimal
 
 class Base(DeclarativeBase):
     pass
@@ -44,7 +44,7 @@ class AnimalModel(Base):
 
     ativo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=Text("CURRENT_TIMESTAMP"), onupdate=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"), onupdate=func.now())
 
     __table_args__ = (
         UniqueConstraint("fazenda_id", "codigo", name="uq_animal_codigo_fazenda"),

@@ -1,4 +1,4 @@
-from backend.models.enums import Perfil
+from models.enums import Perfil
 from uuid import UUID
 from datetime import datetime
 from sqlalchemy import String, Boolean, Integer, DateTime, text
