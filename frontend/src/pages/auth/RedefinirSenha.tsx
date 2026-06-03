@@ -62,7 +62,7 @@ export function RedefinirSenhaPage() {
       </button>
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-8">
-          <Logo size={36} />
+          <Logo size={52} />
         </div>
 
         <div className="bg-surface rounded-[18px] border border-line p-7 shadow-[var(--shadow-sm)]">
