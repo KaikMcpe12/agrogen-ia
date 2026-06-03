@@ -415,7 +415,7 @@ export function AuthScreen({ initialTab = "login" }: Props) {
           <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 60% 80%, rgba(212,160,23,0.25) 0%, transparent 60%)" }} />
 
           <div className="flex items-center gap-2 z-10">
-            <Logo variant="icon-only" size={40} />
+            <Logo variant="icon-only" size={44} />
             <span className="text-[1.15rem] font-bold tracking-tight text-white">AgroGen <span style={{ color: "#d4a017" }}>IA</span></span>
           </div>
 
@@ -452,7 +452,7 @@ export function AuthScreen({ initialTab = "login" }: Props) {
           style={{ backgroundColor: "var(--color-beige, #f5efe6)" }}
         >
           <div className="flex items-center justify-between mb-8">
-            <Logo size={34} />
+            <Logo size={40} />
             <button
               onClick={toggle}
               className="w-9 h-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:bg-black/5 transition-colors"
