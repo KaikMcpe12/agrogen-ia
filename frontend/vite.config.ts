@@ -12,7 +12,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg", "logo.svg", "logo-192.svg", "logo-512.svg"],
+      includeAssets: ["favicon.svg", "logo.svg", "logo-192.png", "logo-512.png"],
       manifest: {
         name: "AgroGen IA",
         short_name: "AgroGen",
@@ -21,9 +21,11 @@ export default defineConfig({
         background_color: "#FAFAFA",
         display: "standalone",
         start_url: "/",
+        id: "/",
         icons: [
-          { src: "/logo-192.svg", sizes: "192x192", type: "image/svg+xml" },
-          { src: "/logo-512.svg", sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" },
+          { src: "/logo-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "/logo-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: "/logo-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
       },
       workbox: {
