@@ -15,6 +15,19 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("Unhandled error:", error, info);
+
+    const isChunkError =
+      error.message.includes("Failed to fetch dynamically imported module") ||
+      error.message.includes("Importing a module script failed") ||
+      error.message.includes("error loading dynamically imported module");
+
+    if (isChunkError) {
+      const reloadCount = Number(sessionStorage.getItem("chunk_reload") ?? 0);
+      if (reloadCount < 2) {
+        sessionStorage.setItem("chunk_reload", String(reloadCount + 1));
+        window.location.reload();
+      }
+    }
   }
 
   render() {

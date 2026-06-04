@@ -30,7 +30,17 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        navigateFallback: "index.html",
+        navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
+          {
+            urlPattern: /\/assets\/.+\.(js|css)$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "assets",
+              expiration: { maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
+          },
           {
             urlPattern: /\/api\/.*/i,
             handler: "NetworkFirst",
