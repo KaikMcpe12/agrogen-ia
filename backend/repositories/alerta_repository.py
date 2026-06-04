@@ -1,7 +1,7 @@
 from uuid import UUID
 from typing import Optional
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.alerta_model import AlertaModel
@@ -53,6 +53,17 @@ class AlertaRepository(BaseRepository[AlertaModel]):
         await self.session.commit()
         await self.session.refresh(obj)
         return obj
+
+    async def count_badge(self) -> dict:
+        base = and_(AlertaModel.resolvido == False, AlertaModel.lido == False)
+        total = (await self.session.execute(select(func.count()).where(base))).scalar_one()
+        criticos = (await self.session.execute(
+            select(func.count()).where(base, AlertaModel.prioridade == PrioridadeAlerta.CRITICA)
+        )).scalar_one()
+        altas = (await self.session.execute(
+            select(func.count()).where(base, AlertaModel.prioridade == PrioridadeAlerta.ALTA)
+        )).scalar_one()
+        return {"total_nao_lidos": total, "criticos": criticos, "altas": altas}
 
     async def marcar_resolvido(self, alerta_id: UUID) -> Optional[AlertaModel]:
         obj = await self.get_by_id(alerta_id)
