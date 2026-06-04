@@ -26,7 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(animal_router, prefix="/animals", tags=["animals"])
+app.include_router(animal_router)
 app.include_router(user_router, prefix="/users", tags=["Users"])
 
 @app.get("/health")
