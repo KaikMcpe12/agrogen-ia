@@ -29,11 +29,7 @@ app.add_middleware(
 app.include_router(animal_router)
 app.include_router(user_router, prefix="/users", tags=["Users"])
 
-app.include_router(
-    diagnostico_router,
-    prefix="/diagnosticos",
-    tags=["Diagnósticos"]
-)
+app.include_router(diagnostico_router)
 
 @app.get("/health")
 async def health():

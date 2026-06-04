@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from backend.routers.diagnostico_routes import router as diagnostico_router
+from backend.routers.diagnostico_router import router as diagnostico_router
 
 
 app = FastAPI()
