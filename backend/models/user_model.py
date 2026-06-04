@@ -6,10 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 from sqlalchemy.sql import func
 
 from models.enums import Perfil
-
-class Base(DeclarativeBase):
-    pass
-
+from models.base import Base
 
 class User(Base):
     __tablename__ = "usuarios"
