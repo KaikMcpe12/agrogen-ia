@@ -14,6 +14,10 @@ class DiagnosticoService:
         self.repo = DiagnosticoRepository(session)
 
     async def create(self, schema: DiagnosticoCreate) -> DiagnosticoModel:
+        # Impede diagnóstico duplicado para a mesma inseminação
+        existente = await self.repo.get_by_id(schema.inseminacao_id)
+        if existente:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esta inseminação já possui diagnóstico registrado.")
         return await self.repo.create(schema)
 
     async def get_by_id(self, diagnostico_id: UUID) -> DiagnosticoModel:
