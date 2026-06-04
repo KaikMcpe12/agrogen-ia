@@ -32,4 +32,3 @@ class ResultadoDiagnostico(str, Enum):
     PRENHA    = "PRENHA"
     VAZIA     = "VAZIA"
     INCONCLUSIVO = "INCONCLUSIVO"
-
