@@ -7,3 +7,6 @@ from routers.reprodutor_router import router as reprodutor_router
 from routers.inseminacao_router import router as inseminacao_router
 from routers.diario_router import router as diario_router
 from routers.alerta_router import router as alerta_router
+from routers.ia_router import router as ia_router
+from routers.dashboard_router import router as dashboard_router
+from routers.relatorio_router import router as relatorio_router

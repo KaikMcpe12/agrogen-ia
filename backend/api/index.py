@@ -12,6 +12,7 @@ from routers import (
     animal_router, user_router, diagnostico_router, fazenda_router,
     analise_ia_router, reprodutor_router,
     inseminacao_router, diario_router, alerta_router,
+    ia_router, dashboard_router, relatorio_router,
 )
 from routers.auth_router import router as auth_router
 from routers.user_me_router import router as user_me_router
@@ -89,6 +90,9 @@ app.include_router(reprodutor_router,  prefix=API_V1)
 app.include_router(inseminacao_router, prefix=API_V1)
 app.include_router(diario_router,      prefix=API_V1)
 app.include_router(alerta_router,      prefix=API_V1)
+app.include_router(ia_router,          prefix=API_V1)
+app.include_router(dashboard_router,   prefix=API_V1)
+app.include_router(relatorio_router,   prefix=API_V1)
 
 
 @app.get("/health", tags=["Health"])
