@@ -2,8 +2,8 @@ from uuid import UUID
 from typing import Optional
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-import hashlib
 
+from core.security import hash_password
 from repositories.user_repository import UserRepository
 from schemas.user_schema import UserCreate, UserUpdate
 from models.user_model import User
@@ -11,7 +11,7 @@ from models.enums import Perfil
 
 
 def _hash_senha(senha: str) -> str:
-    return hashlib.sha256(senha.encode()).hexdigest()
+    return hash_password(senha)
 
 
 class UserService:

@@ -14,6 +14,8 @@ from models.alerta_model import AlertaModel
 from models.analise_ia_model import AnaliseIAModel
 from models.ocorrencia_model import OcorrenciaModel
 from models.audit_log_model import AuditLogModel
+from models.refresh_token_model import RefreshTokenModel
+from models.password_reset_model import PasswordResetModel
 from models.enums import (
     EspecieAnimal, SexoAnimal, StatusAnimal, Perfil,
     MetodoDiagnostico, ResultadoDiagnostico, TipoProducao,
