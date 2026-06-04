@@ -1,2 +1,2 @@
-from schemas.animal import AnimalCreate, AnimalUpdate, AnimalResponse, AnimalBase
-from schemas.user import UserCreate, UserResponse  # ajuste conforme seus schemas
+from schemas.animal_schema import AnimalCreate, AnimalUpdate, AnimalResponse, AnimalBase
+from schemas.user_schema import UserCreate, UserResponse  # ajuste conforme seus schemas

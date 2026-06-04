@@ -22,3 +22,19 @@ class Perfil(str, Enum):
     PRODUTOR = "PRODUTOR"
     TECNICO = "TECNICO"
     VETERINARIO = "VETERINARIO"
+
+class MetodoDiagnostico(str, Enum):
+    ULTRASSONOGRAFIA = "ULTRASSONOGRAFIA"
+    EXAME_LABORATORIAL  = "EXAME_LABORATORIAL"
+    PALPACAO_RETAL    = "PALPACAO_RETAL"
+
+class ResultadoDiagnostico(str, Enum):
+    PRENHA    = "PRENHA"
+    VAZIA     = "VAZIA"
+    INCONCLUSIVO = "INCONCLUSIVO"
+
+class TipoProducao(str, Enum):
+    CORTE      = "CORTE"
+    LEITE      = "LEITE"
+    MISTO      = "MISTO"
+    SUBSISTENCIA = "SUBSISTENCIA"

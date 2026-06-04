@@ -2,13 +2,12 @@ from datetime import date, datetime
 from uuid import UUID, uuid4
 from sqlalchemy import String, Numeric, SmallInteger, Integer, Boolean, DateTime, text, Text, UniqueConstraint, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, ENUM as PG_ENUM
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
+from models.base import Base
 from models.enums import EspecieAnimal, SexoAnimal, StatusAnimal
 
-class Base(DeclarativeBase):
-    pass
 
 class AnimalModel(Base):
     __tablename__ = "animais"
