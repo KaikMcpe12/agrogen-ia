@@ -1,10 +1,11 @@
 from uuid import UUID
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, exc
+from sqlalchemy import select, and_, exc, func
 from fastapi import HTTPException, status
 
 from models.fazenda_model import FazendaModel
+from models.animal_model import AnimalModel
 from schemas.fazenda_schema import FazendaCreate, FazendaUpdate
 
 
@@ -12,8 +13,8 @@ class FazendaRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create(self, schema: FazendaCreate) -> FazendaModel:
-        db_fazenda = FazendaModel(**schema.model_dump())
+    async def create(self, schema: FazendaCreate, usuario_id: UUID) -> FazendaModel:
+        db_fazenda = FazendaModel(**schema.model_dump(), usuario_id=usuario_id)
         self.session.add(db_fazenda)
         try:
             await self.session.commit()
@@ -77,6 +78,22 @@ class FazendaRepository:
                     detail="Conflito: já existe uma fazenda com este nome para este usuário."
                 )
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e.orig))
+
+    async def count_animais_ativos(self, fazenda_id: UUID) -> int:
+        stmt = select(func.count()).where(
+            AnimalModel.fazenda_id == fazenda_id,
+            AnimalModel.ativo == True,
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
+    async def count_fazendas_ativas(self, usuario_id: UUID) -> int:
+        stmt = select(func.count()).where(
+            FazendaModel.usuario_id == usuario_id,
+            FazendaModel.ativo == True,
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
 
     async def soft_delete(self, fazenda_id: UUID) -> bool:
         db_fazenda = await self.get_by_id(fazenda_id)

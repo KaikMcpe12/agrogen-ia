@@ -13,7 +13,6 @@ ESTADOS_VALIDOS = {
 }
 
 class FazendaBase(BaseModel):
-    usuario_id:         UUID
     nome:               str            = Field(..., min_length=1, max_length=120)
     municipio:          str            = Field(..., min_length=1, max_length=100)
     estado:             str            = Field(..., min_length=2, max_length=2)
@@ -63,6 +62,7 @@ class FazendaUpdate(BaseModel):
 
 class FazendaResponse(FazendaBase):
     fazenda_id: UUID
+    usuario_id: UUID
     ativo:      bool
     created_at: datetime
     updated_at: datetime

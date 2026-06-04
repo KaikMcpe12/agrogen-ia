@@ -77,7 +77,7 @@ class AnimalRepository:
         novo_num_partos = update_data.get("num_partos", db_animal.num_partos)
         if novo_sexo == "MACHO" and novo_num_partos > 0:
             raise HTTPException(
-                status_code=status.HTTP_420_METHOD_FAILURE,
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Operação inválida: Machos não podem ter partos."
             )
 
