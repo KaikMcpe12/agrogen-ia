@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID, uuid4
 from sqlalchemy import String, Boolean, Integer, DateTime, text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, ENUM as PG_ENUM
-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
 from models.enums import Perfil
