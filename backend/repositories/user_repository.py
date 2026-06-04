@@ -69,6 +69,13 @@ class UserRepository:
         await self.session.refresh(db_user)
         return db_user
 
+    async def get_by_email_for_auth(self, email: str) -> Optional[User]:
+        """Retorna o usuário incluindo inativos — usado apenas pelo AuthService."""
+        result = await self.session.execute(
+            select(User).where(User.email == email)
+        )
+        return result.scalar_one_or_none()
+
     async def soft_delete(self, usuario_id: UUID) -> bool:
         db_user = await self.get_by_id(usuario_id)
         if not db_user:
