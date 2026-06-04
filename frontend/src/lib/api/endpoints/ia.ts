@@ -8,6 +8,6 @@ export const iaApi = {
   padroes: (params?: { fazenda_id?: string; data_inicio?: string; data_fim?: string; especie?: Especie }, signal?: AbortSignal) =>
     client.get<ApiResponse<PadroesFertilidade>>("/ia/padroes-fertilidade", { params, ...(signal ? { signal } : {}) }).then((r) => r.data),
 
-  selecaoGenetica: (body: { criterios: string[] }) =>
+  selecaoGenetica: (body: { fazenda_id?: string; objetivos: string[]; matrizes_ids: string[]; reprodutores_ids: string[] }) =>
     client.post<ApiResponse<{ recomendacoes: unknown[] }>>("/ia/selecao-genetica", body).then((r) => r.data),
 };

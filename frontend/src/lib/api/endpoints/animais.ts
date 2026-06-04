@@ -43,6 +43,6 @@ export const animaisApi = {
   deletar: (id: string) =>
     client.delete<ApiResponse<null>>(`/animais/${id}`).then((r) => r.data),
 
-  listarRacas: (signal?: AbortSignal) =>
-    client.get<ApiResponse<string[]>>("/animais/racas", { ...(signal ? { signal } : {}) }).then((r) => r.data),
+  listarRacas: (params?: { especie?: "BOVINO" | "OVINO" | "CAPRINO" }, signal?: AbortSignal) =>
+    client.get<ApiResponse<Record<string, string[]>>>("/animais/racas", { params, ...(signal ? { signal } : {}) }).then((r) => r.data),
 };
