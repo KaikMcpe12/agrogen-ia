@@ -9,6 +9,8 @@ from models.user_model import User
 from models.enums import EstagioPesagem, TipoSanitario, CategoriaOcorrencia
 from schemas.pesagem_schema import PesagemCreate, PesagemResponse
 from schemas.parto_schema import PartoCreate, PartoResponse
+from schemas.evento_sanitario_schema import EventoSanitarioCreate
+from schemas.ocorrencia_schema import OcorrenciaCreate
 
 router = APIRouter(prefix="/diario", tags=["Diário de Bordo"])
 
@@ -104,7 +106,7 @@ async def list_sanitario(
 @router.post("/{animal_id}/sanitario", status_code=status.HTTP_201_CREATED)
 async def create_sanitario(
     animal_id: UUID,
-    data,
+    data: EventoSanitarioCreate,
     current_user: User = Depends(get_current_user),
     svc = Depends(_sanitario_service),
 ):
@@ -136,7 +138,7 @@ async def list_ocorrencias(
 @router.post("/{animal_id}/ocorrencias", status_code=status.HTTP_201_CREATED)
 async def create_ocorrencia(
     animal_id: UUID,
-    data,
+    data: OcorrenciaCreate,
     current_user: User = Depends(get_current_user),
     svc = Depends(_ocorrencia_service),
 ):

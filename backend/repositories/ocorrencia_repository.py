@@ -46,6 +46,15 @@ class OcorrenciaRepository(BaseRepository[OcorrenciaModel]):
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
+    async def marcar_resolvida(self, ocorrencia_id: UUID) -> Optional[OcorrenciaModel]:
+        obj = await self.get_by_id(ocorrencia_id)
+        if not obj:
+            return None
+        obj.resolvida = True
+        await self.session.commit()
+        await self.session.refresh(obj)
+        return obj
+
     async def update(self, ocorrencia_id: UUID, data: dict) -> Optional[OcorrenciaModel]:
         obj = await self.get_by_id(ocorrencia_id)
         if not obj:
