@@ -7,3 +7,22 @@ backend/**/*.pyc
 frontend/.env.local
 frontend/node_modules/
 frontend/dist/
+
+# Python (Arquivos compilados e cache)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+
+# Ambientes virtuais
+.venv/
+venv/
+ENV/
+
+# AgroGen IA — Dados e Modelos Gerados localmente
+ia/agrogen-ia-ml/data/cold_start_v1.csv
+ia/agrogen-ia-ml/models/rf_v1.0.pkl
+ia/agrogen-ia-ml/models/rf_v1.0_preprocessor.pkl
+ia/agrogen-ia-ml/models/model_card.json
