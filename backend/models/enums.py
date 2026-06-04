@@ -32,3 +32,9 @@ class ResultadoDiagnostico(str, Enum):
     PRENHA    = "PRENHA"
     VAZIA     = "VAZIA"
     INCONCLUSIVO = "INCONCLUSIVO"
+
+class TipoProducao(str, Enum):
+    CORTE      = "CORTE"
+    LEITE      = "LEITE"
+    MISTO      = "MISTO"
+    SUBSISTENCIA = "SUBSISTENCIA"
