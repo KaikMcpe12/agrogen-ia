@@ -47,7 +47,7 @@ class AnimalBase(BaseModel):
         return self
 
 class AnimalCreate(AnimalBase):
-    pass
+    codigo: Optional[str] = Field(None, max_length=20, min_length=1)
 
 class AnimalUpdate(BaseModel):
     codigo: Optional[str] = Field(None, max_length=20)
