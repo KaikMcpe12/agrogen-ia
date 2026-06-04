@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from core.config import settings
 from core.database import engine
 
-from routers import animal_router, user_router, diagnostico_router, fazenda_router
+from routers import animal_router, user_router, diagnostico_router, fazenda_router, analise_ia_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -30,6 +30,7 @@ app.include_router(animal_router)
 app.include_router(user_router)
 app.include_router(diagnostico_router)
 app.include_router(fazenda_router)
+app.include_router(analise_ia_router)
 
 @app.get("/health")
 async def health():
