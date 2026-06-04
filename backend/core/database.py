@@ -1,5 +1,4 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import declarative_base
 from sqlalchemy.pool import NullPool
 from typing import AsyncGenerator
 from core.config import settings
@@ -30,8 +29,6 @@ AsyncSessionFactory = async_sessionmaker(
     expire_on_commit=False,
 )
 
-# 🔥 ISSO ESTAVA FALTANDO
-Base = declarative_base()
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionFactory() as session:
