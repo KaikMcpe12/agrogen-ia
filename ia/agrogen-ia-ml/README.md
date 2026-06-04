@@ -2,6 +2,8 @@
 
 # AgroGen IA — Microsserviço de Inteligência Artificial
 
+**repo original: [Github](https://github.com/KaikMcpe12/agrogen-ia-ml)**
+
 **Python 3.11 · FastAPI · scikit-learn · SHAP · K-Means**
 
 Predição de prenhez e análise de padrões reprodutivos para bovinos, ovinos e caprinos.
