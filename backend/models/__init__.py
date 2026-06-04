@@ -1,4 +1,5 @@
 from models.user_model import User
+from models.predicao_log_model import PredicaoLogModel
 from models.fazenda_model import FazendaModel
 from models.animal_model import AnimalModel
 from models.dados_geneticos_model import DadosGeneticosModel
