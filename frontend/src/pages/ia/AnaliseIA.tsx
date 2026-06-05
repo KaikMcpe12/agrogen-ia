@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isValidUUID = (v?: string | null) => !!v && UUID_RE.test(v);
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { Brain, TrendingUp, Dna, AlertTriangle, Syringe } from "lucide-react";
@@ -95,7 +98,7 @@ function TabPredicao() {
   const { data: preselectedData } = useQuery({
     queryKey: ["animais", "detail", animalIdParam],
     queryFn: ({ signal }) => animaisApi.buscar(animalIdParam!, signal),
-    enabled: !!animalIdParam && !userSelectedAnimal,
+    enabled: isValidUUID(animalIdParam) && !userSelectedAnimal,
   });
 
   const selectedAnimal = userSelectedAnimal ?? preselectedData?.data ?? null;
