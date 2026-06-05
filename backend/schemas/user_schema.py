@@ -49,11 +49,11 @@ class UserUpdate(BaseModel):
 
 
 class UserResponse(UserBase):
-    usuario_id:       UUID
+    id:               UUID = Field(..., validation_alias="usuario_id")
     ativo:            bool
     tentativas_login: int
     ultimo_acesso:    Optional[datetime]
     created_at:       datetime
     updated_at:       datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

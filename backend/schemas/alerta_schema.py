@@ -1,13 +1,13 @@
 from datetime import date, datetime
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
 from models.enums import TipoAlerta, PrioridadeAlerta
 
 
 class AlertaResponse(BaseModel):
-    alerta_id:      UUID
+    id:             UUID = Field(..., validation_alias="alerta_id")
     animal_id:      Optional[UUID]
     inseminacao_id: Optional[UUID]
     sanitario_id:   Optional[UUID]
@@ -19,7 +19,7 @@ class AlertaResponse(BaseModel):
     resolvido:      bool
     created_at:     datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AlertaBadgeResponse(BaseModel):

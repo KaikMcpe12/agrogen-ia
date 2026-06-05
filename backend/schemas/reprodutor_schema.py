@@ -43,8 +43,8 @@ class ReproductorUpdate(BaseModel):
 
 
 class ReproductorResponse(ReproductorBase):
-    reprodutor_id: UUID
-    ativo:         bool
-    created_at:    datetime
+    id:       UUID = Field(..., validation_alias="reprodutor_id")
+    ativo:    bool
+    created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

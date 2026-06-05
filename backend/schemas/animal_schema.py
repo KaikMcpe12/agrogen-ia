@@ -71,9 +71,9 @@ class AnimalUpdate(BaseModel):
         return self
 
 class AnimalResponse(AnimalBase):
-    animal_id: UUID
+    id: UUID = Field(..., validation_alias="animal_id")
     ativo: bool
     created_at: datetime
     updated_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

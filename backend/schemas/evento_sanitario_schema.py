@@ -33,7 +33,7 @@ class EventoSanitarioCreate(BaseModel):
 
 
 class EventoSanitarioResponse(BaseModel):
-    evento_san_id:     UUID
+    id:                UUID = Field(..., validation_alias="evento_san_id")
     animal_id:         UUID
     tipo:              TipoSanitario
     produto:           str
@@ -48,4 +48,4 @@ class EventoSanitarioResponse(BaseModel):
     created_at:        datetime
     alerta_criado:     Optional[dict] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

@@ -44,7 +44,7 @@ class DiagnosticoUpdate(BaseModel):
 
 
 class DiagnosticoResponse(DiagnosticoBase):
-    diagnostico_id: UUID
-    created_at:     datetime
+    id:         UUID = Field(..., validation_alias="diagnostico_id")
+    created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

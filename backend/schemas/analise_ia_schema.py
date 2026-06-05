@@ -40,8 +40,8 @@ class AnaliseIAUpdate(BaseModel):
 
 
 class AnaliseIAResponse(AnaliseIABase):
-    analise_id: UUID
+    id:         UUID = Field(..., validation_alias="analise_id")
     created_at: datetime
     updated_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
