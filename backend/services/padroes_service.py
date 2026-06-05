@@ -2,7 +2,7 @@ from datetime import date
 from typing import Optional
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, func, extract, and_
+from sqlalchemy import select, func, extract, and_, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.inseminacao_model import InseminacaoModel
@@ -84,7 +84,7 @@ class PadroesService:
                 extract("month", InseminacaoModel.data_inseminacao).label("mes_num"),
                 func.count().label("inseminacoes"),
                 func.sum(
-                    func.cast(DiagnosticoModel.resultado == ResultadoDiagnostico.PRENHA, type_=func.Integer if False else None)
+                    func.cast(DiagnosticoModel.resultado == ResultadoDiagnostico.PRENHA, Integer)
                 ).label("prenhezes"),
             )
             .select_from(InseminacaoModel)
@@ -112,7 +112,7 @@ class PadroesService:
                 AnimalModel.raca_principal.label("raca"),
                 func.count().label("inseminacoes"),
                 func.sum(
-                    func.cast(DiagnosticoModel.resultado == ResultadoDiagnostico.PRENHA, type_=None)
+                    func.cast(DiagnosticoModel.resultado == ResultadoDiagnostico.PRENHA, Integer)
                 ).label("prenhezes"),
             )
             .select_from(InseminacaoModel)
@@ -136,7 +136,7 @@ class PadroesService:
                 User.nome.label("tecnico_nome"),
                 func.count().label("inseminacoes"),
                 func.sum(
-                    func.cast(DiagnosticoModel.resultado == ResultadoDiagnostico.PRENHA, type_=None)
+                    func.cast(DiagnosticoModel.resultado == ResultadoDiagnostico.PRENHA, Integer)
                 ).label("prenhezes"),
             )
             .select_from(InseminacaoModel)

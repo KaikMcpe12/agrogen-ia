@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import select, func, and_, or_, extract, text
+from sqlalchemy import select, func, and_, or_, extract, text, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.animal_model import AnimalModel
@@ -132,7 +132,7 @@ class DashboardRepository:
                 extract("year",  InseminacaoModel.data_inseminacao).label("ano"),
                 extract("month", InseminacaoModel.data_inseminacao).label("mes"),
                 func.count().label("ins"),
-                func.sum(func.cast(DiagnosticoModel.resultado == ResultadoDiagnostico.PRENHA, type_=None)).label("pre"),
+                func.sum(func.cast(DiagnosticoModel.resultado == ResultadoDiagnostico.PRENHA, Integer)).label("pre"),
                 func.count(DiagnosticoModel.diagnostico_id).label("diag"),
             )
             .select_from(InseminacaoModel)
