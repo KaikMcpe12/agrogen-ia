@@ -224,7 +224,7 @@ Desenvolvido pela equipe **AgroGen IA** para o Hackathon Expoagro Crateús 2026.
 ## 📄 Licença
 
 Distribuído sob a licença **GNU General Public License v3.0**.  
-Veja [`LICENSE`](./LICENSE) para mais informações.
+Veja [`LICENSE`](./gpl-3.0.txt) para mais informações.
 
 ---
 
