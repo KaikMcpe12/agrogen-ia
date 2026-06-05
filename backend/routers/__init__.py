@@ -1,0 +1,12 @@
+from routers.animal_router import router as animal_router
+from routers.user_router import router as user_router
+from routers.diagnostico_router import router as diagnostico_router
+from routers.fazenda_router import router as fazenda_router
+from routers.analise_ia_router import router as analise_ia_router
+from routers.reprodutor_router import router as reprodutor_router
+from routers.inseminacao_router import router as inseminacao_router
+from routers.diario_router import router as diario_router
+from routers.alerta_router import router as alerta_router
+from routers.ia_router import router as ia_router
+from routers.dashboard_router import router as dashboard_router
+from routers.relatorio_router import router as relatorio_router

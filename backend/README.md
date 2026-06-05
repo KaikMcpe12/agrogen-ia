@@ -1,335 +1,326 @@
-<div align="center">
-
 # AgroGen IA — Backend
 
-**Python 3.11 · FastAPI · PostgreSQL 15 · SQLAlchemy · JWT**
-
-</div>
+API REST para gestão genético-reprodutiva de rebanhos bovinos, ovinos e caprinos com predição de prenhez por inteligência artificial.
 
 ---
 
-## 📦 Tecnologias
+## Stack
 
-| Tecnologia | Versão | Finalidade |
-|------------|--------|------------|
-| [Python](https://python.org) | 3.11 | Linguagem principal |
-| [FastAPI](https://fastapi.tiangolo.com) | 0.110+ | Framework web (REST API + Swagger automático) |
-| [SQLAlchemy](https://sqlalchemy.org) | 2.x (async) | ORM com suporte assíncrono |
-| [Alembic](https://alembic.sqlalchemy.org) | — | Migrations de banco de dados |
-| [asyncpg](https://github.com/MagicStack/asyncpg) | — | Driver PostgreSQL assíncrono |
-| [Pydantic](https://docs.pydantic.dev) | v2 | Validação de dados e schemas |
-| [python-jose](https://github.com/mpdavis/python-jose) | — | JWT (access + refresh token) |
-| [passlib + bcrypt](https://passlib.readthedocs.io) | — | Hash de senhas (custo 12) |
-| [WeasyPrint](https://weasyprint.org) | — | Geração de relatórios em PDF |
-| [Uvicorn](https://uvicorn.org) | — | Servidor ASGI de produção |
-| [httpx](https://www.python-httpx.org) | — | Cliente HTTP para comunicar com microsserviço IA |
-
----
-
-## 🏗️ Arquitetura
-
-```
-backend/
-├── Dockerfile
-├── requirements.txt
-├── alembic.ini
-├── alembic/
-│   └── versions/            # Migrations geradas automaticamente
-└── app/
-    ├── main.py              # Instância FastAPI + routers + CORS + middleware
-    ├── config.py            # Configurações via variáveis de ambiente (pydantic-settings)
-    ├── database.py          # Engine, SessionLocal, Base
-    ├── dependencies.py      # get_db, get_current_user, get_fazenda_ativa
-    │
-    ├── models/              # Modelos SQLAlchemy (entidades do banco)
-    │   ├── usuario.py
-    │   ├── fazenda.py
-    │   ├── animal.py
-    │   ├── dados_geneticos.py
-    │   ├── reprodutor.py
-    │   ├── inseminacao.py
-    │   ├── diagnostico_gestacao.py
-    │   ├── pesagem.py
-    │   ├── parto.py
-    │   ├── evento_sanitario.py
-    │   ├── ocorrencia.py
-    │   └── alerta.py
-    │
-    ├── schemas/             # Schemas Pydantic (request/response)
-    │   ├── animal.py
-    │   ├── inseminacao.py
-    │   └── ...
-    │
-    ├── routers/             # Endpoints agrupados por domínio
-    │   ├── auth.py          # /api/v1/auth/*
-    │   ├── usuarios.py      # /api/v1/usuarios/*
-    │   ├── fazendas.py      # /api/v1/fazendas/*
-    │   ├── animais.py       # /api/v1/animais/*
-    │   ├── reprodutores.py  # /api/v1/reprodutores/*
-    │   ├── inseminacoes.py  # /api/v1/inseminacoes/*
-    │   ├── diario.py        # /api/v1/diario/*
-    │   ├── ia.py            # /api/v1/ia/*
-    │   ├── alertas.py       # /api/v1/alertas/*
-    │   ├── dashboard.py     # /api/v1/dashboard/*
-    │   └── relatorios.py    # /api/v1/relatorios/*
-    │
-    ├── services/            # Lógica de negócio (desacoplada dos routers)
-    │   ├── auth_service.py
-    │   ├── animal_service.py
-    │   ├── inseminacao_service.py
-    │   ├── ia_service.py    # Chama microsserviço IA + fallback de regras
-    │   ├── pdf_service.py   # WeasyPrint
-    │   └── ...
-    │
-    ├── core/
-    │   ├── security.py      # JWT, bcrypt, refresh token
-    │   ├── exceptions.py    # Handlers de erro padronizados
-    │   └── middleware.py    # Logging, X-Fazenda-ID
-    │
-    └── seeds/
-        └── demo.py          # Dados de demonstração para o hackathon
-```
+| Componente | Tecnologia |
+|---|---|
+| Framework | FastAPI 0.136 |
+| ORM | SQLAlchemy 2.0 (async) |
+| Banco de dados | PostgreSQL 15+ |
+| Driver async | asyncpg |
+| Autenticação | JWT (python-jose) + bcrypt (passlib) |
+| Validação | Pydantic v2 |
+| Migrations | Alembic |
+| Relatórios PDF | reportlab |
+| Cliente HTTP | httpx (microsserviço IA) |
+| Deploy | Vercel (serverless) / Docker |
 
 ---
 
-## 🔌 API
-
-A API segue padrão REST com versionamento em URL (`/api/v1/`).
-
-**Documentação interativa (Swagger):**
-```
-http://localhost:8000/docs
-```
-
-**ReDoc:**
-```
-http://localhost:8000/redoc
-```
-
-### Envelope padrão de resposta
-
-```json
-// Sucesso
-{
-  "success": true,
-  "data": { ... },
-  "meta": { "page": 1, "limit": 20, "total": 142 }
-}
-
-// Erro
-{
-  "success": false,
-  "error": {
-    "status": 422,
-    "codigo": "INTERVALO_CURTO",
-    "mensagem": "Este animal teve inseminação há apenas 15 dias.",
-    "timestamp": "2026-06-05T10:30:00Z"
-  }
-}
-```
-
-### Autenticação
-
-Todas as rotas (exceto `/auth/*`) exigem o header:
-```
-Authorization: Bearer <access_token>
-```
-
-O contexto de fazenda é passado via header:
-```
-X-Fazenda-ID: <uuid-da-fazenda-ativa>
-```
-
----
-
-## ⚡ Rodando Localmente
-
-### Pré-requisitos
+## Pré-requisitos
 
 - Python 3.11+
-- PostgreSQL 15 rodando localmente (ou via Docker)
-- `pip` ou `uv`
+- PostgreSQL 15+
+- (Opcional) Docker + Docker Compose
 
-### Instalação
+---
+
+## Execução Local
+
+### 1. Clonar e instalar dependências
 
 ```bash
+git clone <repo-url>
 cd backend
-
-# Criar ambiente virtual
-python -m venv .venv
-source .venv/bin/activate      # Linux/macOS
-# .venv\Scripts\activate       # Windows
-
-# Instalar dependências
 pip install -r requirements.txt
 ```
 
-### Variáveis de ambiente
+### 2. Configurar variáveis de ambiente
 
 ```bash
 cp .env.example .env
+# Edite .env com suas configurações
 ```
 
-```env
-# .env
-DATABASE_URL=postgresql+asyncpg://agrogen:agrogen123@localhost:5432/agrogen
-JWT_SECRET_KEY=gere_com_python_secrets_token_hex_32
-APP_ENV=development
-LOG_LEVEL=debug
-IA_SERVICE_URL=http://localhost:8001
-```
+Variáveis obrigatórias:
 
-### Criar o banco e rodar migrations
+| Variável | Descrição | Exemplo |
+|---|---|---|
+| `DATABASE_URL` | URL de conexão PostgreSQL | `postgresql://user:pass@localhost:5432/agrogen` |
+| `SECRET_KEY` | Chave JWT (mín. 32 chars) | `openssl rand -hex 32` |
+| `ENVIRONMENT` | `development` ou `production` | `development` |
+| `ALLOWED_ORIGINS` | Origens CORS (JSON array) | `["http://localhost:3000"]` |
+| `IA_SERVICE_URL` | URL do microsserviço ML (opcional) | `http://localhost:8001` |
+
+### 3. Criar o banco de dados
 
 ```bash
-# Criar banco no PostgreSQL (se não existir)
-createdb agrogen
+# Criar banco
+psql -U postgres -c "CREATE DATABASE agrogen;"
 
-# Rodar migrations
+# Aplicar schema (tabelas, triggers, enums)
+psql -U postgres -d agrogen -f endpoint/agroGen_schema.sql
+
+# Criar tabelas adicionais via Alembic
 alembic upgrade head
+
+# (Opcional) Povoar com dados de exemplo
+psql -U postgres -d agrogen -f endpoint/seed.sql
 ```
 
-### Iniciar o servidor
+### 4. Rodar o servidor
 
 ```bash
-uvicorn app.main:app --reload --port 8000
-# API disponível em http://localhost:8000
-# Swagger em http://localhost:8000/docs
+uvicorn api.index:app --reload
 ```
 
-### Popular com dados de demonstração
+API disponível em: **http://localhost:8000**
 
-```bash
-python -m app.seeds.demo
-# Cria usuários de teste, fazenda de exemplo e alguns animais
-```
-
-**Credenciais de demonstração:**
-| Perfil | E-mail | Senha |
-|--------|--------|-------|
-| Produtor | produtor@demo.com | Demo@123 |
-| Técnico | tecnico@demo.com | Demo@123 |
-| Veterinário | vet@demo.com | Demo@123 |
+Documentação Swagger: **http://localhost:8000/docs**
 
 ---
 
-## 🐳 Rodando com Docker
-
-### Somente o backend + banco
+## Docker (recomendado para desenvolvimento)
 
 ```bash
-docker compose up postgres backend -d
-# API disponível em http://localhost:8000
+# Subir API + PostgreSQL
+docker-compose up --build
+
+# Em background
+docker-compose up -d --build
+
+# Aplicar schema e seed
+docker-compose exec api sh -c "psql $DATABASE_URL -f endpoint/agroGen_schema.sql"
+docker-compose exec api sh -c "alembic upgrade head"
+docker-compose exec api sh -c "psql $DATABASE_URL -f endpoint/seed.sql"
+
+# Parar
+docker-compose down
 ```
 
-### Com toda a stack
-
-Na raiz do projeto:
-
-```bash
-# Sem Nginx
-docker compose up -d
-
-# Com Nginx
-docker compose -f docker-compose.nginx.yml up -d
-```
-
-As migrations são executadas **automaticamente** pelo entrypoint antes do servidor subir.
+Serviços:
+- **API**: http://localhost:8000
+- **PostgreSQL**: localhost:5432 (user: `agrogen`, pass: `agrogen`, db: `agrogen`)
 
 ---
 
-## 🗄️ Banco de Dados
-
-**PostgreSQL 15** com as extensões:
-- `uuid-ossp` — geração de UUIDs v4
-- `pg_trgm` — busca textual eficiente (ILIKE com índice GIN)
-- `unaccent` — busca sem acentos
-
-### Criar nova migration
+## Migrations (Alembic)
 
 ```bash
-# Após alterar um model SQLAlchemy:
-alembic revision --autogenerate -m "descricao_da_mudanca"
+# Aplicar todas as migrations pendentes
 alembic upgrade head
-```
 
-### Rollback de migration
+# Ver versão atual
+alembic current
 
-```bash
+# Ver histórico
+alembic history
+
+# Reverter última migration
 alembic downgrade -1
+
+# Criar nova migration (após alterar um model)
+alembic revision --autogenerate -m "descricao da alteracao"
 ```
 
+Migrations disponíveis:
+- `0001` — Cria `tb_refresh_tokens` (necessário para logout/refresh de token)
+- `0002` — Cria `tb_predicao_log` (auditoria de predições de IA)
+
 ---
 
-## 🤖 Integração com o Microsserviço de IA
+## Usuário Padrão (seed)
 
-O backend se comunica com o microsserviço de ML via HTTP interno:
+| Campo | Valor |
+|---|---|
+| Email | `agrogen@gmail.com` |
+| Senha | `agrogen123` |
+| Perfil | ADMIN |
+
+---
+
+## Endpoints Principais
+
+| Grupo | Prefixo | Descrição |
+|---|---|---|
+| Autenticação | `/api/v1/auth` | Login, registro, refresh, logout, recuperação de senha |
+| Usuário | `/api/v1/usuarios` | CRUD + `/me` (perfil, exportação LGPD) |
+| Fazendas | `/api/v1/fazendas` | CRUD com guards (animais ativos, última fazenda) |
+| Animais | `/api/v1/animals` | CRUD + filtros avançados, importação CSV, raças, histórico |
+| Reprodutores | `/api/v1/reprodutores` | CRUD com validação de tipo (SEMEN_EXTERNO/ANIMAL_PROPRIO) |
+| Inseminações | `/api/v1/inseminacoes` | Fluxo reprodutivo + diagnóstico via `POST /{id}/diagnostico` |
+| Diário de Bordo | `/api/v1/diario/{animal_id}` | Pesagens, partos, sanitário, ocorrências |
+| Alertas | `/api/v1/alertas` | Listagem, badge (sino), marcar lido/resolvido |
+| IA | `/api/v1/ia` | Predição de prenhez, padrões de fertilidade |
+| Dashboard | `/api/v1/dashboard` | KPIs, gráfico reprodutivo, timeline |
+| Relatórios | `/api/v1/relatorios` | JSON preview + exportação CSV/PDF |
+| Health | `/health` | Status da API |
+
+---
+
+## Deploy na Vercel
+
+### Configuração do projeto na Vercel
+
+| Campo | Valor |
+|---|---|
+| **Framework Preset** | Other |
+| **Root Directory** | `backend` |
+| **Build Command** | _(deixar vazio — Vercel detecta Python automaticamente)_ |
+| **Install Command** | `pip install -r requirements.txt` |
+| **Output Directory** | _(deixar vazio)_ |
+| **Development Command** | `uvicorn api.index:app --reload --port $PORT` |
+
+### Variáveis de ambiente na Vercel
+
+Acesse **Settings → Environment Variables** e configure:
 
 ```
-POST http://ia:8001/predicao
+DATABASE_URL        = postgresql://user:pass@host:5432/agrogen
+SECRET_KEY          = <gerar com: openssl rand -hex 32>
+ENVIRONMENT         = production
+ALLOWED_ORIGINS     = ["https://seu-frontend.vercel.app"]
+ACCESS_TOKEN_EXPIRE_HOURS = 24
+REFRESH_TOKEN_EXPIRE_DAYS = 7
+IA_SERVICE_URL      = https://ia.agrogen.app   (opcional)
+IA_SERVICE_TIMEOUT_MS = 800
 ```
 
-Em caso de timeout (> 800ms) ou indisponibilidade, o backend ativa automaticamente o **Motor de Regras** (fallback determinístico em Python puro) e retorna a predição com o campo `motor_utilizado: "rules"` em vez de `"ml"`.
+> **Banco de dados na Vercel:** Use [Neon](https://neon.tech), [Supabase](https://supabase.com) ou [Railway](https://railway.app) — todos fornecem PostgreSQL 15 com URL compatível.
 
----
+### Limitações do ambiente Vercel (serverless)
 
-## 🔐 Segurança
+- Funções têm timeout de 10s (plano Hobby) ou 60s (plano Pro)
+- Sem estado entre invocações (NullPool já configurado no projeto)
+- WeasyPrint **não funciona** (requer libs de sistema) — o projeto usa `reportlab` (pure Python)
+- Para migrations, execute `alembic upgrade head` localmente apontando para o banco de produção
 
-- Senhas com **bcrypt** (custo 12)
-- **JWT** com access token (24h) + refresh token (7d, com rotação)
-- Bloqueio de conta após **5 tentativas falhas** (15 minutos)
-- **HTTPS obrigatório** em produção (configurado via Nginx)
-- **Rate limiting** configurado no Nginx (10 req/min no login)
-- Todos os dados filtrados por `fazenda_id` do usuário autenticado
-- Trilha de **auditoria** em todas as operações de criação, edição e exclusão
-
----
-
-## 📋 Principais Endpoints
-
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| `POST` | `/api/v1/auth/login` | Autenticação |
-| `POST` | `/api/v1/auth/registro` | Cadastro de conta |
-| `POST` | `/api/v1/auth/refresh` | Renovar access token |
-| `GET` | `/api/v1/animais` | Listar rebanho (com filtros e paginação) |
-| `POST` | `/api/v1/animais` | Cadastrar animal |
-| `GET` | `/api/v1/animais/{id}` | Detalhes do animal |
-| `POST` | `/api/v1/inseminacoes` | Registrar inseminação |
-| `POST` | `/api/v1/inseminacoes/{id}/diagnostico` | Registrar diagnóstico |
-| `POST` | `/api/v1/ia/predicao-prenhez` | Predição IA de prenhez |
-| `GET` | `/api/v1/dashboard/kpis` | KPIs do dashboard |
-| `GET` | `/api/v1/relatorios/reprodutivo/exportar?formato=pdf` | Exportar relatório |
-
-Documentação completa em `/docs` (Swagger) após subir o servidor.
-
----
-
-## 🔧 Scripts úteis
+### Deploy manual via CLI
 
 ```bash
-# Rodar com hot reload
-uvicorn app.main:app --reload
-
-# Verificar tipos com mypy
-mypy app/
-
-# Formatar código
-ruff format app/
-ruff check app/
-
-# Gerar nova migration
-alembic revision --autogenerate -m "nome"
-
-# Aplicar migrations
-alembic upgrade head
-
-# Popular dados de demo
-python -m app.seeds.demo
+npm i -g vercel
+vercel login
+cd backend
+vercel --prod
 ```
 
 ---
 
+<<<<<<< HEAD
 ## 📄 Licença
 
 GNU GPL v3.0 — veja [`../LICENSE`](../LICENSE)
+=======
+## Ativar Refresh Tokens (após migration)
+
+Os endpoints `/auth/refresh` e `/auth/logout` retornam 503 até que a migration seja aplicada. Para ativar:
+
+1. Execute `alembic upgrade head` apontando para o banco de produção
+2. Em `services/auth_service.py`, mude:
+   ```python
+   _REFRESH_DB_ENABLED = True
+   ```
+3. Descomente os blocos `TODO` nos métodos `refresh()` e `logout()`
+
+---
+
+## Testes
+
+### Executar
+
+```bash
+# Ativar virtualenv (se usar)
+source .venv/bin/activate
+
+# Rodar todos os testes
+python -m pytest tests/ -v
+
+# Apenas testes unitários (sem mock)
+python -m pytest tests/unit/ -v
+
+# Apenas testes de integração (com mock de serviços)
+python -m pytest tests/integration/ -v
+
+# Com relatório de cobertura (requer pytest-cov)
+pip install pytest-cov
+python -m pytest tests/ --cov=. --cov-report=term-missing
+```
+
+### Suíte atual (133 testes, 0 falhas)
+
+| Arquivo | Testes | Cobertura |
+|---|---|---|
+| `tests/unit/test_ia_rules.py` | 45 | 12 deltas do motor de regras, truncamento, classificação, top_5_fatores |
+| `tests/unit/test_schemas.py` | 40 | Validadores Pydantic: datas, pesos por espécie, sexo/partos, coordenadas, IATF |
+| `tests/unit/test_security.py` | 13 | bcrypt hash/verify, JWT create/decode/expiração, refresh token |
+| `tests/integration/test_animal_service.py` | 19 | Máquina de estados (DESCARTADA terminal), validações de peso e sexo, 404 |
+| `tests/integration/test_inseminacao_service.py` | 16 | Bloqueios (PRENHA/DESCARTADA/MACHO), intervalo mínimo + `forcar_registro`, alertas |
+
+> Os testes de integração usam `unittest.mock.AsyncMock` — **não precisam de banco de dados real**.
+
+---
+
+## Estrutura do Projeto
+
+```
+backend/
+├── api/
+│   └── index.py           # Entrypoint FastAPI + middlewares + routers
+├── alembic/               # Migrations (async)
+├── core/
+│   ├── config.py          # Settings (pydantic-settings)
+│   ├── database.py        # AsyncEngine + NullPool + get_db
+│   ├── deps.py            # get_current_user (JWT)
+│   ├── ia_rules.py        # Motor de regras local (fallback IA)
+│   └── security.py        # bcrypt + JWT
+├── docs/                  # Decisões arquiteturais por fase
+├── endpoint/
+│   ├── agroGen_schema.sql # Schema completo (tabelas, triggers, enums)
+│   └── seed.sql           # Dados de exemplo (150 animais, 100 inseminações...)
+├── middleware/
+│   └── request_id.py      # X-Request-ID em todas as respostas
+├── models/                # SQLAlchemy ORM (18 entidades)
+├── repositories/          # Acesso a dados (Repository Pattern)
+├── routers/               # Endpoints HTTP (16 routers)
+├── schemas/               # Pydantic v2 (request/response)
+├── services/              # Lógica de negócio
+├── .env.example
+├── alembic.ini
+├── docker-compose.yml
+├── Dockerfile
+├── requirements.txt
+└── vercel.json
+```
+
+---
+
+## Arquitetura
+
+```
+Router → Service → Repository → Model (SQLAlchemy)
+           ↓
+        Schema (Pydantic) — validação de entrada/saída
+```
+
+Padrões adotados:
+- **Repository Pattern** — toda query de banco passa pelo repositório
+- **NullPool** — sem conexões persistentes (obrigatório para serverless)
+- **Soft delete** — entidades marcadas com `ativo=False` (histórico preservado)
+- **SuccessEnvelope / ErrorEnvelope** — formato padronizado de resposta
+- **X-Request-ID** — header de rastreabilidade em todas as respostas
+
+---
+
+## Documentação das Decisões por Fase
+
+| Fase | Arquivo | Conteúdo |
+|---|---|---|
+| Fase 1 | `docs/PHASE1_DECISIONS.md` | Fundação: Base class, bcrypt, JWT, Alembic, Docker |
+| Fase 2 | `docs/PHASE2_DECISIONS.md` | CRUDs: Fazendas, Animais, Reprodutores |
+| Fase 3 | `docs/PHASE3_DECISIONS.md` | Reprodutivo: Inseminações, Diário, Alertas |
+| Fase 4 | `docs/PHASE4_DECISIONS.md` | IA, Dashboard, Relatórios + manual de deploy |
+>>>>>>> backend
