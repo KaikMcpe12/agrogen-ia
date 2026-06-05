@@ -26,13 +26,26 @@ import {
 } from "recharts";
 import type { Animal, Pesagem, Parto, EventoSanitario, Sexo } from "@/types";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isValidUUID(id: string): boolean {
+  return UUID_REGEX.test(id);
+}
+
 function getLastAnimaisIds(): string[] {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.lastAnimaisIds) ?? "[]") as string[];
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.lastAnimaisIds) ?? "[]") as string[];
+    const valid = raw.filter(isValidUUID);
+    // Limpa IDs inválidos (ex: mock IDs como "ani-008") do storage
+    if (valid.length !== raw.length) {
+      localStorage.setItem(STORAGE_KEYS.lastAnimaisIds, JSON.stringify(valid));
+    }
+    return valid;
   } catch { return []; }
 }
 
 function saveLastAnimalId(id: string) {
+  if (!isValidUUID(id)) return;
   const ids = getLastAnimaisIds().filter((x) => x !== id);
   localStorage.setItem(STORAGE_KEYS.lastAnimaisIds, JSON.stringify([id, ...ids].slice(0, 5)));
 }
