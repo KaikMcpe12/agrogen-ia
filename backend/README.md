@@ -223,6 +223,42 @@ Os endpoints `/auth/refresh` e `/auth/logout` retornam 503 até que a migration 
 
 ---
 
+## Testes
+
+### Executar
+
+```bash
+# Ativar virtualenv (se usar)
+source .venv/bin/activate
+
+# Rodar todos os testes
+python -m pytest tests/ -v
+
+# Apenas testes unitários (sem mock)
+python -m pytest tests/unit/ -v
+
+# Apenas testes de integração (com mock de serviços)
+python -m pytest tests/integration/ -v
+
+# Com relatório de cobertura (requer pytest-cov)
+pip install pytest-cov
+python -m pytest tests/ --cov=. --cov-report=term-missing
+```
+
+### Suíte atual (133 testes, 0 falhas)
+
+| Arquivo | Testes | Cobertura |
+|---|---|---|
+| `tests/unit/test_ia_rules.py` | 45 | 12 deltas do motor de regras, truncamento, classificação, top_5_fatores |
+| `tests/unit/test_schemas.py` | 40 | Validadores Pydantic: datas, pesos por espécie, sexo/partos, coordenadas, IATF |
+| `tests/unit/test_security.py` | 13 | bcrypt hash/verify, JWT create/decode/expiração, refresh token |
+| `tests/integration/test_animal_service.py` | 19 | Máquina de estados (DESCARTADA terminal), validações de peso e sexo, 404 |
+| `tests/integration/test_inseminacao_service.py` | 16 | Bloqueios (PRENHA/DESCARTADA/MACHO), intervalo mínimo + `forcar_registro`, alertas |
+
+> Os testes de integração usam `unittest.mock.AsyncMock` — **não precisam de banco de dados real**.
+
+---
+
 ## Estrutura do Projeto
 
 ```
