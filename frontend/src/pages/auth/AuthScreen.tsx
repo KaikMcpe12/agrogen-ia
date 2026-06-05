@@ -14,6 +14,7 @@ import { authApi } from "@/lib/api/endpoints/auth";
 import { fazendasApi } from "@/lib/api/endpoints/fazendas";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { getApiErrorMessage } from "@/lib/api/error-messages";
+import { useAuth } from "@/hooks/useAuth";
 import type { Perfil } from "@/types";
 
 /* ── Máscaras via react-imask ──────────────────────────────── */
@@ -75,6 +76,7 @@ type LoginData = z.infer<typeof loginSchema>;
 
 function LoginForm() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [apiError, setApiError] = useState<string | null>(null);
   const [showPwd, setShowPwd] = useState(false);
 
@@ -86,13 +88,7 @@ function LoginForm() {
   const onSubmit = async (data: LoginData) => {
     setApiError(null);
     try {
-      const res = await authApi.login(data.email, data.senha);
-      // access token: sessionStorage por padrão
-      sessionStorage.setItem(STORAGE_KEYS.token, res.data.access_token);
-      // refresh token: localStorage somente se "Lembrar-me"
-      if (data.lembrar && res.data.refresh_token) {
-        localStorage.setItem(STORAGE_KEYS.refreshToken, res.data.refresh_token);
-      }
+      const res = await login(data.email, data.senha, data.lembrar ?? false);
       if (res.data.usuario.fazenda_ativa_id) {
         localStorage.setItem(STORAGE_KEYS.fazendaAtivaId, res.data.usuario.fazenda_ativa_id);
       }
@@ -209,6 +205,7 @@ const perfilOptions = [
 
 function RegisterForm() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [apiError, setApiError] = useState<string | null>(null);
   const [showPwd, setShowPwd] = useState(false);
 
@@ -232,8 +229,7 @@ function RegisterForm() {
       });
 
       // FLUXO-07: login automático após cadastro
-      const loginRes = await authApi.login(data.email, data.senha);
-      sessionStorage.setItem(STORAGE_KEYS.token, loginRes.data.access_token);
+      const loginRes = await login(data.email, data.senha, false);
       if (loginRes.data.usuario.fazenda_ativa_id) {
         localStorage.setItem(STORAGE_KEYS.fazendaAtivaId, loginRes.data.usuario.fazenda_ativa_id);
       }

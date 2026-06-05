@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, Navigate } from "react-router-dom";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { Header } from "./Header";
 import { BottomNav } from "./BottomNav";
 import { MobileNavDrawer } from "./MobileNavDrawer";
@@ -11,15 +12,22 @@ import { alertasApi } from "@/lib/api/endpoints/alertas";
 
 export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const hasToken = !!(
+    sessionStorage.getItem(STORAGE_KEYS.token) ??
+    localStorage.getItem(STORAGE_KEYS.token)
+  );
 
   const { data: alertasData } = useQuery({
     queryKey: ["alertas", "contagem"],
     queryFn: ({ signal }) => alertasApi.contagem(signal),
     staleTime: 60 * 1000,
     refetchInterval: 60 * 1000,
+    enabled: hasToken,
   });
 
   const alertCount = alertasData?.data?.nao_lidos ?? 0;
+
+  if (!hasToken) return <Navigate to="/login" replace />;
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden bg-bg">

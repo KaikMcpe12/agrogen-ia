@@ -23,13 +23,15 @@ export function useAuth() {
       access_token: string;
       refresh_token: string;
     };
-    localStorage.setItem(STORAGE_KEYS.token, access_token);
     if (lembrar) {
+      localStorage.setItem(STORAGE_KEYS.token, access_token);
       localStorage.setItem(STORAGE_KEYS.refreshToken, refresh_token);
     } else {
+      sessionStorage.setItem(STORAGE_KEYS.token, access_token);
       sessionStorage.setItem(STORAGE_KEYS.refreshToken, refresh_token);
     }
     await queryClient.invalidateQueries({ queryKey: ["usuarios", "me"] });
+    return resp;
   };
 
   const logout = async () => {
