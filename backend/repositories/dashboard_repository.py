@@ -54,7 +54,7 @@ class DashboardRepository:
             return f
 
         ins_mes_atual = (await self.session.execute(
-            select(func.count()).where(and_(*ins_filtro(mes_ini, now)))
+            select(func.count()).where(and_(*ins_filtro(mes_ini, now_naive)))
         )).scalar_one()
 
         ins_mes_ant = (await self.session.execute(
