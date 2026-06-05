@@ -29,6 +29,11 @@ export const relatoriosApi = {
       })
       .then((r) => r.data),
 
+<<<<<<< HEAD
   exportarPDF: (tipo: "reprodutivo") =>
     client.get<ApiResponse<{ url: string }>>(`/relatorios/${tipo}/exportar`).then((r) => r.data),
+=======
+  exportar: (tipo: "reprodutivo" | "ponderal" | "sanitario", formato: "pdf" | "csv") =>
+    client.get(`/relatorios/${tipo}/exportar`, { params: { formato }, responseType: "blob" }).then((r) => r.data),
+>>>>>>> frontend
 };
