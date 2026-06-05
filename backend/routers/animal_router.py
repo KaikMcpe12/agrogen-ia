@@ -13,7 +13,7 @@ from schemas import AnimalCreate, AnimalUpdate, AnimalResponse
 from schemas.common import PaginatedEnvelope, PaginatedMeta
 from models.enums import EspecieAnimal, SexoAnimal, StatusAnimal
 
-router = APIRouter(prefix="/animals", tags=["Animais"])
+router = APIRouter(prefix="/animais", tags=["Animais"])
 
 _RACAS: dict[str, list[str]] = {
     "BOVINO":  ["Nelore", "Angus", "Gir", "Guzerá", "Tabapuã", "Brahman", "Simmental", "Caracu", "Canchim"],
@@ -27,6 +27,39 @@ async def get_service(session: AsyncSession = Depends(get_db)) -> AnimalService:
 
 
 # ── ANI-07: deve vir ANTES de /{animal_id} para não ser capturado como UUID ──
+
+@router.get("/counts")
+async def counts(
+    fazenda_id: Optional[UUID] = None,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+):
+    from sqlalchemy import select, func, and_
+    from models.animal_model import AnimalModel
+
+    filtros = [AnimalModel.ativo == True]
+    if fazenda_id:
+        filtros.append(AnimalModel.fazenda_id == fazenda_id)
+
+    rows_especie = (await session.execute(
+        select(AnimalModel.especie, func.count().label("n"))
+        .where(and_(*filtros))
+        .group_by(AnimalModel.especie)
+    )).all()
+
+    rows_status = (await session.execute(
+        select(AnimalModel.status, func.count().label("n"))
+        .where(and_(*filtros))
+        .group_by(AnimalModel.status)
+    )).all()
+
+    total = sum(r.n for r in rows_especie)
+    return {"success": True, "data": {
+        "total":       total,
+        "por_especie": {r.especie.value: r.n for r in rows_especie},
+        "por_status":  {r.status.value:  r.n for r in rows_status},
+    }}
+
 
 @router.get("/racas", tags=["Animais"])
 async def list_racas(especie: Optional[EspecieAnimal] = None):

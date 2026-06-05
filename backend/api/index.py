@@ -29,6 +29,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="AgroGen API",
     version="1.0.0",
+    redirect_slashes=False,
     lifespan=lifespan,
 )
 
