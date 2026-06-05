@@ -364,10 +364,11 @@ BEGIN
     VALUES (
       gen_random_uuid(),
       v_animal_id,
-      CURRENT_DATE - ((i * 5) % 730 + 1),
+      -- Máximo 180 dias atrás: todos os animais têm >= 365 dias, sem risco de "antes do nascimento"
+      CURRENT_DATE - (1 + (i * 7) % 180),
       v_peso,
       CASE (i % 5)
-        WHEN 0 THEN 'NASCIMENTO'
+        WHEN 0 THEN 'CRESCIMENTO'
         WHEN 1 THEN 'DESMAME'
         WHEN 2 THEN 'CRESCIMENTO'
         WHEN 3 THEN 'ADULTO'
@@ -375,7 +376,7 @@ BEGIN
       END::estagio_pesagem,
       CASE WHEN i % 8 = 0 THEN 'Pesagem mensal de rotina' ELSE NULL END
     )
-    ON CONFLICT (animal_id, data) DO NOTHING;  -- evita duplicata de data
+    ON CONFLICT (animal_id, data) DO NOTHING;
   END LOOP;
 
   -- ============================================================
@@ -384,12 +385,11 @@ BEGIN
   FOR i IN 1..40 LOOP
     v_animal_id := femea_ids[((i-1) % array_length(femea_ids,1)) + 1];
 
-    -- Atualiza animal para refletir partos
-    UPDATE animais
-    SET num_partos        = num_partos + 1,
-        data_ultimo_parto = CURRENT_DATE - ((i * 9) % 365 + 30),
-        status            = CASE WHEN i % 5 = 0 THEN 'PRENHA' ELSE 'ATIVA' END::status_animal
-    WHERE animal_id = v_animal_id;
+    -- Busca espécie do animal DESTE loop (v_especie era residual do loop de pesagens)
+    SELECT a.especie::TEXT INTO v_especie FROM animais a WHERE a.animal_id = v_animal_id;
+
+    -- NÃO fazemos UPDATE manual: o trigger fn_pos_parto já incrementa num_partos
+    -- e atualiza data_ultimo_parto automaticamente no INSERT abaixo.
 
     INSERT INTO partos (
       parto_id, animal_id, data_parto, tipo_parto,
@@ -398,7 +398,8 @@ BEGIN
     ) VALUES (
       gen_random_uuid(),
       v_animal_id,
-      CURRENT_DATE - ((i * 9) % 365 + 30),
+      -- Máximo 170 dias atrás: garante que está após o nascimento (animais >= 365 dias)
+      CURRENT_DATE - (30 + (i * 7) % 150),
       CASE WHEN i % 12 = 0 THEN 'DUPLO' ELSE 'SIMPLES' END::tipo_parto,
       CASE WHEN i % 12 = 0 THEN 2 ELSE 1 END,
       CASE WHEN i % 12 = 0 THEN (1 + (i % 2)) ELSE 1 END,
@@ -454,39 +455,55 @@ BEGIN
 
   -- ============================================================
   --  OCORRÊNCIAS (50 registros)
+  --  Tabela criada via Alembic (não está no agroGen_schema.sql).
+  --  O bloco é ignorado silenciosamente se a tabela ainda não existir.
   -- ============================================================
-  FOR i IN 1..50 LOOP
-    v_animal_id := todas_ids[((i-1) % 140) + 1];
+  IF EXISTS (
+    SELECT FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'ocorrencias'
+  ) THEN
+    FOR i IN 1..50 LOOP
+      v_animal_id := todas_ids[((i-1) % 140) + 1];
 
-    INSERT INTO ocorrencias (
-      ocorrencia_id, animal_id, data, categoria, titulo, descricao, gravidade, resolvida
-    ) VALUES (
-      gen_random_uuid(),
-      v_animal_id,
-      CURRENT_DATE - ((i * 6) % 400 + 1),
-      CASE (i % 5)
-        WHEN 0 THEN 'SAUDE'
-        WHEN 1 THEN 'MANEJO'
-        WHEN 2 THEN 'COMPORTAMENTO'
-        WHEN 3 THEN 'REPRODUCAO'
-        ELSE 'OUTRO'
-      END::categoria_ocorrencia,
-      CASE (i % 8)
-        WHEN 0 THEN 'Coxeira membro posterior direito'
-        WHEN 1 THEN 'Baixo consumo de ração'
-        WHEN 2 THEN 'Comportamento agressivo'
-        WHEN 3 THEN 'Descarga vaginal anormal'
-        WHEN 4 THEN 'Ferida por cerca'
-        WHEN 5 THEN 'Diarreia leve'
-        WHEN 6 THEN 'Perda de condição corporal'
-        ELSE 'Abscesso cutâneo'
-      END,
-      'Observação registrada durante manejo rotineiro. Animal apresentou sinais de alteração ' ||
-        CASE (i % 3) WHEN 0 THEN 'desde a última pesagem.' WHEN 1 THEN 'após mudança de pastagem.' ELSE 'sem causa aparente.' END,
-      CASE (i % 7) WHEN 0 THEN 'CRITICA' WHEN 1 THEN 'ALTA' WHEN 2 THEN 'MEDIA' ELSE 'BAIXA' END::gravidade_ocorrencia,
-      (i % 4 = 0)
-    );
-  END LOOP;
+      EXECUTE format(
+        $q$
+        INSERT INTO ocorrencias (ocorrencia_id, animal_id, data, categoria, titulo, descricao, gravidade, resolvida)
+        VALUES (gen_random_uuid(), %L,
+          CURRENT_DATE - %s,
+          %L::categoria_ocorrencia,
+          %L,
+          %L,
+          %L::gravidade_ocorrencia,
+          %L)
+        $q$,
+        v_animal_id,
+        1 + (i * 6) % 180,
+        CASE (i % 5)
+          WHEN 0 THEN 'SAUDE'
+          WHEN 1 THEN 'MANEJO'
+          WHEN 2 THEN 'COMPORTAMENTO'
+          WHEN 3 THEN 'REPRODUCAO'
+          ELSE 'OUTRO'
+        END,
+        CASE (i % 8)
+          WHEN 0 THEN 'Coxeira membro posterior direito'
+          WHEN 1 THEN 'Baixo consumo de ração'
+          WHEN 2 THEN 'Comportamento agressivo'
+          WHEN 3 THEN 'Descarga vaginal anormal'
+          WHEN 4 THEN 'Ferida por cerca'
+          WHEN 5 THEN 'Diarreia leve'
+          WHEN 6 THEN 'Perda de condição corporal'
+          ELSE 'Abscesso cutâneo'
+        END,
+        'Observação registrada durante manejo rotineiro.',
+        CASE (i % 4) WHEN 0 THEN 'CRITICA' WHEN 1 THEN 'ALTA' WHEN 2 THEN 'MEDIA' ELSE 'BAIXA' END,
+        (i % 4 = 0)
+      );
+    END LOOP;
+    RAISE NOTICE '✓ Ocorrências inseridas (50)';
+  ELSE
+    RAISE NOTICE '⚠ Tabela ocorrencias não encontrada — rode alembic upgrade head para criá-la.';
+  END IF;
 
   -- ============================================================
   --  ALERTAS (40 registros — criados manualmente para o dashboard)
