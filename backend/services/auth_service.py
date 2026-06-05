@@ -159,17 +159,14 @@ class AuthService:
         refresh_token = create_refresh_token()
 
         return {
-            "success": True,
-            "data": {
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-                "token_type": "bearer",
-                "expires_in": settings.ACCESS_TOKEN_EXPIRE_HOURS * 3600,
-                "usuario": {
-                    "id": str(user.usuario_id),
-                    "nome": user.nome,
-                    "email": user.email,
-                    "perfil": user.perfil.value,
-                },
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "expires_in": settings.ACCESS_TOKEN_EXPIRE_HOURS * 3600,
+            "usuario": {
+                "id": str(user.usuario_id),
+                "nome": user.nome,
+                "email": user.email,
+                "perfil": user.perfil.value,
             },
         }

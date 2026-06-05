@@ -75,7 +75,7 @@ class InseminacaoRepository(BaseRepository[InseminacaoModel]):
         from models.diagnostico_model import DiagnosticoModel
         from datetime import datetime, timedelta, timezone
 
-        corte = datetime.now(timezone.utc) - timedelta(days=dias_minimos)
+        corte = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=dias_minimos)
         sub = select(DiagnosticoModel.inseminacao_id)
 
         filtros = [

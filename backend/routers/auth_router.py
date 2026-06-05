@@ -20,7 +20,7 @@ def _service(session: AsyncSession = Depends(get_db)) -> AuthService:
 
 @router.post("/login")
 async def login(data: LoginRequest, service: AuthService = Depends(_service)):
-    return await service.login(data)
+    return {"success": True, "data": await service.login(data)}
 
 
 @router.post("/registro", status_code=status.HTTP_201_CREATED)
@@ -31,7 +31,7 @@ async def register(data: RegisterRequest, service: AuthService = Depends(_servic
 
 @router.post("/refresh")
 async def refresh(data: RefreshRequest, service: AuthService = Depends(_service)):
-    return await service.refresh(data.refresh_token)
+    return {"success": True, "data": await service.refresh(data.refresh_token)}
 
 
 @router.post("/logout")

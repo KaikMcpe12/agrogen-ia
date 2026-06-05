@@ -18,7 +18,8 @@ class DashboardRepository:
 
     async def kpis(self, usuario_id: Optional[UUID] = None) -> dict:
         now = datetime.now(timezone.utc)
-        mes_ini = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        now_naive = now.replace(tzinfo=None)
+        mes_ini = now_naive.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         mes_ant_ini = (mes_ini - timedelta(days=1)).replace(day=1)
 
         # Filtro de fazendas do usuário
@@ -67,7 +68,7 @@ class DashboardRepository:
             sentido = "positivo" if delta_pct >= 0 else "negativo"
 
         # 3. Taxa de prenhez últimos 12 meses
-        doze_meses = now - timedelta(days=365)
+        doze_meses = now_naive - timedelta(days=365)
         diag_filtro = [InseminacaoModel.data_inseminacao >= doze_meses]
         if fazenda_sub is not None:
             diag_filtro.append(InseminacaoModel.animal_id.in_(
@@ -112,7 +113,7 @@ class DashboardRepository:
     async def grafico_reprodutivo(self, usuario_id: Optional[UUID] = None, meses: int = 6) -> dict:
         from models.fazenda_model import FazendaModel
         now = datetime.now(timezone.utc)
-        inicio = now - timedelta(days=meses * 30)
+        inicio = now.replace(tzinfo=None) - timedelta(days=meses * 30)
 
         fazenda_sub = None
         if usuario_id:

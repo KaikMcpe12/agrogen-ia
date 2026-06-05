@@ -59,5 +59,5 @@ class AuthRepository:
 
     async def marcar_reset_usado(self, reset: PasswordResetModel) -> None:
         reset.usado = True
-        reset.usado_em = datetime.now(timezone.utc)
+        reset.usado_em = datetime.now(timezone.utc).replace(tzinfo=None)
         await self.session.commit()
