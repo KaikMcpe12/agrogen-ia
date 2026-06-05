@@ -41,19 +41,28 @@ class AlertaRepository(BaseRepository[AlertaModel]):
 
     async def list_pendentes(
         self,
-        animal_id: Optional[UUID] = None,
-        tipo: Optional[TipoAlerta] = None,
+        animal_id:  Optional[UUID]            = None,
+        fazenda_id: Optional[UUID]            = None,
+        tipo:       Optional[TipoAlerta]       = None,
         prioridade: Optional[PrioridadeAlerta] = None,
-        limit: int = 20,
-        offset: int = 0,
+        lido:       Optional[bool]             = None,
+        resolvido:  Optional[bool]             = None,
+        limit:      int                        = 20,
+        offset:     int                        = 0,
     ) -> list[dict]:
-        filtros = [AlertaModel.resolvido == False]
+        filtros: list = []
+        # resolvido default = False (pendentes), a não ser que explicitamente fornecido
+        filtros.append(AlertaModel.resolvido == (resolvido if resolvido is not None else False))
+        if lido is not None:
+            filtros.append(AlertaModel.lido == lido)
         if animal_id:
             filtros.append(AlertaModel.animal_id == animal_id)
         if tipo:
             filtros.append(AlertaModel.tipo == tipo)
         if prioridade:
             filtros.append(AlertaModel.prioridade == prioridade)
+        if fazenda_id:
+            filtros.append(AnimalModel.fazenda_id == fazenda_id)
         stmt = (
             select(AlertaModel, AnimalModel.codigo.label("animal_codigo"), AnimalModel.nome.label("animal_nome"))
             .outerjoin(AnimalModel, AnimalModel.animal_id == AlertaModel.animal_id)
