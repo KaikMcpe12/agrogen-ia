@@ -108,12 +108,12 @@ async def list_animals(
 
 # ── ANI-02: criação ───────────────────────────────────────────────────────────
 
-@router.post("", response_model=AnimalResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_animal(
     animal_in: AnimalCreate,
     service: AnimalService = Depends(get_service),
 ):
-    return await service.create(animal_in)
+    return {"success": True, "data": await service.create(animal_in)}
 
 
 # ── ANI-08: importação CSV ────────────────────────────────────────────────────
@@ -141,12 +141,12 @@ async def importar_csv(
 
 # ── ANI-03: detalhe ───────────────────────────────────────────────────────────
 
-@router.get("/{animal_id}", response_model=AnimalResponse)
+@router.get("/{animal_id}")
 async def get_animal(
     animal_id: UUID,
     service: AnimalService = Depends(get_service),
 ):
-    return await service.get_by_id(animal_id)
+    return {"success": True, "data": await service.get_by_id(animal_id)}
 
 
 # ── ANI-06: histórico ─────────────────────────────────────────────────────────
@@ -187,13 +187,13 @@ async def get_historico(
 
 # ── ANI-04: update ────────────────────────────────────────────────────────────
 
-@router.put("/{animal_id}", response_model=AnimalResponse)
+@router.put("/{animal_id}")
 async def update_animal(
     animal_id: UUID,
     animal_in: AnimalUpdate,
     service: AnimalService = Depends(get_service),
 ):
-    return await service.update(animal_id, animal_in)
+    return {"success": True, "data": await service.update(animal_id, animal_in)}
 
 
 # ── ANI-05: soft delete ───────────────────────────────────────────────────────
