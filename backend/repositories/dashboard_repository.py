@@ -178,13 +178,16 @@ class DashboardRepository:
         result = []
         for r in ins_rows:
             result.append({
-                "tipo":         "INSEMINACAO",
-                "animal_id":    str(r.animal_id),
-                "animal_codigo": r.animal_codigo,
-                "animal_nome":   r.animal_nome,
-                "descricao":     f"Inseminação {r.tipo.value} registrada",
-                "usuario_nome":  r.usuario_nome,
-                "data":          r.created_at.isoformat() if r.created_at else None,
+                "id":       str(r.inseminacao_id),
+                "tipo":     "INSEMINACAO",
+                "animal": {
+                    "id":     str(r.animal_id),
+                    "codigo": r.animal_codigo,
+                    "nome":   r.animal_nome,
+                },
+                "usuario":  r.usuario_nome,
+                "descricao": f"Inseminação {r.tipo.value} registrada",
+                "data":     r.created_at.isoformat() if r.created_at else None,
             })
 
         return sorted(result, key=lambda x: x["data"] or "", reverse=True)[:limit]

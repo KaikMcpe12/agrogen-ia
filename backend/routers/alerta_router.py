@@ -7,7 +7,7 @@ from core.database import get_db
 from core.deps import get_current_user
 from models.user_model import User
 from services.alerta_service import AlertaService
-from schemas.alerta_schema import AlertaResponse, AlertaBadgeResponse
+from schemas.alerta_schema import AlertaBadgeResponse
 from models.enums import TipoAlerta, PrioridadeAlerta
 
 router = APIRouter(prefix="/alertas", tags=["Alertas"])
@@ -18,16 +18,17 @@ async def get_service(session: AsyncSession = Depends(get_db)) -> AlertaService:
 
 
 # ALE-02 — badge leve para polling do sino (antes de /{id})
-@router.get("/badge", response_model=AlertaBadgeResponse)
+@router.get("/badge")
 async def get_badge(
     current_user: User = Depends(get_current_user),
     service: AlertaService = Depends(get_service),
 ):
-    return await service.get_badge()
+    data = await service.get_badge()
+    return {"success": True, "data": data}
 
 
 # ALE-01 — listagem com filtros
-@router.get("/", response_model=list[AlertaResponse])
+@router.get("/")
 async def list_alertas(
     animal_id:  Optional[UUID]           = None,
     tipo:       Optional[TipoAlerta]      = None,
@@ -37,37 +38,47 @@ async def list_alertas(
     current_user: User = Depends(get_current_user),
     service: AlertaService = Depends(get_service),
 ):
-    return await service.list_pendentes(
+    items = await service.list_pendentes(
         animal_id=animal_id, tipo=tipo, prioridade=prioridade,
         limit=limit, offset=offset,
     )
+    total = len(items)
+    return {
+        "success": True,
+        "data": items,
+        "meta": {
+            "total": total,
+            "nao_lidos": sum(1 for a in items if not a.get("lido")),
+            "criticos": sum(1 for a in items if a.get("prioridade") == "CRITICA"),
+        },
+    }
 
 
 # ALE-05 — detalhe
-@router.get("/{alerta_id}", response_model=AlertaResponse)
+@router.get("/{alerta_id}")
 async def get_alerta(
     alerta_id: UUID,
     current_user: User = Depends(get_current_user),
     service: AlertaService = Depends(get_service),
 ):
-    return await service.get_by_id(alerta_id)
+    return {"success": True, "data": await service.get_by_id(alerta_id)}
 
 
 # ALE-03 — marcar como lido
-@router.patch("/{alerta_id}/lido", response_model=AlertaResponse)
+@router.patch("/{alerta_id}/lido")
 async def marcar_lido(
     alerta_id: UUID,
     current_user: User = Depends(get_current_user),
     service: AlertaService = Depends(get_service),
 ):
-    return await service.marcar_lido(alerta_id)
+    return {"success": True, "data": await service.marcar_lido(alerta_id)}
 
 
 # ALE-04 — marcar como resolvido
-@router.patch("/{alerta_id}/resolvido", response_model=AlertaResponse)
+@router.patch("/{alerta_id}/resolvido")
 async def marcar_resolvido(
     alerta_id: UUID,
     current_user: User = Depends(get_current_user),
     service: AlertaService = Depends(get_service),
 ):
-    return await service.marcar_resolvido(alerta_id)
+    return {"success": True, "data": await service.marcar_resolvido(alerta_id)}

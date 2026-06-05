@@ -5,6 +5,7 @@ from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.alerta_model import AlertaModel
+from models.animal_model import AnimalModel
 from models.enums import TipoAlerta, PrioridadeAlerta
 from repositories.base_repository import BaseRepository
 
@@ -12,6 +13,24 @@ from repositories.base_repository import BaseRepository
 class AlertaRepository(BaseRepository[AlertaModel]):
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session, AlertaModel)
+
+    @staticmethod
+    def _to_dict(alerta: AlertaModel, animal_codigo: str | None, animal_nome: str | None) -> dict:
+        return {
+            "id":           str(alerta.alerta_id),
+            "tipo":         alerta.tipo.value,
+            "prioridade":   alerta.prioridade.value,
+            "lido":         alerta.lido,
+            "resolvido":    alerta.resolvido,
+            "mensagem":     alerta.mensagem,
+            "data_disparo": alerta.data_disparo.isoformat() if alerta.data_disparo else None,
+            "created_at":   alerta.created_at.isoformat() if alerta.created_at else None,
+            "animal": {
+                "id":     str(alerta.animal_id) if alerta.animal_id else None,
+                "codigo": animal_codigo,
+                "nome":   animal_nome,
+            },
+        }
 
     async def create(self, data: dict) -> AlertaModel:
         obj = AlertaModel(**data)
@@ -27,7 +46,7 @@ class AlertaRepository(BaseRepository[AlertaModel]):
         prioridade: Optional[PrioridadeAlerta] = None,
         limit: int = 20,
         offset: int = 0,
-    ) -> list[AlertaModel]:
+    ) -> list[dict]:
         filtros = [AlertaModel.resolvido == False]
         if animal_id:
             filtros.append(AlertaModel.animal_id == animal_id)
@@ -36,14 +55,26 @@ class AlertaRepository(BaseRepository[AlertaModel]):
         if prioridade:
             filtros.append(AlertaModel.prioridade == prioridade)
         stmt = (
-            select(AlertaModel)
+            select(AlertaModel, AnimalModel.codigo.label("animal_codigo"), AnimalModel.nome.label("animal_nome"))
+            .outerjoin(AnimalModel, AnimalModel.animal_id == AlertaModel.animal_id)
             .where(and_(*filtros))
             .order_by(AlertaModel.data_disparo.asc())
             .offset(offset)
             .limit(limit)
         )
-        result = await self.session.execute(stmt)
-        return list(result.scalars().all())
+        rows = (await self.session.execute(stmt)).all()
+        return [self._to_dict(row.AlertaModel, row.animal_codigo, row.animal_nome) for row in rows]
+
+    async def get_by_id_with_animal(self, alerta_id: UUID) -> dict | None:
+        stmt = (
+            select(AlertaModel, AnimalModel.codigo.label("animal_codigo"), AnimalModel.nome.label("animal_nome"))
+            .outerjoin(AnimalModel, AnimalModel.animal_id == AlertaModel.animal_id)
+            .where(AlertaModel.alerta_id == alerta_id)
+        )
+        row = (await self.session.execute(stmt)).first()
+        if not row:
+            return None
+        return self._to_dict(row.AlertaModel, row.animal_codigo, row.animal_nome)
 
     async def marcar_lido(self, alerta_id: UUID) -> Optional[AlertaModel]:
         obj = await self.get_by_id(alerta_id)

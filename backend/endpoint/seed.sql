@@ -93,6 +93,14 @@ DECLARE
   femea_ids  UUID[] := '{}';
   todas_ids  UUID[] := '{}';
 
+  -- Admin — fazendas e controle de animais
+  uid_faz6        UUID := 'bbbbbbbb-0000-0000-0000-000000000006';
+  uid_faz7        UUID := 'bbbbbbbb-0000-0000-0000-000000000007';
+  uid_faz8        UUID := 'bbbbbbbb-0000-0000-0000-000000000008';
+  admin_faz_arr   UUID[];
+  admin_femea_ids UUID[] := '{}';
+  admin_todas_ids UUID[] := '{}';
+
 BEGIN
 
   -- ============================================================
@@ -601,22 +609,393 @@ BEGIN
     );
   END LOOP;
 
+  -- ============================================================
+  --  FAZENDAS DO ADMIN (3 fazendas grandes para testes)
+  -- ============================================================
+  admin_faz_arr := ARRAY[uid_faz6, uid_faz7, uid_faz8];
+
+  INSERT INTO fazendas (fazenda_id, usuario_id, nome, municipio, estado, latitude, longitude,
+                        area_hectares, tipo_producao, capacidade_rebanho, ativo) VALUES
+    (uid_faz6, uid_admin, 'Fazenda Experimental AgroGen', 'Fortaleza', 'CE', -3.7172, -38.5433, 800.00, 'MISTO',  500, true),
+    (uid_faz7, uid_admin, 'Estação Zootécnica Norte',     'Sobral',    'CE', -3.6861, -40.3503, 620.50, 'CORTE',  400, true),
+    (uid_faz8, uid_admin, 'Centro de Melhoramento AgroGen','Mossoró',  'RN', -5.1875, -37.3444, 950.75, 'LEITE',  600, true);
+
+  -- ============================================================
+  --  ANIMAIS DO ADMIN — 120 registros
+  --  ~80 BOVINO, ~25 OVINO, ~15 CAPRINO | ~80 FEMEA, ~40 MACHO
+  -- ============================================================
+  FOR i IN 1..120 LOOP
+    v_id     := gen_random_uuid();
+    v_faz_id := admin_faz_arr[((i-1) % 3) + 1];
+
+    IF i <= 80 THEN
+      v_especie := 'BOVINO';
+    ELSIF i <= 105 THEN
+      v_especie := 'OVINO';
+    ELSE
+      v_especie := 'CAPRINO';
+    END IF;
+
+    IF i % 3 = 0 THEN v_sexo := 'MACHO'; ELSE v_sexo := 'FEMEA'; END IF;
+
+    v_peso := CASE
+      WHEN v_especie = 'BOVINO' THEN GREATEST(50,  LEAST(900, 250.0 + (i % 500)::NUMERIC))
+      WHEN v_especie = 'OVINO'  THEN GREATEST(10,  LEAST(120,  25.0 + (i % 75)::NUMERIC))
+      ELSE                           GREATEST(8,   LEAST(100,  15.0 + (i % 65)::NUMERIC))
+    END;
+
+    v_codigo := CASE
+      WHEN v_especie = 'BOVINO' THEN 'ADM-BOV-' || LPAD(i::TEXT, 4, '0')
+      WHEN v_especie = 'OVINO'  THEN 'ADM-OVI-' || LPAD((i - 80)::TEXT, 4, '0')
+      ELSE                           'ADM-CAP-' || LPAD((i - 105)::TEXT, 4, '0')
+    END;
+
+    v_data_nasc := CURRENT_DATE - INTERVAL '1 year' - (((i * 13) % 2000) || ' days')::INTERVAL;
+
+    INSERT INTO animais (
+      animal_id, fazenda_id, codigo, nome, especie, sexo,
+      data_nascimento, raca_principal, peso_inicial_kg,
+      condicao_corporal, status, num_partos, ativo
+    ) VALUES (
+      v_id, v_faz_id, v_codigo,
+      CASE WHEN v_sexo = 'FEMEA' THEN nomes_femea[((i-1) % array_length(nomes_femea,1)) + 1]
+           ELSE nomes_macho[((i-1) % array_length(nomes_macho,1)) + 1] END,
+      v_especie::especie_animal,
+      v_sexo::sexo_animal,
+      v_data_nasc,
+      CASE WHEN v_especie = 'BOVINO' THEN racas_bov[((i-1) % array_length(racas_bov,1)) + 1]
+           WHEN v_especie = 'OVINO'  THEN racas_ovi[((i-1) % array_length(racas_ovi,1)) + 1]
+           ELSE racas_cap[((i-1) % array_length(racas_cap,1)) + 1] END,
+      v_peso,
+      1 + (i % 5),
+      'ATIVA',
+      0,
+      true
+    );
+
+    admin_todas_ids := admin_todas_ids || v_id;
+    IF v_sexo = 'FEMEA' THEN admin_femea_ids := admin_femea_ids || v_id; END IF;
+  END LOOP;
+
+  -- ============================================================
+  --  DADOS GENÉTICOS DO ADMIN (50 registros)
+  -- ============================================================
+  FOR i IN 1..50 LOOP
+    INSERT INTO dados_geneticos (dados_gen_id, animal_id, raca_pai, raca_mae,
+      dep_peso_desmame, dep_fertilidade, dep_acuracia, coeficiente_endogamia)
+    VALUES (
+      gen_random_uuid(),
+      admin_todas_ids[i],
+      racas_bov[((i-1) % array_length(racas_bov,1)) + 1],
+      racas_bov[(i % array_length(racas_bov,1)) + 1],
+      9.0 + (i % 10),
+      6.0 + (i % 7),
+      0.60 + ((i % 35)::NUMERIC / 100),
+      CASE WHEN i % 12 = 0 THEN 0.07 ELSE 0.01 + ((i % 4)::NUMERIC / 100) END
+    );
+  END LOOP;
+
+  -- ============================================================
+  --  INSEMINAÇÕES DO ADMIN (80 registros)
+  -- ============================================================
+  FOR i IN 1..80 LOOP
+    v_ins_id    := gen_random_uuid();
+    v_animal_id := admin_femea_ids[((i-1) % array_length(admin_femea_ids,1)) + 1];
+
+    SELECT a.especie::TEXT INTO v_especie FROM animais a WHERE a.animal_id = v_animal_id;
+    IF v_especie = 'OVINO'   THEN v_rep_id := rep_ids[(8 + (i % 2))];
+    ELSIF v_especie = 'CAPRINO' THEN v_rep_id := rep_ids[(6 + (i % 2))];
+    ELSE v_rep_id := rep_ids[((i-1) % 5) + 1];
+    END IF;
+
+    v_data_ins := CURRENT_TIMESTAMP - ((5 + ((i * 9) % 730)) || ' days')::INTERVAL;
+    v_resultado := CASE
+      WHEN i % 3 = 0 THEN 'PRENHA'
+      WHEN i % 5 = 0 THEN 'VAZIA'
+      WHEN i % 9 = 0 THEN 'CANCELADA'
+      ELSE 'PENDENTE'
+    END;
+
+    INSERT INTO inseminacoes (
+      inseminacao_id, animal_id, reprodutor_id, tecnico_id,
+      protocolo_id, data_inseminacao, tipo,
+      condicao_corporal_momento, temperatura_ambiente_c,
+      dias_pos_parto, dias_desde_ultima_ins,
+      ciclos_sem_concepcao, historico_prenhez, resultado
+    ) VALUES (
+      v_ins_id, v_animal_id, v_rep_id,
+      tec_ids[((i-1) % 3) + 1],
+      CASE WHEN i % 4 = 0 THEN uid_prot1 WHEN i % 4 = 1 THEN uid_prot2 ELSE NULL END,
+      v_data_ins,
+      CASE WHEN i % 4 = 0 THEN 'IATF' WHEN i % 7 = 0 THEN 'TRANSFERENCIA_EMBRIAO' ELSE 'IA_CONVENCIONAL' END::tipo_inseminacao,
+      2 + (i % 4),
+      18.0 + (i % 20),
+      40 + (i % 130),
+      20 + (i % 70),
+      i % 5,
+      GREATEST(0, (i % 6) - 1),
+      v_resultado::resultado_inseminacao
+    );
+  END LOOP;
+
+  -- ============================================================
+  --  DIAGNÓSTICOS DO ADMIN (~55 registros)
+  -- ============================================================
+  INSERT INTO diagnosticos (
+    diagnostico_id, inseminacao_id, animal_id, data_diagnostico,
+    metodo, resultado, dias_gestacao_est, data_parto_prevista, veterinario_id
+  )
+  SELECT
+    gen_random_uuid(),
+    ins.inseminacao_id,
+    ins.animal_id,
+    ins.data_inseminacao::DATE + 30 + (ROW_NUMBER() OVER () % 25)::INT,
+    CASE ROW_NUMBER() OVER () % 3
+      WHEN 0 THEN 'ULTRASSONOGRAFIA'
+      WHEN 1 THEN 'PALPACAO_RETAL'
+      ELSE 'EXAME_LABORATORIAL'
+    END::metodo_diagnostico,
+    ins.resultado::TEXT::resultado_diagnostico,
+    CASE WHEN ins.resultado::TEXT = 'PRENHA' THEN 28 + (ROW_NUMBER() OVER () % 70)::INT ELSE NULL END,
+    CASE WHEN ins.resultado::TEXT = 'PRENHA' THEN
+      ins.data_inseminacao::DATE + (CASE WHEN a.especie = 'BOVINO' THEN 283 ELSE 150 END)
+    ELSE NULL END,
+    vet_ids[(ROW_NUMBER() OVER () % 3 + 1)::INT]
+  FROM inseminacoes ins
+  JOIN animais a ON a.animal_id = ins.animal_id
+  WHERE ins.resultado::TEXT IN ('PRENHA', 'VAZIA')
+    AND ins.animal_id = ANY(admin_femea_ids)
+  LIMIT 55;
+
+  -- ============================================================
+  --  PESAGENS DO ADMIN (130 registros)
+  -- ============================================================
+  FOR i IN 1..130 LOOP
+    v_animal_id := admin_todas_ids[((i-1) % array_length(admin_todas_ids,1)) + 1];
+
+    SELECT a.especie::TEXT INTO v_especie FROM animais a WHERE a.animal_id = v_animal_id;
+
+    v_peso := CASE
+      WHEN v_especie = 'BOVINO' THEN GREATEST(50,  LEAST(900, 80.0  + (i * 4.0) % 650))
+      WHEN v_especie = 'OVINO'  THEN GREATEST(10,  LEAST(120, 18.0  + (i * 1.3) % 85))
+      ELSE                           GREATEST(8,   LEAST(100, 12.0  + (i * 1.0) % 72))
+    END;
+
+    INSERT INTO pesagens (pesagem_id, animal_id, data, peso_kg, estagio, observacao)
+    VALUES (
+      gen_random_uuid(), v_animal_id,
+      CURRENT_DATE - (1 + (i * 5) % 200),
+      v_peso,
+      CASE (i % 5)
+        WHEN 0 THEN 'CRESCIMENTO' WHEN 1 THEN 'DESMAME'
+        WHEN 2 THEN 'CRESCIMENTO' WHEN 3 THEN 'ADULTO'
+        ELSE 'CRESCIMENTO'
+      END::estagio_pesagem,
+      CASE WHEN i % 7 = 0 THEN 'Pesagem de rotina — admin' ELSE NULL END
+    )
+    ON CONFLICT (animal_id, data) DO NOTHING;
+  END LOOP;
+
+  -- ============================================================
+  --  PARTOS DO ADMIN (30 registros)
+  -- ============================================================
+  FOR i IN 1..30 LOOP
+    v_animal_id := admin_femea_ids[((i-1) % array_length(admin_femea_ids,1)) + 1];
+    SELECT a.especie::TEXT INTO v_especie FROM animais a WHERE a.animal_id = v_animal_id;
+
+    INSERT INTO partos (
+      parto_id, animal_id, data_parto, tipo_parto,
+      num_crias, num_crias_vivas, peso_total_crias_kg,
+      houve_distorcia, houve_obito_matriz
+    ) VALUES (
+      gen_random_uuid(), v_animal_id,
+      CURRENT_DATE - (20 + (i * 9) % 160),
+      CASE WHEN i % 10 = 0 THEN 'DUPLO' ELSE 'SIMPLES' END::tipo_parto,
+      CASE WHEN i % 10 = 0 THEN 2 ELSE 1 END,
+      CASE WHEN i % 10 = 0 THEN (1 + (i % 2)) ELSE 1 END,
+      CASE WHEN v_especie = 'BOVINO' THEN 38.0 + (i % 18)
+           WHEN v_especie = 'OVINO'  THEN 3.8  + (i % 4)
+           ELSE                           3.0  + (i % 3) END,
+      (i % 12 = 0),
+      false
+    );
+  END LOOP;
+
+  -- ============================================================
+  --  EVENTOS SANITÁRIOS DO ADMIN (70 registros)
+  -- ============================================================
+  FOR i IN 1..70 LOOP
+    v_animal_id := admin_todas_ids[((i-1) % array_length(admin_todas_ids,1)) + 1];
+
+    INSERT INTO eventos_sanitarios (
+      evento_san_id, animal_id, tipo, produto, principio_ativo,
+      data_aplicacao, dose, via_administracao, proxima_dose, responsavel_id
+    ) VALUES (
+      gen_random_uuid(), v_animal_id,
+      CASE (i % 5)
+        WHEN 0 THEN 'VACINA' WHEN 1 THEN 'VERMIFUGACAO'
+        WHEN 2 THEN 'MEDICACAO' WHEN 3 THEN 'EXAME'
+        ELSE 'VACINA'
+      END::tipo_sanitario,
+      CASE (i % 6)
+        WHEN 0 THEN 'Aftosa Bivalente' WHEN 1 THEN 'Ivermectina 1%'
+        WHEN 2 THEN 'Brucelose B19'    WHEN 3 THEN 'Clostridioses'
+        WHEN 4 THEN 'Doramectina'      ELSE 'Raiva Animal'
+      END,
+      CASE (i % 6) WHEN 1 THEN 'Ivermectina' WHEN 4 THEN 'Doramectina' ELSE NULL END,
+      CURRENT_DATE - ((i * 5) % 365 + 1),
+      CASE (i % 4) WHEN 0 THEN '5 mL' WHEN 1 THEN '1 mL/50kg' ELSE '2 mL' END,
+      CASE (i % 5) WHEN 0 THEN 'SC' WHEN 1 THEN 'IM' WHEN 2 THEN 'IV' ELSE 'ORAL' END::via_administracao,
+      CASE WHEN i % 3 = 0 THEN CURRENT_DATE + ((60 + (i % 240)) || ' days')::INTERVAL ELSE NULL END,
+      tec_ids[((i-1) % 3) + 1]
+    );
+  END LOOP;
+
+  -- ============================================================
+  --  OCORRÊNCIAS DO ADMIN (40 registros)
+  -- ============================================================
+  IF EXISTS (
+    SELECT FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'ocorrencias'
+  ) THEN
+    FOR i IN 1..40 LOOP
+      v_animal_id := admin_todas_ids[((i-1) % array_length(admin_todas_ids,1)) + 1];
+
+      EXECUTE format(
+        $q$
+        INSERT INTO ocorrencias (ocorrencia_id, animal_id, data, categoria, titulo, descricao, gravidade, resolvida)
+        VALUES (gen_random_uuid(), %L,
+          CURRENT_DATE - %s,
+          %L::categoria_ocorrencia,
+          %L,
+          %L,
+          %L::gravidade_ocorrencia,
+          %L)
+        $q$,
+        v_animal_id,
+        1 + (i * 8) % 200,
+        CASE (i % 5)
+          WHEN 0 THEN 'SAUDE'   WHEN 1 THEN 'MANEJO'
+          WHEN 2 THEN 'COMPORTAMENTO' WHEN 3 THEN 'REPRODUCAO'
+          ELSE 'OUTRO'
+        END,
+        CASE (i % 8)
+          WHEN 0 THEN 'Coxeira membro posterior esquerdo'
+          WHEN 1 THEN 'Baixo consumo hídrico'
+          WHEN 2 THEN 'Isolamento do rebanho'
+          WHEN 3 THEN 'Descarga nasal unilateral'
+          WHEN 4 THEN 'Lesão por arame farpado'
+          WHEN 5 THEN 'Timpanismo leve'
+          WHEN 6 THEN 'Queda de escore corporal'
+          ELSE 'Nódulo subcutâneo'
+        END,
+        'Registro de ocorrência durante inspeção de rotina — admin.',
+        CASE (i % 4) WHEN 0 THEN 'CRITICA' WHEN 1 THEN 'ALTA' WHEN 2 THEN 'MEDIA' ELSE 'BAIXA' END,
+        (i % 3 = 0)
+      );
+    END LOOP;
+    RAISE NOTICE '✓ Ocorrências do admin inseridas (40)';
+  END IF;
+
+  -- ============================================================
+  --  ALERTAS DO ADMIN (40 registros)
+  -- ============================================================
+  FOR i IN 1..40 LOOP
+    v_animal_id := admin_todas_ids[((i-1) % array_length(admin_todas_ids,1)) + 1];
+
+    INSERT INTO alertas (
+      alerta_id, animal_id, tipo, mensagem, data_disparo, prioridade, lido, resolvido
+    ) VALUES (
+      gen_random_uuid(), v_animal_id,
+      CASE (i % 5)
+        WHEN 0 THEN 'DIAGNOSTICO_PENDENTE' WHEN 1 THEN 'PROXIMA_DOSE'
+        WHEN 2 THEN 'JANELA_IATF'          WHEN 3 THEN 'OCORRENCIA_CRITICA'
+        ELSE 'OUTRO'
+      END::tipo_alerta,
+      CASE (i % 5)
+        WHEN 0 THEN 'Diagnóstico de gestação pendente — inseminação há mais de 30 dias.'
+        WHEN 1 THEN 'Próxima dose de vacina prevista para os próximos 7 dias.'
+        WHEN 2 THEN 'Janela de IATF aberta — protocolo concluído sem registro de inseminação.'
+        WHEN 3 THEN 'Ocorrência crítica não resolvida registrada para este animal.'
+        ELSE 'Alerta de manejo geral — verificar animal.'
+      END,
+      CURRENT_DATE - ((i * 3) % 60) + ((i % 25) || ' days')::INTERVAL,
+      CASE (i % 4)
+        WHEN 0 THEN 'CRITICA' WHEN 1 THEN 'ALTA'
+        WHEN 2 THEN 'MEDIA'   ELSE 'BAIXA'
+      END::prioridade_alerta,
+      (i % 4 = 0),
+      (i % 7 = 0)
+    );
+  END LOOP;
+
+  -- ============================================================
+  --  ANÁLISES IA DO ADMIN (25 registros)
+  -- ============================================================
+  FOR i IN 1..25 LOOP
+    v_animal_id := admin_femea_ids[((i-1) % array_length(admin_femea_ids,1)) + 1];
+
+    INSERT INTO analises_ia (
+      analise_id, animal_id, tecnico_id, score_prenhez,
+      fatores_influentes, parametros_entrada
+    ) VALUES (
+      gen_random_uuid(), v_animal_id,
+      tec_ids[((i-1) % 3) + 1],
+      ROUND((0.35 + (i * 0.022) % 0.62)::NUMERIC, 4),
+      jsonb_build_object(
+        'condicao_corporal',   2 + (i % 4),
+        'intervalo_pos_parto', 40 + (i % 130),
+        'temperatura_c',       21 + (i % 18)
+      ),
+      jsonb_build_object(
+        'motor',         'rules_v1.0',
+        'especie',       CASE (i % 3) WHEN 0 THEN 'BOVINO' WHEN 1 THEN 'OVINO' ELSE 'CAPRINO' END,
+        'classificacao', CASE WHEN (0.35 + (i * 0.022) % 0.62) >= 0.70 THEN 'FAVORAVEL'
+                              WHEN (0.35 + (i * 0.022) % 0.62) >= 0.50 THEN 'MEDIO'
+                              ELSE 'DESFAVORAVEL' END
+      )
+    );
+  END LOOP;
+
+  -- ============================================================
+  --  ALIMENTAÇÕES DO ADMIN (25 registros)
+  -- ============================================================
+  FOR i IN 1..25 LOOP
+    INSERT INTO alimentacoes (alimentacao_id, animal_id, data_inicio, tipo, descricao, custo_diario)
+    VALUES (
+      gen_random_uuid(),
+      admin_todas_ids[((i-1) % array_length(admin_todas_ids,1)) + 1],
+      CURRENT_DATE - ((i * 11) % 365 + 1),
+      CASE (i % 4)
+        WHEN 0 THEN 'PASTO' WHEN 1 THEN 'SUPLEMENTACAO'
+        WHEN 2 THEN 'CONFINAMENTO' ELSE 'MISTO'
+      END::tipo_alimentacao,
+      CASE (i % 4)
+        WHEN 0 THEN 'Capim Tifton 85 — pastagem intensiva'
+        WHEN 1 THEN 'Suplemento mineral proteico 150g/dia'
+        WHEN 2 THEN 'Silagem milho 10kg + concentrado 3kg'
+        ELSE 'Pastagem + suplemento mineral + sal'
+      END,
+      CASE (i % 4) WHEN 0 THEN 1.80 WHEN 1 THEN 3.20 WHEN 2 THEN 15.00 ELSE 4.50 END
+    );
+  END LOOP;
+
   RAISE NOTICE '✓ Seed concluído com sucesso!';
   RAISE NOTICE '  Usuários:           10';
-  RAISE NOTICE '  Fazendas:           5';
+  RAISE NOTICE '  Fazendas:           8  (5 produtores + 3 admin)';
   RAISE NOTICE '  Reprodutores:       10';
   RAISE NOTICE '  Protocolos:         5';
-  RAISE NOTICE '  Animais:            150';
-  RAISE NOTICE '  Dados Genéticos:    70';
-  RAISE NOTICE '  Inseminações:       100';
-  RAISE NOTICE '  Diagnósticos:       ~70';
-  RAISE NOTICE '  Partos:             40';
-  RAISE NOTICE '  Pesagens:           ~160';
-  RAISE NOTICE '  Eventos Sanitários: 80';
-  RAISE NOTICE '  Ocorrências:        50';
-  RAISE NOTICE '  Alertas:            40';
-  RAISE NOTICE '  Análises IA:        30';
-  RAISE NOTICE '  Alimentações:       30';
+  RAISE NOTICE '  Animais:            270 (150 produtores + 120 admin)';
+  RAISE NOTICE '  Dados Genéticos:    120 (70 + 50 admin)';
+  RAISE NOTICE '  Inseminações:       180 (100 + 80 admin)';
+  RAISE NOTICE '  Diagnósticos:       ~125 (~70 + ~55 admin)';
+  RAISE NOTICE '  Partos:             70  (40 + 30 admin)';
+  RAISE NOTICE '  Pesagens:           ~290 (~160 + 130 admin)';
+  RAISE NOTICE '  Eventos Sanitários: 150 (80 + 70 admin)';
+  RAISE NOTICE '  Ocorrências:        90  (50 + 40 admin)';
+  RAISE NOTICE '  Alertas:            80  (40 + 40 admin)';
+  RAISE NOTICE '  Análises IA:        55  (30 + 25 admin)';
+  RAISE NOTICE '  Alimentações:       55  (30 + 25 admin)';
 
 END;
 $$;
