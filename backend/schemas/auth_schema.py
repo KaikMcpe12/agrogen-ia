@@ -12,7 +12,7 @@ class RegisterRequest(BaseModel):
     nome: str
     email: str
     senha: str
-    confirma_senha: str
+    confirma_senha: Optional[str] = None
     cpf: str
     telefone: Optional[str] = None
     perfil: str = "PRODUTOR"
@@ -35,14 +35,6 @@ class RegisterRequest(BaseModel):
         if not any(c.isdigit() for c in v):
             raise ValueError("Senha deve conter ao menos um número.")
         return v
-
-    @field_validator("confirma_senha")
-    @classmethod
-    def senhas_conferem(cls, v: str, info) -> str:
-        if "senha" in info.data and v != info.data["senha"]:
-            raise ValueError("Senha e confirmação não conferem.")
-        return v
-
 
 class TokenResponse(BaseModel):
     access_token: str

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.config import settings
 from core.security import hash_password, verify_password, create_access_token, create_refresh_token
 from repositories.user_repository import UserRepository
-from schemas.auth_schema import LoginRequest, RegisterRequest, TokenResponse
+from schemas.auth_schema import LoginRequest, RegisterRequest
 from models.user_model import User
 
 _MAX_TENTATIVAS = 5
@@ -38,7 +38,7 @@ class AuthService:
 
     # ── Login ─────────────────────────────────────────────────────────────────
 
-    async def login(self, data: LoginRequest) -> TokenResponse:
+    async def login(self, data: LoginRequest) -> dict:
         user = await self.user_repo.get_by_email_for_auth(data.email)
 
         if not user:
@@ -147,7 +147,7 @@ class AuthService:
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
-    async def _emitir_tokens(self, user: User) -> TokenResponse:
+    async def _emitir_tokens(self, user: User) -> dict:
         payload = {
             "sub": str(user.usuario_id),
             "email": user.email,
@@ -158,8 +158,18 @@ class AuthService:
         # TODO: quando _REFRESH_DB_ENABLED = True, persistir refresh_token em tb_refresh_tokens
         refresh_token = create_refresh_token()
 
-        return TokenResponse(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_HOURS * 3600,
-        )
+        return {
+            "success": True,
+            "data": {
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_type": "bearer",
+                "expires_in": settings.ACCESS_TOKEN_EXPIRE_HOURS * 3600,
+                "usuario": {
+                    "id": str(user.usuario_id),
+                    "nome": user.nome,
+                    "email": user.email,
+                    "perfil": user.perfil.value,
+                },
+            },
+        }

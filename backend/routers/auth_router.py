@@ -6,7 +6,7 @@ from core.deps import get_current_user
 from models.user_model import User
 from services.auth_service import AuthService
 from schemas.auth_schema import (
-    LoginRequest, RegisterRequest, TokenResponse,
+    LoginRequest, RegisterRequest,
     RefreshRequest, LogoutRequest,
     RecuperarSenhaRequest, ResetarSenhaRequest,
 )
@@ -18,18 +18,18 @@ def _service(session: AsyncSession = Depends(get_db)) -> AuthService:
     return AuthService(session)
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login")
 async def login(data: LoginRequest, service: AuthService = Depends(_service)):
     return await service.login(data)
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
+@router.post("/registro", status_code=status.HTTP_201_CREATED)
 async def register(data: RegisterRequest, service: AuthService = Depends(_service)):
     result = await service.register(data)
     return {"success": True, "data": result}
 
 
-@router.post("/refresh", response_model=TokenResponse)
+@router.post("/refresh")
 async def refresh(data: RefreshRequest, service: AuthService = Depends(_service)):
     return await service.refresh(data.refresh_token)
 
@@ -50,7 +50,7 @@ async def recuperar_senha(data: RecuperarSenhaRequest, service: AuthService = De
     return {"success": True, "data": {"mensagem": "Se o e-mail estiver cadastrado, você receberá as instruções em breve."}}
 
 
-@router.post("/resetar-senha")
+@router.post("/redefinir-senha")
 async def resetar_senha(data: ResetarSenhaRequest, service: AuthService = Depends(_service)):
     await service.resetar_senha(data.token, data.nova_senha)
     return {"success": True, "data": {"mensagem": "Senha redefinida com sucesso. Faça login com a nova senha."}}
