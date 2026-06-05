@@ -11,10 +11,12 @@ class SuccessEnvelope(BaseModel, Generic[T]):
 
 
 class PaginatedMeta(BaseModel):
-    total: int
-    page: int
-    limit: int
+    total:       int
+    page:        int
+    limit:       int
     total_pages: int
+    has_next:    bool = False
+    has_prev:    bool = False
 
 
 class PaginatedEnvelope(BaseModel, Generic[T]):

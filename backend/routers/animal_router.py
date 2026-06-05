@@ -102,7 +102,11 @@ async def list_animals(
     total_pages = max(1, (total + limit - 1) // limit)
     return PaginatedEnvelope(
         data=items,
-        meta=PaginatedMeta(total=total, page=page, limit=limit, total_pages=total_pages),
+        meta=PaginatedMeta(
+            total=total, page=page, limit=limit, total_pages=total_pages,
+            has_next=page < total_pages,
+            has_prev=page > 1,
+        ),
     )
 
 
