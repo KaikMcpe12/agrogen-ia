@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Bell, ChevronDown, Moon, Sun, User, Menu, LogOut, Building2, Dna } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { useTheme } from "@/hooks/useTheme";
 import { useFazendaAtiva } from "@/hooks/useFazendaAtiva";
 import { AlertDrawer } from "./AlertDrawer";
-import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fazendasApi } from "@/lib/api/endpoints/fazendas";
+import { useAuth } from "@/hooks/useAuth";
 
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard" },
@@ -26,13 +26,13 @@ interface HeaderProps {
 export function Header({ alertCount = 0, onMenuToggle }: HeaderProps) {
   const { isDark, toggle } = useTheme();
   const { fazendaId, setFazendaId } = useFazendaAtiva();
+  const { logout } = useAuth();
   const qc = useQueryClient();
   const [alertDrawerOpen, setAlertDrawerOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [fazendaOpen, setFazendaOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
   const fazendaRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
   const { data: fazendasData } = useQuery({
     queryKey: ["fazendas", "list"],
@@ -64,13 +64,7 @@ export function Header({ alertCount = 0, onMenuToggle }: HeaderProps) {
     void qc.invalidateQueries({ queryKey: ["reprodutores"] });
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem(STORAGE_KEYS.token);
-    localStorage.removeItem(STORAGE_KEYS.fazendaAtivaId);
-    localStorage.removeItem(STORAGE_KEYS.refreshToken);
-    sessionStorage.removeItem(STORAGE_KEYS.token);
-    void navigate("/login");
-  };
+  const handleLogout = () => void logout();
 
   useEffect(() => {
     const handler = () => setAlertDrawerOpen(true);

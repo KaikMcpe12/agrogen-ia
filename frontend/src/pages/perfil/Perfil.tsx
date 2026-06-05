@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { User, Building2, Shield, LogOut, Pencil, Trash2, Plus, FileText, ExternalLink } from "lucide-react";
 import { Card } from "@/components/ui/Card";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { MaskedInput } from "@/components/ui/MaskedInput";
 import { authApi } from "@/lib/api/endpoints/auth";
 import { fazendasApi } from "@/lib/api/endpoints/fazendas";
-import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { useAuth } from "@/hooks/useAuth";
 import { Modal11FazendaForm } from "@/components/modals/Modal11FazendaForm";
 import { Modal14ExcluirConta } from "@/components/modals/Modal14ExcluirConta";
 import { Modal15AlterarSenha } from "@/components/modals/Modal15AlterarSenha";
@@ -238,7 +238,7 @@ function TabFazendas({ onboarding }: { onboarding: boolean }) {
 
 /* ── Aba Privacidade ───────────────────────────────────────────── */
 function TabPrivacidade({ email }: { email: string }) {
-  const navigate = useNavigate();
+  const { logout } = useAuth();
   const { toggle: toggleTheme, isDark } = useTheme();
   const [modal14, setModal14] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
@@ -257,9 +257,7 @@ function TabPrivacidade({ email }: { email: string }) {
   };
 
   const handleExcluirConta = async () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    void navigate("/login");
+    await logout();
   };
 
   return (
@@ -325,7 +323,7 @@ function TabPrivacidade({ email }: { email: string }) {
 
 /* ── Página principal ──────────────────────────────────────────── */
 export function PerfilPage() {
-  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [searchParams] = useSearchParams();
 
   const tabParam = searchParams.get("tab") as Tab | null;
@@ -337,13 +335,7 @@ export function PerfilPage() {
     queryFn: () => authApi.me(),
   });
 
-  const handleLogout = () => {
-    localStorage.removeItem(STORAGE_KEYS.token);
-    localStorage.removeItem(STORAGE_KEYS.fazendaAtivaId);
-    localStorage.removeItem(STORAGE_KEYS.refreshToken);
-    sessionStorage.removeItem(STORAGE_KEYS.token);
-    void navigate("/login");
-  };
+  const handleLogout = () => void logout();
 
   const tabs: { id: Tab; label: string; icon: typeof User }[] = [
     { id: "dados", label: "Dados Pessoais", icon: User },
