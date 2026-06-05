@@ -30,16 +30,20 @@ async def get_badge(
 # ALE-01 — listagem com filtros
 @router.get("")
 async def list_alertas(
-    animal_id:  Optional[UUID]           = None,
-    tipo:       Optional[TipoAlerta]      = None,
+    animal_id:  Optional[UUID]            = None,
+    fazenda_id: Optional[UUID]            = None,
+    tipo:       Optional[TipoAlerta]       = None,
     prioridade: Optional[PrioridadeAlerta] = None,
-    limit:      int                       = Query(20, ge=1, le=100),
-    offset:     int                       = Query(0, ge=0),
+    lido:       Optional[bool]             = None,
+    resolvido:  Optional[bool]             = None,
+    limit:      int                        = Query(20, ge=1, le=100),
+    offset:     int                        = Query(0, ge=0),
     current_user: User = Depends(get_current_user),
     service: AlertaService = Depends(get_service),
 ):
     items = await service.list_pendentes(
-        animal_id=animal_id, tipo=tipo, prioridade=prioridade,
+        animal_id=animal_id, fazenda_id=fazenda_id, tipo=tipo,
+        prioridade=prioridade, lido=lido, resolvido=resolvido,
         limit=limit, offset=offset,
     )
     total = len(items)
@@ -84,8 +88,8 @@ async def marcar_lido(
     return {"success": True, "data": await service.marcar_lido(alerta_id)}
 
 
-# ALE-04 — marcar como resolvido
-@router.patch("/{alerta_id}/resolvido")
+# ALE-04 — marcar como resolvido (ALE-03 no PDF)
+@router.patch("/{alerta_id}/resolver")
 async def marcar_resolvido(
     alerta_id: UUID,
     current_user: User = Depends(get_current_user),

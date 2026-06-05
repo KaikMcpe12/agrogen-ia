@@ -15,14 +15,18 @@ class AlertaService:
 
     async def list_pendentes(
         self,
-        animal_id:  Optional[UUID]           = None,
-        tipo:       Optional[TipoAlerta]      = None,
+        animal_id:  Optional[UUID]            = None,
+        fazenda_id: Optional[UUID]            = None,
+        tipo:       Optional[TipoAlerta]       = None,
         prioridade: Optional[PrioridadeAlerta] = None,
-        limit:      int                       = 20,
-        offset:     int                       = 0,
+        lido:       Optional[bool]             = None,
+        resolvido:  Optional[bool]             = None,
+        limit:      int                        = 20,
+        offset:     int                        = 0,
     ) -> list[dict]:
         return await self.repo.list_pendentes(
-            animal_id=animal_id, tipo=tipo, prioridade=prioridade,
+            animal_id=animal_id, fazenda_id=fazenda_id, tipo=tipo,
+            prioridade=prioridade, lido=lido, resolvido=resolvido,
             limit=limit, offset=offset,
         )
 

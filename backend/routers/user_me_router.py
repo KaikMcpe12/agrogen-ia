@@ -109,7 +109,7 @@ async def update_me(
     return {"success": True, "data": {"usuario_id": str(current_user.usuario_id), "nome": current_user.nome, "updated_at": current_user.updated_at.isoformat()}}
 
 
-@router.post("/me/exportacao-lgpd")
+@router.get("/me/dados")
 async def exportacao_lgpd(
     formato: str = Query("json", pattern="^(json|csv)$"),
     current_user: User = Depends(get_current_user),

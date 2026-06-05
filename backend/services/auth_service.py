@@ -148,6 +148,11 @@ class AuthService:
     # ── Helpers ───────────────────────────────────────────────────────────────
 
     async def _emitir_tokens(self, user: User) -> dict:
+        from repositories.fazenda_repository import FazendaRepository
+        fazenda_repo = FazendaRepository(self.session)
+        fazendas = await fazenda_repo.list_all(usuario_id=user.usuario_id, limit=1)
+        fazenda_ativa_id = str(fazendas[0].fazenda_id) if fazendas else None
+
         payload = {
             "sub": str(user.usuario_id),
             "email": user.email,
@@ -168,5 +173,6 @@ class AuthService:
                 "nome": user.nome,
                 "email": user.email,
                 "perfil": user.perfil.value,
+                "fazenda_ativa_id": fazenda_ativa_id,
             },
         }
