@@ -77,7 +77,9 @@ async def get_me(
         ultimo_acesso=current_user.ultimo_acesso,
         created_at=current_user.created_at,
     )
-    return {"success": True, "data": data.model_dump()}
+    payload = data.model_dump()
+    payload["id"] = str(current_user.usuario_id)
+    return {"success": True, "data": payload}
 
 
 @router.patch("/me")
