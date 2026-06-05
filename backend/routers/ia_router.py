@@ -7,6 +7,7 @@ from core.database import get_db
 from core.deps import get_current_user
 from models.user_model import User
 from services.predicao_service import PredicaoService
+from services.padroes_service import PadroesService
 from schemas.predicao_schema import PredicaoRequest, PredicaoResponse
 from models.enums import EspecieAnimal
 
@@ -44,7 +45,6 @@ async def padroes_fertilidade(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
-    from services.padroes_service import PadroesService
     from datetime import date, timedelta
     data_fim    = date.today()
     data_inicio = data_fim - timedelta(days=meses * 30)

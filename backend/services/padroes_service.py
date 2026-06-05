@@ -1,7 +1,6 @@
 from datetime import date
 from typing import Optional
 
-from fastapi import HTTPException, status
 from sqlalchemy import select, func, extract, and_, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -50,10 +49,18 @@ class PadroesService:
         total = (await self.session.execute(total_stmt)).scalar_one()
 
         if total < _MIN_INSEMINACOES:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Dados insuficientes: {total} inseminação(ões) com resultado (mínimo {_MIN_INSEMINACOES}).",
-            )
+            return {
+                "success": True,
+                "data": {
+                    "por_mes":    [],
+                    "por_raca":   [],
+                    "por_tecnico": [],
+                    "insights":   [],
+                    "total_registros": total,
+                    "minimo_inseminacoes_atingido": False,
+                    "mensagem": f"Dados insuficientes: {total} inseminação(ões) com diagnóstico registrado. Mínimo necessário: {_MIN_INSEMINACOES}.",
+                }
+            }
 
         # Por mês
         por_mes = await self._taxa_por_mes(filtros_ins, filtros_diag)
