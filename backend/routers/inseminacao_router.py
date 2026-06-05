@@ -9,7 +9,7 @@ from core.deps import get_current_user
 from models.user_model import User
 from services.inseminacao_service import InseminacaoService
 from schemas.inseminacao_schema import InseminacaoCreate, InseminacaoUpdate, InseminacaoResponse, DiagnosticoViaInseminacaoCreate
-from schemas.common import PaginatedEnvelope, PaginatedMeta
+from schemas.common import PaginatedMeta
 from models.enums import ResultadoInseminacao
 
 router = APIRouter(prefix="/inseminacoes", tags=["Inseminações"])
@@ -31,27 +31,32 @@ async def list_pendentes_diagnostico(
 
 
 # INS-01
-@router.get("", response_model=PaginatedEnvelope[InseminacaoResponse])
+@router.get("")
 async def list_inseminacoes(
-    animal_id:   Optional[UUID]               = None,
-    tecnico_id:  Optional[UUID]               = None,
+    animal_id:   Optional[UUID]                = None,
+    tecnico_id:  Optional[UUID]                = None,
     resultado:   Optional[ResultadoInseminacao] = None,
-    data_inicio: Optional[date]               = None,
-    data_fim:    Optional[date]               = None,
-    page:        int                          = Query(1, ge=1),
-    limit:       int                          = Query(20, ge=1, le=100),
+    data_inicio: Optional[date]                = None,
+    data_fim:    Optional[date]                = None,
+    page:        int                           = Query(1, ge=1),
+    limit:       int                           = Query(20, ge=1, le=100),
     service: InseminacaoService = Depends(get_service),
 ):
     offset = (page - 1) * limit
-    items, total = await service.list_all(
+    items, total = await service.list_all_enriched(
         animal_id=animal_id, tecnico_id=tecnico_id, resultado=resultado,
         data_inicio=data_inicio, data_fim=data_fim, limit=limit, offset=offset,
     )
     total_pages = max(1, (total + limit - 1) // limit)
-    return PaginatedEnvelope(
-        data=items,
-        meta=PaginatedMeta(total=total, page=page, limit=limit, total_pages=total_pages),
-    )
+    return {
+        "success": True,
+        "data": items,
+        "meta": PaginatedMeta(
+            total=total, page=page, limit=limit, total_pages=total_pages,
+            has_next=page < total_pages,
+            has_prev=page > 1,
+        ),
+    }
 
 
 # INS-02
@@ -73,7 +78,7 @@ async def get_inseminacao(
     inseminacao_id: UUID,
     service: InseminacaoService = Depends(get_service),
 ):
-    return {"success": True, "data": await service.get_by_id(inseminacao_id)}
+    return {"success": True, "data": await service.get_by_id_enriched(inseminacao_id)}
 
 
 # INS-04b
