@@ -98,7 +98,7 @@ class AuthService:
 
     # ── Refresh Token — requer tb_refresh_tokens ──────────────────────────────
 
-    async def refresh(self, refresh_token: str) -> TokenResponse:
+    async def refresh(self, refresh_token: str) -> dict:
         if not _REFRESH_DB_ENABLED:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
