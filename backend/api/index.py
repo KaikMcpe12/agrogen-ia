@@ -17,7 +17,7 @@ from routers import (
 from routers.auth_router import router as auth_router
 from routers.user_me_router import router as user_me_router
 
-API_V1 = "/api/v1"
+API_V1 = ""
 
 
 @asynccontextmanager
