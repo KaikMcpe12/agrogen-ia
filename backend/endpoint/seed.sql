@@ -323,9 +323,9 @@ BEGIN
       WHEN 1 THEN 'PALPACAO_RETAL'
       ELSE 'EXAME_LABORATORIAL'
     END::metodo_diagnostico,
-    ins.resultado::resultado_diagnostico,
-    CASE WHEN ins.resultado = 'PRENHA' THEN 30 + (ROW_NUMBER() OVER () % 60)::INT ELSE NULL END,
-    CASE WHEN ins.resultado = 'PRENHA' THEN
+    ins.resultado::TEXT::resultado_diagnostico,
+    CASE WHEN ins.resultado::TEXT = 'PRENHA' THEN 30 + (ROW_NUMBER() OVER () % 60)::INT ELSE NULL END,
+    CASE WHEN ins.resultado::TEXT = 'PRENHA' THEN
       ins.data_inseminacao::DATE + (
         CASE
           WHEN a.especie = 'BOVINO' THEN 283
@@ -336,7 +336,7 @@ BEGIN
     vet_ids[(ROW_NUMBER() OVER () % 3 + 1)::INT]
   FROM inseminacoes ins
   JOIN animais a ON a.animal_id = ins.animal_id
-  WHERE ins.resultado IN ('PRENHA', 'VAZIA')
+  WHERE ins.resultado::TEXT IN ('PRENHA', 'VAZIA')
   LIMIT 70;
 
   -- ============================================================
