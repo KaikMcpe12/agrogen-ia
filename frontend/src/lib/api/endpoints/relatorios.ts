@@ -1,5 +1,5 @@
 import client from "../client";
-import type { PaginatedResponse, ApiResponse } from "@/types";
+import type { PaginatedResponse } from "@/types";
 
 export interface RelatorioReprodutivoRow {
   animal_codigo: string;

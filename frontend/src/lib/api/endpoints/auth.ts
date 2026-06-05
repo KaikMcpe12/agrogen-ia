@@ -24,5 +24,5 @@ export const authApi = {
     client.patch<ApiResponse<{ id: string; nome: string; telefone: string }>>("/usuarios/me", body).then((r) => r.data),
 
   exportarDados: () =>
-    client.get<ApiResponse<{ usuario: unknown; animais_cadastrados: number; inseminacoes_registradas: number; export_gerado_em: string }>>("/usuarios/me/dados").then((r) => r.data),
+    client.get<ApiResponse<{ usuario: unknown; animais_cadastrados: number; inseminacoes_registradas: number; export_gerado_em: string; mensagem?: string }>>("/usuarios/me/dados").then((r) => r.data),
 };

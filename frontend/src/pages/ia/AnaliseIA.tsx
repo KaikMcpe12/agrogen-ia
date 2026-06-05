@@ -574,7 +574,7 @@ function TabSelecao() {
   const [resultado, setResultado] = useState<{ recomendacoes: unknown[] } | null>(null);
 
   const rodar = useMutation({
-    mutationFn: () => iaApi.selecaoGenetica({ criterios: criteriosSelecionados }),
+    mutationFn: () => iaApi.selecaoGenetica({ objetivos: criteriosSelecionados, matrizes_ids: [], reprodutores_ids: [] }),
     onSuccess: (data) => setResultado(data.data),
   });
 
