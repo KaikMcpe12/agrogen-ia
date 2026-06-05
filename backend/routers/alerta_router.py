@@ -54,6 +54,16 @@ async def list_alertas(
     }
 
 
+# ALE-02b — alias /contagem para compatibilidade com o frontend (antes de /{alerta_id})
+@router.get("/contagem")
+async def contagem(
+    current_user: User = Depends(get_current_user),
+    service: AlertaService = Depends(get_service),
+):
+    data = await service.get_badge()
+    return {"success": True, "data": data}
+
+
 # ALE-05 — detalhe
 @router.get("/{alerta_id}")
 async def get_alerta(

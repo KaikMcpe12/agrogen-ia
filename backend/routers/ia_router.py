@@ -9,7 +9,6 @@ from models.user_model import User
 from services.predicao_service import PredicaoService
 from schemas.predicao_schema import PredicaoRequest, PredicaoResponse
 from models.enums import EspecieAnimal
-from datetime import date
 
 router = APIRouter(prefix="/ia", tags=["Inteligência Artificial"])
 
@@ -40,12 +39,14 @@ async def historico_predicoes(
 
 @router.get("/padroes-fertilidade")
 async def padroes_fertilidade(
-    data_inicio: date,
-    data_fim:    date,
-    especie:     Optional[EspecieAnimal] = None,
+    especie: Optional[EspecieAnimal] = None,
+    meses:   int                     = Query(6, ge=1, le=24),
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
     from services.padroes_service import PadroesService
+    from datetime import date, timedelta
+    data_fim    = date.today()
+    data_inicio = data_fim - timedelta(days=meses * 30)
     svc = PadroesService(session)
     return await svc.padroes_fertilidade(data_inicio, data_fim, especie)
