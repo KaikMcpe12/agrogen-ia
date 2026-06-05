@@ -16,7 +16,7 @@ async def get_service(session: AsyncSession = Depends(get_db)) -> FazendaService
     return FazendaService(session)
 
 
-@router.post("/", response_model=FazendaResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=FazendaResponse, status_code=status.HTTP_201_CREATED)
 async def create_fazenda(
     data: FazendaCreate,
     current_user: User = Depends(get_current_user),
@@ -25,7 +25,7 @@ async def create_fazenda(
     return await service.create(data, usuario_id=current_user.usuario_id)
 
 
-@router.get("/", response_model=list[FazendaResponse])
+@router.get("", response_model=list[FazendaResponse])
 async def list_fazendas(
     estado:           Optional[str]  = None,
     incluir_inativos: bool = Query(False),

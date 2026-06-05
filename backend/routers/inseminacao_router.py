@@ -31,7 +31,7 @@ async def list_pendentes_diagnostico(
 
 
 # INS-01
-@router.get("/", response_model=PaginatedEnvelope[InseminacaoResponse])
+@router.get("", response_model=PaginatedEnvelope[InseminacaoResponse])
 async def list_inseminacoes(
     animal_id:   Optional[UUID]               = None,
     tecnico_id:  Optional[UUID]               = None,
@@ -55,7 +55,7 @@ async def list_inseminacoes(
 
 
 # INS-02
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_inseminacao(
     data: InseminacaoCreate,
     current_user: User = Depends(get_current_user),

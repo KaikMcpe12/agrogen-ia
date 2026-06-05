@@ -14,7 +14,7 @@ async def get_service(session: AsyncSession = Depends(get_db)) -> AnaliseIAServi
     return AnaliseIAService(session)
 
 
-@router.post("/", response_model=AnaliseIAResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=AnaliseIAResponse, status_code=status.HTTP_201_CREATED)
 async def create_analise(
     data: AnaliseIACreate,
     service: AnaliseIAService = Depends(get_service)
@@ -22,7 +22,7 @@ async def create_analise(
     return await service.create(data)
 
 
-@router.get("/", response_model=list[AnaliseIAResponse])
+@router.get("", response_model=list[AnaliseIAResponse])
 async def list_analises(
     animal_id:  Optional[UUID] = None,
     tecnico_id: Optional[UUID] = None,
