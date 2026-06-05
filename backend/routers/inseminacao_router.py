@@ -68,12 +68,12 @@ async def create_inseminacao(
 
 
 # INS-04a
-@router.get("/{inseminacao_id}", response_model=InseminacaoResponse)
+@router.get("/{inseminacao_id}")
 async def get_inseminacao(
     inseminacao_id: UUID,
     service: InseminacaoService = Depends(get_service),
 ):
-    return await service.get_by_id(inseminacao_id)
+    return {"success": True, "data": await service.get_by_id(inseminacao_id)}
 
 
 # INS-04b
