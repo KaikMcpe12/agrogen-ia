@@ -20,6 +20,8 @@ __pycache__/
 .venv/
 venv/
 ENV/
+.env.local
+.env
 
 # AgroGen IA — Dados e Modelos Gerados localmente
 ia/agrogen-ia-ml/data/cold_start_v1.csv
