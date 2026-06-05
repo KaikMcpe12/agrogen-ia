@@ -22,7 +22,7 @@ class PesagemCreate(BaseModel):
 
 
 class PesagemResponse(BaseModel):
-    pesagem_id:    UUID
+    id:            UUID = Field(..., validation_alias="pesagem_id")
     animal_id:     UUID
     data:          date
     peso_kg:       Decimal
@@ -31,4 +31,4 @@ class PesagemResponse(BaseModel):
     observacao:    Optional[str]
     created_at:    datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

@@ -42,7 +42,7 @@ class InseminacaoUpdate(BaseModel):
 
 
 class InseminacaoResponse(BaseModel):
-    inseminacao_id:            UUID
+    id:                        UUID = Field(..., validation_alias="inseminacao_id")
     animal_id:                 UUID
     reprodutor_id:             UUID
     tecnico_id:                UUID
@@ -61,7 +61,7 @@ class InseminacaoResponse(BaseModel):
     updated_at:                datetime
     warnings:                  list[str] = []
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class DiagnosticoViaInseminacaoCreate(BaseModel):

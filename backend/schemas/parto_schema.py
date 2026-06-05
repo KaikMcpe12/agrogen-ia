@@ -38,7 +38,7 @@ class PartoCreate(BaseModel):
 
 
 class PartoResponse(BaseModel):
-    parto_id:            UUID
+    id:                  UUID = Field(..., validation_alias="parto_id")
     animal_id:           UUID
     inseminacao_id:      Optional[UUID]
     data_parto:          date
@@ -52,4 +52,4 @@ class PartoResponse(BaseModel):
     created_at:          datetime
     iep_dias:            Optional[int] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

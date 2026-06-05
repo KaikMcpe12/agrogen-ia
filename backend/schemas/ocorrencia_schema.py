@@ -29,7 +29,7 @@ class OcorrenciaUpdate(BaseModel):
 
 
 class OcorrenciaResponse(BaseModel):
-    ocorrencia_id: UUID
+    id:            UUID = Field(..., validation_alias="ocorrencia_id")
     animal_id:     UUID
     data:          date
     categoria:     CategoriaOcorrencia
@@ -40,4 +40,4 @@ class OcorrenciaResponse(BaseModel):
     created_at:    datetime
     alerta_criado: Optional[dict] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

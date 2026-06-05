@@ -61,10 +61,10 @@ class FazendaUpdate(BaseModel):
 
 
 class FazendaResponse(FazendaBase):
-    fazenda_id: UUID
+    id:         UUID = Field(..., validation_alias="fazenda_id")
     usuario_id: UUID
     ativo:      bool
     created_at: datetime
     updated_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
