@@ -196,14 +196,15 @@ class InseminacaoRepository(BaseRepository[InseminacaoModel]):
 
     async def list_pendentes_diagnostico(
         self,
-        animal_id: Optional[UUID] = None,
-        dias_minimos: int = 0,
-    ) -> list[InseminacaoModel]:
+        animal_id:    Optional[UUID] = None,
+        dias_minimos: int            = 0,
+    ) -> list[dict]:
         from models.diagnostico_model import DiagnosticoModel
         from datetime import datetime, timedelta, timezone
 
-        corte = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=dias_minimos)
-        sub = select(DiagnosticoModel.inseminacao_id)
+        agora = datetime.now(timezone.utc).replace(tzinfo=None)
+        corte = agora - timedelta(days=dias_minimos)
+        sub   = select(DiagnosticoModel.inseminacao_id)
 
         filtros = [
             InseminacaoModel.resultado == ResultadoInseminacao.PENDENTE,
@@ -213,13 +214,38 @@ class InseminacaoRepository(BaseRepository[InseminacaoModel]):
         if animal_id:
             filtros.append(InseminacaoModel.animal_id == animal_id)
 
-        stmt = (
-            select(InseminacaoModel)
+        rows = (await self.session.execute(
+            select(
+                InseminacaoModel,
+                AnimalModel.codigo.label("animal_codigo"),
+                AnimalModel.nome.label("animal_nome"),
+                AnimalModel.especie.label("animal_especie"),
+            )
+            .join(AnimalModel, AnimalModel.animal_id == InseminacaoModel.animal_id)
             .where(and_(*filtros))
             .order_by(InseminacaoModel.data_inseminacao.asc())
-        )
-        result = await self.session.execute(stmt)
-        return list(result.scalars().all())
+        )).all()
+
+        items = []
+        for row in rows:
+            ins = row.InseminacaoModel
+            data_ins = ins.data_inseminacao.replace(tzinfo=None) if ins.data_inseminacao else agora
+            items.append({
+                "id":               str(ins.inseminacao_id),
+                "animal": {
+                    "id":     str(ins.animal_id),
+                    "codigo": row.animal_codigo,
+                    "nome":   row.animal_nome,
+                    "especie": row.animal_especie.value,
+                },
+                "data_inseminacao":          ins.data_inseminacao.isoformat(),
+                "tipo":                      ins.tipo.value,
+                "resultado":                 ins.resultado.value,
+                "dias_decorridos":           (agora - data_ins).days,
+                "condicao_corporal_momento": ins.condicao_corporal_momento,
+                "diagnostico":               None,
+            })
+        return items
 
     async def update(self, inseminacao_id: UUID, data: dict) -> Optional[InseminacaoModel]:
         obj = await self.get_by_id(inseminacao_id)
