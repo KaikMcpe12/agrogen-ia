@@ -57,6 +57,10 @@ class PredicaoService:
         if not animal:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Animal não encontrado.")
 
+        cc_atual = schema.condicao_corporal_atual
+        if cc_atual is None:
+            cc_atual = int(animal.condicao_corporal) if animal.condicao_corporal else 3
+
         gen = await self.gen_repo.get_by_animal_id(animal.animal_id)
         ultima_ins, _ = await self.ins_repo.list_all(animal_id=animal.animal_id, limit=1)
 
@@ -91,7 +95,7 @@ class PredicaoService:
 
         features = {
             "especie":                      animal.especie.value,
-            "condicao_corporal":            float(schema.condicao_corporal_atual),
+            "condicao_corporal":            float(cc_atual),
             "intervalo_pos_parto_dias":     dias_pos_parto,
             "num_partos_anteriores":        animal.num_partos,
             "historico_taxa_prenhez":       hist_taxa,

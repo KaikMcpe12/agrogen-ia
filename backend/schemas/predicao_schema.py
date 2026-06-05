@@ -7,7 +7,7 @@ from typing import Optional
 
 class PredicaoRequest(BaseModel):
     animal_id:               UUID
-    condicao_corporal_atual: int               = Field(..., ge=1, le=5)
+    condicao_corporal_atual: Optional[int]     = Field(None, ge=1, le=5)
     temperatura_ambiente_c:  Optional[Decimal] = None
     reprodutor_candidato_id: Optional[UUID]    = None
     tecnico_id:              Optional[UUID]    = None
