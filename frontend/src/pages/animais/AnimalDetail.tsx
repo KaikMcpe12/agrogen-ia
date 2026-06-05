@@ -20,6 +20,9 @@ import { Modal10DeleteConfirm } from "@/components/modals/Modal10DeleteConfirm";
 import { formatDate } from "@/lib/utils";
 import type { Animal, StatusAnimal, Especie, ResultadoInseminacao } from "@/types";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isValidUUID = (v?: string) => !!v && UUID_RE.test(v);
+
 const ESPECIE_LABELS: Record<Especie, string> = { BOVINO: "🐄 Bovino", OVINO: "🐑 Ovino", CAPRINO: "🐐 Caprino" };
 const STATUS_VARIANT: Record<StatusAnimal, "ok" | "info" | "ghost" | "danger" | "bovino" | "warn"> = {
   ATIVA: "ok", PRENHA: "info", EM_REPOUSO: "warn", DESCARTADA: "danger",
@@ -350,13 +353,13 @@ export function AnimalDetailPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["animais", "detail", id],
     queryFn: ({ signal }) => animaisApi.buscar(id!, signal),
-    enabled: !!id,
+    enabled: isValidUUID(id),
   });
 
   const { data: repData } = useQuery({
     queryKey: ["reprodutores", "list", { animal_id: id }],
-    queryFn: ({ signal }) => reprodutoresApi.listar(id ? { animal_id: id } : {}, signal),
-    enabled: !!id,
+    queryFn: ({ signal }) => reprodutoresApi.listar({ animal_id: id! }, signal),
+    enabled: isValidUUID(id),
   });
   const reprodutorVinculado = repData?.data.find((r) => r.ativo);
 

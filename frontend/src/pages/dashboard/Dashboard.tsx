@@ -184,7 +184,7 @@ function TimelineSection({ items }: { items: TimelineItem[] }) {
             <button
               key={item.id}
               className="flex gap-3 items-start text-left hover:bg-beige/50 rounded-[8px] p-1 -m-1 transition-colors"
-              onClick={() => void navigate(`/animais/${item.animal.id}`)}
+              onClick={() => item.animal?.id && void navigate(`/animais/${item.animal.id}`)}
             >
               <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${colorCls}`}>
                 <Icon size={14} />
