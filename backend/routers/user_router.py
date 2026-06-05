@@ -15,7 +15,7 @@ async def get_service(session: AsyncSession = Depends(get_db)) -> UserService:
     return UserService(session)
 
 
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(
     data: UserCreate,
     service: UserService = Depends(get_service)
@@ -23,7 +23,7 @@ async def create_user(
     return await service.create(data)
 
 
-@router.get("/", response_model=list[UserResponse])
+@router.get("", response_model=list[UserResponse])
 async def list_users(
     perfil: Optional[Perfil] = None,
     incluir_inativos: bool = Query(False),

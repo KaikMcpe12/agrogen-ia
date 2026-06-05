@@ -15,7 +15,7 @@ async def get_service(session: AsyncSession = Depends(get_db)) -> DiagnosticoSer
     return DiagnosticoService(session)
 
 
-@router.post("/", response_model=DiagnosticoResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=DiagnosticoResponse, status_code=status.HTTP_201_CREATED)
 async def create_diagnostico(
     data: DiagnosticoCreate,
     service: DiagnosticoService = Depends(get_service)
@@ -23,7 +23,7 @@ async def create_diagnostico(
     return await service.create(data)
 
 
-@router.get("/", response_model=list[DiagnosticoResponse])
+@router.get("", response_model=list[DiagnosticoResponse])
 async def list_diagnosticos(
     animal_id:  Optional[UUID]               = None,
     resultado:  Optional[ResultadoDiagnostico] = None,

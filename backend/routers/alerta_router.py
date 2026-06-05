@@ -28,7 +28,7 @@ async def get_badge(
 
 
 # ALE-01 — listagem com filtros
-@router.get("/")
+@router.get("")
 async def list_alertas(
     animal_id:  Optional[UUID]           = None,
     tipo:       Optional[TipoAlerta]      = None,

@@ -15,7 +15,7 @@ async def get_service(session: AsyncSession = Depends(get_db)) -> ReproductorSer
     return ReproductorService(session)
 
 
-@router.get("/", response_model=list[ReproductorResponse])
+@router.get("", response_model=list[ReproductorResponse])
 async def list_reprodutores(
     especie:       Optional[EspecieAnimal]  = None,
     tipo:          Optional[TipoReprodutor] = None,
@@ -35,7 +35,7 @@ async def list_reprodutores(
     )
 
 
-@router.post("/", response_model=ReproductorResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ReproductorResponse, status_code=status.HTTP_201_CREATED)
 async def create_reprodutor(
     data: ReproductorCreate,
     service: ReproductorService = Depends(get_service),

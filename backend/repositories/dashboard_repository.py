@@ -142,10 +142,11 @@ class DashboardRepository:
             .order_by("ano", "mes")
         )).all()
 
+        _MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]
         result = []
         for r in rows:
             result.append({
-                "mes":          f"{int(r.mes):02d}/{str(int(r.ano))[2:]}",
+                "mes":          f"{_MESES[int(r.mes) - 1]}/{str(int(r.ano))[2:]}",
                 "inseminacoes": int(r.ins),
                 "taxa_prenhez": round(((r.pre or 0) / r.diag) * 100, 1) if r.diag else 0,
             })

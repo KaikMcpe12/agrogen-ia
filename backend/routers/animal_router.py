@@ -70,7 +70,7 @@ async def list_racas(especie: Optional[EspecieAnimal] = None):
 
 # ── ANI-01: listagem com filtros avançados e paginação ────────────────────────
 
-@router.get("/", response_model=PaginatedEnvelope[AnimalResponse])
+@router.get("", response_model=PaginatedEnvelope[AnimalResponse])
 async def list_animals(
     fazenda_id:       Optional[UUID]         = None,
     especie:          Optional[EspecieAnimal] = None,
@@ -108,7 +108,7 @@ async def list_animals(
 
 # ── ANI-02: criação ───────────────────────────────────────────────────────────
 
-@router.post("/", response_model=AnimalResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=AnimalResponse, status_code=status.HTTP_201_CREATED)
 async def create_animal(
     animal_in: AnimalCreate,
     service: AnimalService = Depends(get_service),
