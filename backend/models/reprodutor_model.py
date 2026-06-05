@@ -4,7 +4,6 @@ from uuid import UUID, uuid4
 from sqlalchemy import String, Numeric, Boolean, DateTime, text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, ENUM as PG_ENUM
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql import func
 
 from models.base import Base
 from models.enums import EspecieAnimal, TipoReprodutor
@@ -26,4 +25,3 @@ class ReproductorModel(Base):
     dep_acuracia:     Mapped[Decimal | None]  = mapped_column(Numeric(4, 3), nullable=True)
     ativo:            Mapped[bool]            = mapped_column(Boolean, nullable=False, default=True, server_default="true")
     created_at:       Mapped[datetime]        = mapped_column(DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
-    updated_at:       Mapped[datetime]        = mapped_column(DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP"), onupdate=func.now())
