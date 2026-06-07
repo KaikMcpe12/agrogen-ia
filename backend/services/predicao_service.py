@@ -62,11 +62,15 @@ class PredicaoService:
             cc_atual = int(animal.condicao_corporal) if animal.condicao_corporal else 3
 
         gen = await self.gen_repo.get_by_animal_id(animal.animal_id)
-        ultima_ins, _ = await self.ins_repo.list_all(animal_id=animal.animal_id, limit=1)
+        ultima_ins, total_ins = await self.ins_repo.list_all(animal_id=animal.animal_id, limit=1)
 
-        # Calcula histórico de taxa de prenhez
-        todas_ins, total_ins = await self.ins_repo.list_all(animal_id=animal.animal_id, limit=500)
-        prenhezes = sum(1 for i in todas_ins if i.resultado.value == "PRENHA")
+        # Calcula histórico de taxa de prenhez via COUNT SQL (evita carregar todos os registros)
+        from models.enums import ResultadoInseminacao
+        _, prenhezes = await self.ins_repo.list_all(
+            animal_id=animal.animal_id,
+            resultado=ResultadoInseminacao.PRENHA,
+            limit=1,
+        )
         hist_taxa = (prenhezes / total_ins) if total_ins > 0 else None
 
         # Monta features
@@ -99,7 +103,8 @@ class PredicaoService:
             "intervalo_pos_parto_dias":     dias_pos_parto,
             "num_partos_anteriores":        animal.num_partos,
             "historico_taxa_prenhez":       hist_taxa,
-            "dias_desde_ultima_inseminacao": dias_ultima_ins,
+            "ciclos_sem_concepcao":         ultima_ins[0].ciclos_sem_concepcao if ultima_ins else 0,
+            "dias_desde_ultima_ins":        dias_ultima_ins,
             "tipo_inseminacao":             schema.tipo_inseminacao.value if schema.tipo_inseminacao else (ultima_ins[0].tipo.value if ultima_ins else None),
             "temperatura_ambiente_c":       float(schema.temperatura_ambiente_c) if schema.temperatura_ambiente_c else None,
             "raca_femea":                   animal.raca_principal,
