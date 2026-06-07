@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from fastapi import APIRouter, Depends, Query
 from uuid import UUID
 from typing import Optional
@@ -41,13 +42,15 @@ async def historico_predicoes(
 
 @router.get("/padroes-fertilidade")
 async def padroes_fertilidade(
-    especie: Optional[EspecieAnimal] = None,
-    meses:   int                     = Query(6, ge=1, le=24),
+    fazenda_id:  Optional[UUID]         = None,
+    data_inicio: Optional[date]         = None,
+    data_fim:    Optional[date]         = None,
+    especie:     Optional[EspecieAnimal] = None,
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
-    from datetime import date, timedelta
-    data_fim    = date.today()
-    data_inicio = data_fim - timedelta(days=meses * 30)
+    hoje = date.today()
+    fim   = data_fim    or hoje
+    inicio = data_inicio or (fim - timedelta(days=180))
     svc = PadroesService(session)
-    return await svc.padroes_fertilidade(data_inicio, data_fim, especie)
+    return await svc.padroes_fertilidade(inicio, fim, especie, fazenda_id)

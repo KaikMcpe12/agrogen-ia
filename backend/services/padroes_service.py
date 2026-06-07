@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Optional
+from uuid import UUID
 
 from sqlalchemy import select, func, extract, and_, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.inseminacao_model import InseminacaoModel
 from models.diagnostico_model import DiagnosticoModel
 from models.animal_model import AnimalModel
+from models.reprodutor_model import ReproductorModel
+from models.protocolo_hormonal_model import ProtocoloHormonalModel
 from models.enums import EspecieAnimal, ResultadoDiagnostico
 
 _MIN_INSEMINACOES = 20
@@ -21,8 +24,8 @@ class PadroesService:
         data_inicio: date,
         data_fim:    date,
         especie:     Optional[EspecieAnimal] = None,
+        fazenda_id:  Optional[UUID]          = None,
     ) -> dict:
-        # Base: inseminações no período com diagnóstico conclusivo
         filtros_ins = [
             InseminacaoModel.data_inseminacao >= data_inicio,
             InseminacaoModel.data_inseminacao <= data_fim,
@@ -31,15 +34,18 @@ class PadroesService:
             ResultadoDiagnostico.PRENHA, ResultadoDiagnostico.VAZIA
         ])]
 
-        if especie:
-            # JOIN para filtrar por espécie
+        if especie or fazenda_id:
+            animal_filters = []
+            if especie:
+                animal_filters.append(AnimalModel.especie == especie)
+            if fazenda_id:
+                animal_filters.append(AnimalModel.fazenda_id == fazenda_id)
             filtros_ins.append(
                 InseminacaoModel.animal_id.in_(
-                    select(AnimalModel.animal_id).where(AnimalModel.especie == especie)
+                    select(AnimalModel.animal_id).where(and_(*animal_filters))
                 )
             )
 
-        # COUNT total de inseminações com diagnóstico no período
         total_stmt = (
             select(func.count())
             .select_from(InseminacaoModel)
@@ -52,34 +58,35 @@ class PadroesService:
             return {
                 "success": True,
                 "data": {
-                    "por_mes":    [],
-                    "por_raca":   [],
-                    "por_tecnico": [],
-                    "insights":   [],
+                    "por_mes":       [],
+                    "por_raca":      [],
+                    "por_tecnico":   [],
+                    "por_protocolo": [],
+                    "top_reprodutores": [],
+                    "insights":      [],
                     "total_registros": total,
                     "minimo_inseminacoes_atingido": False,
                     "mensagem": f"Dados insuficientes: {total} inseminação(ões) com diagnóstico registrado. Mínimo necessário: {_MIN_INSEMINACOES}.",
                 }
             }
 
-        # Por mês
-        por_mes = await self._taxa_por_mes(filtros_ins, filtros_diag)
-        # Por raça
-        por_raca = await self._taxa_por_raca(filtros_ins, filtros_diag)
-        # Por técnico
-        por_tecnico = await self._taxa_por_tecnico(filtros_ins, filtros_diag)
-
-        # Insight textual simples baseado em dados
-        insights = self._gerar_insights(por_mes, por_raca, por_tecnico)
+        por_mes          = await self._taxa_por_mes(filtros_ins, filtros_diag)
+        por_raca         = await self._taxa_por_raca(filtros_ins, filtros_diag)
+        por_tecnico      = await self._taxa_por_tecnico(filtros_ins, filtros_diag)
+        por_protocolo    = await self._taxa_por_protocolo(filtros_ins, filtros_diag)
+        top_reprodutores = await self._top_reprodutores(filtros_ins, filtros_diag)
+        insights         = self._gerar_insights(por_mes, por_raca, por_tecnico)
 
         return {
             "success": True,
             "data": {
-                "por_mes":   por_mes,
-                "por_raca":  por_raca,
-                "por_tecnico": por_tecnico,
-                "insights":  insights,
-                "total_registros": total,
+                "por_mes":          por_mes,
+                "por_raca":         por_raca,
+                "por_tecnico":      por_tecnico,
+                "por_protocolo":    por_protocolo,
+                "top_reprodutores": top_reprodutores,
+                "insights":         insights,
+                "total_registros":  total,
                 "minimo_inseminacoes_atingido": True,
             }
         }
@@ -157,6 +164,53 @@ class PadroesService:
         rows = (await self.session.execute(stmt)).all()
         return [
             {"tecnico_nome": r.tecnico_nome, "inseminacoes": r.inseminacoes, "taxa": round((r.prenhezes or 0) / r.inseminacoes, 3)}
+            for r in rows if r.inseminacoes
+        ]
+
+    async def _taxa_por_protocolo(self, filtros_ins, filtros_diag) -> list[dict]:
+        stmt = (
+            select(
+                ProtocoloHormonalModel.nome.label("protocolo"),
+                func.count().label("inseminacoes"),
+                func.sum(
+                    func.cast(DiagnosticoModel.resultado == ResultadoDiagnostico.PRENHA, Integer)
+                ).label("prenhezes"),
+            )
+            .select_from(InseminacaoModel)
+            .join(ProtocoloHormonalModel, ProtocoloHormonalModel.protocolo_id == InseminacaoModel.protocolo_id)
+            .join(DiagnosticoModel, DiagnosticoModel.inseminacao_id == InseminacaoModel.inseminacao_id)
+            .where(and_(*filtros_ins), *filtros_diag)
+            .group_by(ProtocoloHormonalModel.nome)
+            .order_by(func.count().desc())
+            .limit(10)
+        )
+        rows = (await self.session.execute(stmt)).all()
+        return [
+            {"protocolo": r.protocolo, "inseminacoes": r.inseminacoes, "taxa": round((r.prenhezes or 0) / r.inseminacoes, 3)}
+            for r in rows if r.inseminacoes
+        ]
+
+    async def _top_reprodutores(self, filtros_ins, filtros_diag) -> list[dict]:
+        stmt = (
+            select(
+                ReproductorModel.reprodutor_id,
+                ReproductorModel.nome.label("nome"),
+                func.count().label("inseminacoes"),
+                func.sum(
+                    func.cast(DiagnosticoModel.resultado == ResultadoDiagnostico.PRENHA, Integer)
+                ).label("prenhezes"),
+            )
+            .select_from(InseminacaoModel)
+            .join(ReproductorModel, ReproductorModel.reprodutor_id == InseminacaoModel.reprodutor_id)
+            .join(DiagnosticoModel, DiagnosticoModel.inseminacao_id == InseminacaoModel.inseminacao_id)
+            .where(and_(*filtros_ins), *filtros_diag)
+            .group_by(ReproductorModel.reprodutor_id, ReproductorModel.nome)
+            .order_by(func.count().desc())
+            .limit(10)
+        )
+        rows = (await self.session.execute(stmt)).all()
+        return [
+            {"nome": r.nome, "inseminacoes": r.inseminacoes, "taxa_filhos": round((r.prenhezes or 0) / r.inseminacoes, 3)}
             for r in rows if r.inseminacoes
         ]
 
