@@ -29,8 +29,8 @@ export const alertasApi = {
     client.get<AlertasContagemResponse>("/alertas/contagem", { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   marcarLido: (id: string) =>
-    client.patch<ApiResponse<null>>(`/alertas/${id}/lido`).then((r) => r.data),
+    client.patch<ApiResponse<{ id: string; lido: boolean }>>(`/alertas/${id}/lido`, { lido: true }).then((r) => r.data),
 
   resolver: (id: string) =>
-    client.patch<ApiResponse<null>>(`/alertas/${id}/resolver`).then((r) => r.data),
+    client.patch<ApiResponse<{ id: string; resolvido: boolean; lido: boolean }>>(`/alertas/${id}/resolver`, { resolvido: true }).then((r) => r.data),
 };

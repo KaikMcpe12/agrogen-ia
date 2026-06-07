@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { useDeleteAnimal } from "@/lib/api/hooks/useDeleteAnimal";
 import { ArrowLeft, Syringe, Scale, BookOpen, Trash2, Pencil, Brain, Beef, ExternalLink } from "lucide-react";
 import { reprodutoresApi } from "@/lib/api/endpoints/reprodutores";
 import { Modal17PromoverReprodutor } from "@/components/modals/Modal17PromoverReprodutor";
@@ -340,7 +341,6 @@ function AlertsSection({ animalId }: { animalId: string }) {
 export function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const qc = useQueryClient();
 
   const [showEdit1, setShowEdit1] = useState(false);
   const [showEdit2, setShowEdit2] = useState(false);
@@ -363,13 +363,11 @@ export function AnimalDetailPage() {
   });
   const reprodutorVinculado = repData?.data.find((r) => r.ativo);
 
-  const deleteMutation = useMutation({
-    mutationFn: () => animaisApi.deletar(id!),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["animais", "list"] });
-      void navigate("/animais");
-    },
-  });
+  const deleteAnimalHook = useDeleteAnimal();
+  const deleteMutation = {
+    mutate: () => deleteAnimalHook.mutate(id!, { onSuccess: () => void navigate("/animais") }),
+    isPending: deleteAnimalHook.isPending,
+  };
 
   if (isLoading) {
     return (

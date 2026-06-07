@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, SlidersHorizontal, Eye, Trash2, Pencil, Syringe,
          ArrowUpDown, ArrowUp, ArrowDown, PawPrint, FilterX, FileUp, Dna, Loader2 } from "lucide-react";
@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { animaisApi } from "@/lib/api/endpoints/animais";
+import { dashboardApi } from "@/lib/api/endpoints/dashboard";
+import { useDeleteAnimal } from "@/lib/api/hooks/useDeleteAnimal";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Modal01NewAnimalStep1, type Step1Data } from "@/components/modals/Modal01NewAnimalStep1";
 import { Modal02NewAnimalStep2 } from "@/components/modals/Modal02NewAnimalStep2";
@@ -167,7 +169,6 @@ function AnimalCard({ animal, onView, onEdit, onInseminar, onDelete }: {
 
 export function AnimalListPage() {
   const navigate = useNavigate();
-  const qc = useQueryClient();
 
   const [q, setQ] = useState("");
   const [filters, setFilters] = useState<FiltersState>(loadFilters);
@@ -234,25 +235,22 @@ export function AnimalListPage() {
     placeholderData: (prev) => prev,
   });
 
-  // Contagens para chips (stale OK)
-  const { data: countsData } = useQuery({
-    queryKey: ["animais", "counts"],
-    queryFn: ({ signal }) => animaisApi.counts(signal),
-    staleTime: 2 * 60 * 1000,
+  // Contagens por espécie derivadas dos KPIs do dashboard (endpoint /animais/counts não documentado)
+  const { data: kpiData } = useQuery({
+    queryKey: ["dashboard", "kpis"],
+    queryFn: ({ signal }) => dashboardApi.kpis(undefined, signal),
+    staleTime: 5 * 60 * 1000,
   });
-  const counts = countsData?.data;
+  const especieCounts = kpiData?.data.total_animais.por_especie;
 
   const animais = data?.data ?? [];
   const meta = data?.meta;
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => animaisApi.deletar(id),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["animais", "list"] });
-      void qc.invalidateQueries({ queryKey: ["animais", "counts"] });
-      setDeleteAnimal(null);
-    },
-  });
+  const deleteMutation = useDeleteAnimal();
+  const handleDeleteConfirm = () => {
+    if (!deleteAnimal) return;
+    deleteMutation.mutate(deleteAnimal.id, { onSuccess: () => setDeleteAnimal(null) });
+  };
 
   // Ação "Registrar inseminação" com animal pré-selecionado (Adendo FLUXO-08 referência TELA-02)
   const handleInseminar = (animal: Animal) => {
@@ -321,10 +319,10 @@ export function AnimalListPage() {
       {/* Chips de espécie */}
       <div className="flex flex-wrap gap-2">
         {([
-          { key: "" as const, label: "Todos", count: counts?.total },
-          { key: "BOVINO" as Especie, label: "🐄 Bovino", count: counts?.bovino },
-          { key: "OVINO" as Especie, label: "🐑 Ovino", count: counts?.ovino },
-          { key: "CAPRINO" as Especie, label: "🐐 Caprino", count: counts?.caprino },
+          { key: "" as const, label: "Todos", count: meta?.total },
+          { key: "BOVINO" as Especie, label: "🐄 Bovino", count: especieCounts?.bovino },
+          { key: "OVINO" as Especie, label: "🐑 Ovino", count: especieCounts?.ovino },
+          { key: "CAPRINO" as Especie, label: "🐐 Caprino", count: especieCounts?.caprino },
         ] as { key: Especie | ""; label: string; count: number | undefined }[]).map(({ key, label, count }) => (
           <button
             key={key}
@@ -350,10 +348,10 @@ export function AnimalListPage() {
         {/* Chips de status */}
         {([
           { key: "" as const, label: "Todos os status" },
-          { key: "ATIVA" as StatusAnimal, label: "Ativa", count: counts?.ativa },
-          { key: "PRENHA" as StatusAnimal, label: "Prenha", count: counts?.prenha },
-          { key: "EM_REPOUSO" as StatusAnimal, label: "Em repouso", count: counts?.em_repouso },
-          { key: "DESCARTADA" as StatusAnimal, label: "Descartada", count: counts?.descartada },
+          { key: "ATIVA" as StatusAnimal, label: "Ativa" },
+          { key: "PRENHA" as StatusAnimal, label: "Prenha" },
+          { key: "EM_REPOUSO" as StatusAnimal, label: "Em repouso" },
+          { key: "DESCARTADA" as StatusAnimal, label: "Descartada" },
         ] as { key: StatusAnimal | ""; label: string; count?: number }[]).map(({ key, label, count }) => (
           <button
             key={key}
@@ -531,10 +529,7 @@ export function AnimalListPage() {
         open={!!deleteAnimal}
         onClose={() => setDeleteAnimal(null)}
         itemName={deleteAnimal?.nome ?? ""}
-        onConfirm={() => {
-          const id = deleteAnimal?.id;
-          if (id) deleteMutation.mutate(id);
-        }}
+        onConfirm={handleDeleteConfirm}
         loading={deleteMutation.isPending}
       />
     </div>

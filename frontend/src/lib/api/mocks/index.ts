@@ -72,20 +72,20 @@ export function setupMocks(client: AxiosInstance): void {
     return [200, { success: true, data: usuario }];
   });
 
-  mock.onPost("/usuarios/me/alterar-senha").reply(async () => {
-    await delay(300, 500);
-    return [200, { success: true, data: { mensagem: "Senha alterada com sucesso." } }];
-  });
-
-  mock.onPut("/usuarios/me").reply(async (config) => {
+  mock.onPatch("/usuarios/me").reply(async (config) => {
     await delay(300, 500);
     const body = config.data ? (JSON.parse(config.data as string) as Partial<typeof usuario>) : {};
     return [200, { success: true, data: { ...usuario, ...body } }];
   });
 
-  mock.onGet("/usuarios/me/exportar").reply(async () => {
+  mock.onGet("/usuarios/me/dados").reply(async () => {
     await delay(1000, 2000);
-    return [200, { success: true, data: { url: "/mock-export.json", mensagem: "Dados exportados com sucesso." } }];
+    return [200, { success: true, data: {
+      usuario,
+      animais_cadastrados: animais.length,
+      inseminacoes_registradas: inseminacoes.length,
+      export_gerado_em: new Date().toISOString(),
+    } }];
   });
 
   /* ── Fazendas ── */
@@ -178,26 +178,18 @@ export function setupMocks(client: AxiosInstance): void {
     return [200, { success: true, data: { inseminacoes: ins, pesagens: [], partos: [] } }];
   });
 
-  mock.onGet("/animais/counts").reply(async () => {
-    await delay(50, 150);
-    return [200, {
-      success: true,
-      data: {
-        total: animais.length,
-        bovino: animais.filter((a) => a.especie === "BOVINO").length,
-        ovino: animais.filter((a) => a.especie === "OVINO").length,
-        caprino: animais.filter((a) => a.especie === "CAPRINO").length,
-        ativa: animais.filter((a) => a.status === "ATIVA").length,
-        prenha: animais.filter((a) => a.status === "PRENHA").length,
-        em_repouso: animais.filter((a) => a.status === "EM_REPOUSO").length,
-        descartada: animais.filter((a) => a.status === "DESCARTADA").length,
-      },
-    }];
-  });
-
-  mock.onGet("/animais/racas").reply(async () => {
+  mock.onGet("/animais/racas").reply(async (config) => {
     await delay(100, 200);
-    return [200, { success: true, data: ["Nelore", "Angus", "Brahman", "Gir Leiteiro", "Dorper", "Santa Inês", "Boer", "Saanen"] }];
+    const especie = (config.params as Record<string, string> | undefined)?.["especie"];
+    const todas = {
+      BOVINO: ["Nelore", "Angus", "Brahman", "Gir Leiteiro", "Guzerá", "Tabapuã", "Simmental"],
+      OVINO: ["Santa Inês", "Morada Nova", "Dorper", "Suffolk", "Somalis Brasileira"],
+      CAPRINO: ["Saanen", "Anglo-nubiano", "Boer", "Moxotó", "Canindé"],
+    };
+    const data = especie && especie in todas
+      ? { [especie]: todas[especie as keyof typeof todas] }
+      : todas;
+    return [200, { success: true, data }];
   });
 
   mock.onPost("/animais").reply(async () => {
@@ -338,7 +330,9 @@ export function setupMocks(client: AxiosInstance): void {
     const pendentes = inseminacoes
       .filter((i) => i.resultado === "PENDENTE")
       .sort((a, b) => b.dias_decorridos - a.dias_decorridos);
-    return [200, { success: true, data: pendentes }];
+    const criticos = pendentes.filter((i) => i.dias_decorridos > 30).length;
+    const atencao = pendentes.filter((i) => i.dias_decorridos > 14 && i.dias_decorridos <= 30).length;
+    return [200, { success: true, data: pendentes, meta: { total: pendentes.length, criticos, atencao } }];
   });
 
   mock.onPost("/inseminacoes").reply(async () => {
@@ -401,7 +395,17 @@ export function setupMocks(client: AxiosInstance): void {
     await delay();
     const animalId = config.url?.split("/")[2] ?? "";
     const data = animalId === "ani-002" ? partosBOV0012 : [];
-    return [200, { success: true, data, meta: { page: 1, limit: 20, total: data.length, total_pages: 1, has_next: false, has_prev: false } }];
+    const total_partos = data.length;
+    const iep_medio_dias = total_partos > 1 ? 365 : 0;
+    const prolificidade_media = total_partos > 0
+      ? data.reduce((acc, p) => acc + p.num_crias_vivas, 0) / total_partos
+      : 0;
+    return [200, {
+      success: true,
+      data,
+      resumo: { total_partos, iep_medio_dias, prolificidade_media: Math.round(prolificidade_media * 10) / 10 },
+      meta: { page: 1, limit: 20, total: data.length, total_pages: 1, has_next: false, has_prev: false },
+    }];
   });
 
   mock.onPost(/\/diario\/[^/]+\/partos/).reply(async () => {
@@ -413,7 +417,18 @@ export function setupMocks(client: AxiosInstance): void {
     await delay();
     const animalId = config.url?.split("/")[2] ?? "";
     const data = animalId === "ani-002" ? sanitarioBOV0012 : [];
-    return [200, { success: true, data, meta: { page: 1, limit: 20, total: data.length, total_pages: 1, has_next: false, has_prev: false } }];
+    const hoje = new Date().toISOString().slice(0, 10);
+    const alertas_proxima_dose = data.filter((e) => {
+      if (!e.proxima_dose) return false;
+      const diff = (new Date(e.proxima_dose).getTime() - new Date(hoje).getTime()) / (1000 * 60 * 60 * 24);
+      return diff >= 0 && diff <= 7;
+    }).length;
+    return [200, {
+      success: true,
+      data,
+      alertas_proxima_dose,
+      meta: { page: 1, limit: 20, total: data.length, total_pages: 1, has_next: false, has_prev: false },
+    }];
   });
 
   mock.onPost(/\/diario\/[^/]+\/sanitario/).reply(async () => {
@@ -479,7 +494,14 @@ export function setupMocks(client: AxiosInstance): void {
     await delay();
     const params = config.params as Record<string, string> | undefined;
     const meses = Number(params?.["meses"] ?? 6);
-    return [200, { success: true, data: graficoReproductivo.slice(-meses) }];
+    const total = graficoReproductivo.labels.length;
+    const start = Math.max(0, total - meses);
+    return [200, { success: true, data: {
+      labels: graficoReproductivo.labels.slice(start),
+      inseminacoes: graficoReproductivo.inseminacoes.slice(start),
+      taxa_prenhez: graficoReproductivo.taxa_prenhez.slice(start),
+      periodo: graficoReproductivo.periodo,
+    } }];
   });
 
   mock.onGet("/dashboard/timeline").reply(async () => {
@@ -506,8 +528,24 @@ export function setupMocks(client: AxiosInstance): void {
         success: true,
         data: {
           recomendacoes: [
-            { matriz: "BOV-0001 Estrela", reprodutor: "Zeus Angus", score_genetico: 87, heterose_esperada: "12%", risco_endogamia: "0.02" },
-            { matriz: "BOV-0012 Mimosa", reprodutor: "Titan Nelore", score_genetico: 82, heterose_esperada: "8%", risco_endogamia: "0.03" },
+            {
+              matriz: { id: "ani-001", codigo: "BOV-0001", nome: "Estrela" },
+              reprodutor: { id: "rep-002", nome: "Zeus Angus" },
+              score_genetico: 0.87,
+              heterose_esperada_pct: 12.0,
+              risco_endogamia_f: 0.02,
+              alerta_consanguinidade: false,
+              justificativa: "Cruzamento Nelore × Angus maximiza ganho de peso com heterose positiva.",
+            },
+            {
+              matriz: { id: "ani-002", codigo: "BOV-0012", nome: "Mimosa" },
+              reprodutor: { id: "rep-001", nome: "Titan Nelore" },
+              score_genetico: 0.82,
+              heterose_esperada_pct: 8.0,
+              risco_endogamia_f: 0.03,
+              alerta_consanguinidade: false,
+              justificativa: "Alta compatibilidade genética com baixo risco de endogamia.",
+            },
           ],
         },
       },
@@ -520,8 +558,30 @@ export function setupMocks(client: AxiosInstance): void {
     return [200, { success: true, data: relatorioReproductivo, meta: { page: 1, limit: 20, total: relatorioReproductivo.length, total_pages: 1, has_next: false, has_prev: false } }];
   });
 
-  mock.onGet("/relatorios/reprodutivo/exportar").reply(async () => {
-    await delay(3000, 4000);
-    return [200, { success: true, data: { url: "/mock-report.pdf" } }];
+  mock.onGet("/relatorios/ponderal").reply(async () => {
+    await delay();
+    return [200, { success: true, data: [
+      { animal_codigo: "BOV-0012", nome: "Mimosa", ultima_pesagem_kg: 420.0, gmd_periodo: 0.285, num_pesagens: 6 },
+      { animal_codigo: "OVI-0007", nome: "Branca", ultima_pesagem_kg: 34.8, gmd_periodo: 0.12, num_pesagens: 4 },
+    ], meta: { page: 1, limit: 50, total: 2, total_pages: 1, has_next: false, has_prev: false } }];
+  });
+
+  mock.onGet("/relatorios/sanitario").reply(async () => {
+    await delay();
+    return [200, { success: true, data: [
+      { animal_codigo: "BOV-0012", tipo: "VACINA", produto: "Febre Aftosa", data_aplicacao: "2026-03-01", proxima_dose: "2026-09-01", responsavel: "José da Silva" },
+      { animal_codigo: "BOV-0012", tipo: "VERMIFUGACAO", produto: "Ivermectina 1%", data_aplicacao: "2026-06-05", proxima_dose: "2026-09-05", responsavel: "Maria Campos" },
+    ], meta: { page: 1, limit: 50, total: 2, total_pages: 1, has_next: false, has_prev: false } }];
+  });
+
+  mock.onPost("/animais/importar-csv").reply(async () => {
+    await delay(800, 1500);
+    return [200, { success: true, data: { total_linhas: 5, importados: 4, erros: 1, detalhes_erros: [{ linha: 3, erro: "Peso fora da faixa válida para Bovino: 1200 kg" }] } }];
+  });
+
+  mock.onGet(/\/diario\/[^/]+\/exportar-pdf/).reply(async () => {
+    await delay(1500, 2500);
+    const blob = new Blob(["mock-pdf-content"], { type: "application/pdf" });
+    return [200, blob];
   });
 }

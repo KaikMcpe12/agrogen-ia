@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Logo } from "@/components/Logo";
-import { relatoriosApi } from "@/lib/api/endpoints/relatorios";
+import { relatoriosApi, type RelatorioPonderalRow, type RelatorioSanitarioRow } from "@/lib/api/endpoints/relatorios";
 import { fazendasApi } from "@/lib/api/endpoints/fazendas";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useFazendaAtiva } from "@/hooks/useFazendaAtiva";
@@ -27,19 +27,12 @@ import {
   Legend,
 } from "recharts";
 
-type TipoRelatorio =
-  | "reprodutivo"
-  | "ponderal"
-  | "sanitario"
-  | "reprodutores"
-  | "especies";
+type TipoRelatorio = "reprodutivo" | "ponderal" | "sanitario";
 
 const TIPO_LABELS: Record<TipoRelatorio, string> = {
   reprodutivo: "Reprodutivo",
   ponderal: "Ponderal",
   sanitario: "Sanitário",
-  reprodutores: "Comparativo Reprodutores",
-  especies: "Resumo por Espécie",
 };
 
 function getPeriod(type: "mes" | "trimestre" | "ano") {
@@ -102,6 +95,18 @@ export function RelatoriosPage() {
     queryKey: ["relatorios", "reprodutivo", relatorioFiltros],
     queryFn: ({ signal }) => relatoriosApi.reprodutivo(relatorioFiltros, signal),
     enabled: tipo === "reprodutivo",
+  });
+
+  const { data: ponderalData, isLoading: ponderalLoading } = useQuery({
+    queryKey: ["relatorios", "ponderal", relatorioFiltros],
+    queryFn: ({ signal }) => relatoriosApi.ponderal(relatorioFiltros, signal),
+    enabled: tipo === "ponderal",
+  });
+
+  const { data: sanitarioData, isLoading: sanitarioLoading } = useQuery({
+    queryKey: ["relatorios", "sanitario", relatorioFiltros],
+    queryFn: ({ signal }) => relatoriosApi.sanitario(relatorioFiltros, signal),
+    enabled: tipo === "sanitario",
   });
 
   const { data: fazendasData } = useQuery({
@@ -777,6 +782,101 @@ export function RelatoriosPage() {
           <span>Dados tratados conforme LGPD (Lei nº 13.709/2018)</span>
         </div>
       </div>
+      )}
+
+      {/* ── Ponderal ── */}
+      {tipo === "ponderal" && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 className="text-[15px] font-semibold text-gray-800" style={{ fontFamily: "var(--font-display)" }}>
+              Desempenho Ponderal
+            </h3>
+            <span className="text-[12px] text-gray-400">
+              {ponderalData ? `${ponderalData.data.length} registros` : ""}
+            </span>
+          </div>
+          {ponderalLoading ? (
+            <div className="flex flex-col gap-2 p-6">
+              {[...Array(3)].map((_, i) => <div key={i} className="h-12 animate-pulse bg-gray-50 rounded-lg" />)}
+            </div>
+          ) : !ponderalData || ponderalData.data.length === 0 ? (
+            <div className="flex flex-col items-center py-12 gap-3 text-center">
+              <BarChart2 size={28} className="text-gray-300" />
+              <p className="text-[14px] text-gray-500">Sem dados ponderal no período selecionado.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-beige">
+                    {["Animal", "Código", "Última Pesagem", "GMD (kg/dia)", "Pesagens"].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-widest">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(ponderalData.data as RelatorioPonderalRow[]).map((r, i) => (
+                    <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-4 py-3 text-[13px] font-medium text-gray-900">{r.nome}</td>
+                      <td className="px-4 py-3 text-[11px] font-mono text-gray-400">{r.animal_codigo}</td>
+                      <td className="px-4 py-3 text-[13px] text-gray-700">{r.ultima_pesagem_kg} kg</td>
+                      <td className="px-4 py-3 text-[13px] text-gray-700">{r.gmd_periodo.toFixed(3)}</td>
+                      <td className="px-4 py-3 text-[13px] text-gray-600">{r.num_pesagens}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Sanitário ── */}
+      {tipo === "sanitario" && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 className="text-[15px] font-semibold text-gray-800" style={{ fontFamily: "var(--font-display)" }}>
+              Controle Sanitário
+            </h3>
+            <span className="text-[12px] text-gray-400">
+              {sanitarioData ? `${sanitarioData.data.length} registros` : ""}
+            </span>
+          </div>
+          {sanitarioLoading ? (
+            <div className="flex flex-col gap-2 p-6">
+              {[...Array(3)].map((_, i) => <div key={i} className="h-12 animate-pulse bg-gray-50 rounded-lg" />)}
+            </div>
+          ) : !sanitarioData || sanitarioData.data.length === 0 ? (
+            <div className="flex flex-col items-center py-12 gap-3 text-center">
+              <BarChart2 size={28} className="text-gray-300" />
+              <p className="text-[14px] text-gray-500">Sem eventos sanitários no período selecionado.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-beige">
+                    {["Animal", "Tipo", "Produto", "Aplicação", "Próxima Dose", "Responsável"].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-widest">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(sanitarioData.data as RelatorioSanitarioRow[]).map((r, i) => (
+                    <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-4 py-3 text-[11px] font-mono text-gray-400">{r.animal_codigo}</td>
+                      <td className="px-4 py-3 text-[13px] text-gray-700">{r.tipo}</td>
+                      <td className="px-4 py-3 text-[13px] font-medium text-gray-900">{r.produto}</td>
+                      <td className="px-4 py-3 text-[13px] text-gray-600">{fmtDate(r.data_aplicacao)}</td>
+                      <td className="px-4 py-3 text-[13px] text-gray-600">{r.proxima_dose ? fmtDate(r.proxima_dose) : "—"}</td>
+                      <td className="px-4 py-3 text-[13px] text-gray-500">{r.responsavel}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

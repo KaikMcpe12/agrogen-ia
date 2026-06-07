@@ -150,7 +150,7 @@ export interface Reprodutor {
 export interface DiagnosticoInseminacao {
   data_diagnostico: string;
   metodo: MetodoDiagnostico;
-  resultado: "PRENHA" | "VAZIA" | "INCONCLUSIVO";
+  resultado: "PRENHA" | "VAZIA";
   data_parto_prevista?: string;
   veterinario_id?: string;
   observacoes?: string;
@@ -255,25 +255,28 @@ export interface DashboardKPI {
     total: number;
     por_especie: { bovino: number; ovino: number; caprino: number };
   };
-  inseminacoes_mes: { total: number; delta_pct: number; sentido: "up" | "down" };
-  taxa_prenhez: { valor: number; percentual: number; badge: "ok" | "warn" | "danger"; periodo: string };
+  inseminacoes_mes: { total: number; delta_pct: number; sentido: "positivo" | "negativo" };
+  taxa_prenhez: { valor: number; percentual: number; badge: "POSITIVO" | "NEGATIVO"; periodo: string };
   alertas_ativos: { total: number; criticos: number; altos: number };
   calculado_em: string;
 }
 
-export interface GraficoPonto {
-  mes: string;
-  inseminacoes: number;
-  taxa_prenhez: number;
+export interface GraficoReprodutivoData {
+  labels: string[];
+  inseminacoes: number[];
+  taxa_prenhez: number[];
+  periodo: { inicio: string; fim: string };
 }
 
 export interface TimelineItem {
-  id: string;
   tipo: TipoEvento | "ALERTA";
-  animal: Pick<Animal, "id" | "codigo" | "nome">;
-  usuario?: string;
+  animal_id: string;
+  animal_codigo: string;
+  animal_nome: string;
   descricao: string;
+  usuario_nome?: string;
   data: string;
+  data_relativa?: string;
 }
 
 /* ── IA ──────────────────────────────────────────────────────── */
@@ -299,11 +302,11 @@ export interface PredicaoPrenhez {
 }
 
 export interface PadroesFertilidade {
-  por_mes: { mes: string; inseminacoes: number; prenhez: number; taxa: number }[];
+  por_mes: { mes: string; inseminacoes: number; prenhes: number; taxa: number }[];
   por_raca: { raca: string; inseminacoes: number; taxa: number }[];
   por_tecnico: { tecnico_nome: string; inseminacoes: number; taxa: number }[];
   por_protocolo: { protocolo: string; inseminacoes: number; taxa: number }[];
-  top_reprodutores?: { reprodutor: string; inseminacoes: number; taxa_prenhez: number }[];
+  top_reprodutores?: { nome: string; inseminacoes: number; taxa_filhos: number }[];
   minimo_inseminacoes_atingido: boolean;
 }
 

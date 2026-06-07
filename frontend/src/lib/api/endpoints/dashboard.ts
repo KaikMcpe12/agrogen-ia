@@ -1,5 +1,5 @@
 import client from "../client";
-import type { DashboardKPI, GraficoPonto, TimelineItem, ApiResponse } from "@/types";
+import type { DashboardKPI, GraficoReprodutivoData, TimelineItem, ApiResponse } from "@/types";
 
 export const dashboardApi = {
   kpis: (fazendaId?: string, signal?: AbortSignal) =>
@@ -12,7 +12,7 @@ export const dashboardApi = {
 
   grafico: (fazendaId?: string, meses?: number, signal?: AbortSignal) =>
     client
-      .get<ApiResponse<GraficoPonto[]>>("/dashboard/grafico-reprodutivo", {
+      .get<ApiResponse<GraficoReprodutivoData>>("/dashboard/grafico-reprodutivo", {
         params: {
           ...(fazendaId ? { fazenda_id: fazendaId } : {}),
           ...(meses ? { meses } : {}),

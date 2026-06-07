@@ -17,18 +17,19 @@ export const predicaoPrenhez: PredicaoPrenhez = {
     "Monitorar condição corporal — mantê-la acima de 3 para melhores resultados.",
     "Evitar estresse térmico nas 72h pré e pós-inseminação.",
   ],
+  aviso_clinico: "Este score é uma estimativa probabilística e não substitui o julgamento clínico veterinário. A decisão de inseminação deve sempre ser tomada por profissional habilitado.",
   modelo_versao: "v2.1.0-random-forest",
   processado_em_ms: 342,
 };
 
 export const padroesFertilidade: PadroesFertilidade = {
   por_mes: [
-    { mes: "Dez/25", inseminacoes: 3, prenhez: 2, taxa: 67 },
-    { mes: "Jan/26", inseminacoes: 2, prenhez: 1, taxa: 50 },
-    { mes: "Fev/26", inseminacoes: 5, prenhez: 4, taxa: 80 },
-    { mes: "Mar/26", inseminacoes: 4, prenhez: 3, taxa: 75 },
-    { mes: "Abr/26", inseminacoes: 3, prenhez: 0, taxa: 0 },
-    { mes: "Mai/26", inseminacoes: 4, prenhez: 0, taxa: 0 },
+    { mes: "Dez/25", inseminacoes: 3, prenhes: 2, taxa: 67 },
+    { mes: "Jan/26", inseminacoes: 2, prenhes: 1, taxa: 50 },
+    { mes: "Fev/26", inseminacoes: 5, prenhes: 4, taxa: 80 },
+    { mes: "Mar/26", inseminacoes: 4, prenhes: 3, taxa: 75 },
+    { mes: "Abr/26", inseminacoes: 3, prenhes: 0, taxa: 0 },
+    { mes: "Mai/26", inseminacoes: 4, prenhes: 0, taxa: 0 },
   ],
   por_raca: [
     { raca: "Nelore", inseminacoes: 8, taxa: 75 },
@@ -46,10 +47,10 @@ export const padroesFertilidade: PadroesFertilidade = {
     { protocolo: "TE", inseminacoes: 2, taxa: 100 },
   ],
   top_reprodutores: [
-    { reprodutor: "Titan Nelore", inseminacoes: 8, taxa_prenhez: 75 },
-    { reprodutor: "Zeus Angus", inseminacoes: 5, taxa_prenhez: 80 },
-    { reprodutor: "Trovão", inseminacoes: 4, taxa_prenhez: 75 },
-    { reprodutor: "Bode Forte", inseminacoes: 3, taxa_prenhez: 67 },
+    { nome: "Titan Nelore", inseminacoes: 8, taxa_filhos: 0.75 },
+    { nome: "Zeus Angus", inseminacoes: 5, taxa_filhos: 0.80 },
+    { nome: "Trovão", inseminacoes: 4, taxa_filhos: 0.75 },
+    { nome: "Bode Forte", inseminacoes: 3, taxa_filhos: 0.67 },
   ],
   minimo_inseminacoes_atingido: true,
 };
