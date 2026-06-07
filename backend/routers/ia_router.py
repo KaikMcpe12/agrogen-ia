@@ -8,7 +8,7 @@ from core.deps import get_current_user
 from models.user_model import User
 from services.predicao_service import PredicaoService
 from services.padroes_service import PadroesService
-from schemas.predicao_schema import PredicaoRequest, PredicaoResponse
+from schemas.predicao_schema import PredicaoRequest
 from models.enums import EspecieAnimal
 
 router = APIRouter(prefix="/ia", tags=["Inteligência Artificial"])
@@ -18,13 +18,14 @@ def _svc(session: AsyncSession = Depends(get_db)) -> PredicaoService:
     return PredicaoService(session)
 
 
-@router.post("/predicao-prenhez", response_model=PredicaoResponse)
+@router.post("/predicao-prenhez")
 async def predicao_prenhez(
     data: PredicaoRequest,
     current_user: User = Depends(get_current_user),
     svc: PredicaoService = Depends(_svc),
 ):
-    return await svc.predizer(data)
+    result = await svc.predizer(data)
+    return {"success": True, "data": result}
 
 
 @router.get("/predicoes/{animal_id}")

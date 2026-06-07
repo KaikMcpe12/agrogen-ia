@@ -100,7 +100,7 @@ class PredicaoService:
             "num_partos_anteriores":        animal.num_partos,
             "historico_taxa_prenhez":       hist_taxa,
             "dias_desde_ultima_inseminacao": dias_ultima_ins,
-            "tipo_inseminacao":             ultima_ins[0].tipo.value if ultima_ins else None,
+            "tipo_inseminacao":             schema.tipo_inseminacao.value if schema.tipo_inseminacao else (ultima_ins[0].tipo.value if ultima_ins else None),
             "temperatura_ambiente_c":       float(schema.temperatura_ambiente_c) if schema.temperatura_ambiente_c else None,
             "raca_femea":                   animal.raca_principal,
             "heterose_esperada_pct":        heterose,
