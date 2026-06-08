@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { useDeleteAnimal } from "@/lib/api/hooks/useDeleteAnimal";
 import { ArrowLeft, Syringe, Scale, BookOpen, Trash2, Pencil, Brain, Beef, ExternalLink } from "lucide-react";
 import { reprodutoresApi } from "@/lib/api/endpoints/reprodutores";
 import { Modal17PromoverReprodutor } from "@/components/modals/Modal17PromoverReprodutor";
@@ -19,6 +20,9 @@ import { ModalNewInseminacaoSelector } from "@/components/modals/ModalInseminaca
 import { Modal10DeleteConfirm } from "@/components/modals/Modal10DeleteConfirm";
 import { formatDate } from "@/lib/utils";
 import type { Animal, StatusAnimal, Especie, ResultadoInseminacao } from "@/types";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isValidUUID = (v?: string) => !!v && UUID_RE.test(v);
 
 const ESPECIE_LABELS: Record<Especie, string> = { BOVINO: "🐄 Bovino", OVINO: "🐑 Ovino", CAPRINO: "🐐 Caprino" };
 const STATUS_VARIANT: Record<StatusAnimal, "ok" | "info" | "ghost" | "danger" | "bovino" | "warn"> = {
@@ -337,7 +341,6 @@ function AlertsSection({ animalId }: { animalId: string }) {
 export function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const qc = useQueryClient();
 
   const [showEdit1, setShowEdit1] = useState(false);
   const [showEdit2, setShowEdit2] = useState(false);
@@ -350,23 +353,21 @@ export function AnimalDetailPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["animais", "detail", id],
     queryFn: ({ signal }) => animaisApi.buscar(id!, signal),
-    enabled: !!id,
+    enabled: isValidUUID(id),
   });
 
   const { data: repData } = useQuery({
     queryKey: ["reprodutores", "list", { animal_id: id }],
-    queryFn: ({ signal }) => reprodutoresApi.listar(id ? { animal_id: id } : {}, signal),
-    enabled: !!id,
+    queryFn: ({ signal }) => reprodutoresApi.listar({ animal_id: id! }, signal),
+    enabled: isValidUUID(id),
   });
   const reprodutorVinculado = repData?.data.find((r) => r.ativo);
 
-  const deleteMutation = useMutation({
-    mutationFn: () => animaisApi.deletar(id!),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["animais", "list"] });
-      void navigate("/animais");
-    },
-  });
+  const deleteAnimalHook = useDeleteAnimal();
+  const deleteMutation = {
+    mutate: () => deleteAnimalHook.mutate(id!, { onSuccess: () => void navigate("/animais") }),
+    isPending: deleteAnimalHook.isPending,
+  };
 
   if (isLoading) {
     return (

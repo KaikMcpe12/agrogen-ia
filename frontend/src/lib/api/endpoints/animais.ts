@@ -1,5 +1,5 @@
 import client from "../client";
-import type { Animal, PaginatedResponse, ApiResponse, Especie, Sexo, StatusAnimal } from "@/types";
+import type { Animal, Inseminacao, Pesagem, Parto, PaginatedResponse, ApiResponse, Especie, Sexo, StatusAnimal } from "@/types";
 
 export interface AnimaisParams {
   fazenda_id?: string | undefined;
@@ -13,17 +13,6 @@ export interface AnimaisParams {
   order?: "asc" | "desc" | undefined;
 }
 
-export interface AnimaisCounts {
-  total: number;
-  bovino: number;
-  ovino: number;
-  caprino: number;
-  ativa: number;
-  prenha: number;
-  em_repouso: number;
-  descartada: number;
-}
-
 export const animaisApi = {
   listar: (params?: AnimaisParams, signal?: AbortSignal) =>
     client.get<PaginatedResponse<Animal>>("/animais", { params, ...(signal ? { signal } : {}) }).then((r) => r.data),
@@ -31,8 +20,12 @@ export const animaisApi = {
   buscar: (id: string, signal?: AbortSignal) =>
     client.get<ApiResponse<Animal>>(`/animais/${id}`, { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
-  counts: (signal?: AbortSignal) =>
-    client.get<ApiResponse<AnimaisCounts>>("/animais/counts", { ...(signal ? { signal } : {}) }).then((r) => r.data),
+  historico: (id: string, params?: { limit?: number }, signal?: AbortSignal) =>
+    client.get<ApiResponse<{
+      inseminacoes: Pick<Inseminacao, "id" | "data_inseminacao" | "tipo" | "resultado">[];
+      pesagens: Pick<Pesagem, "id" | "data" | "peso_kg" | "gmd_calculado">[];
+      partos: Pick<Parto, "id" | "data_parto" | "num_crias" | "num_crias_vivas">[];
+    }>>(`/animais/${id}/historico`, { params, ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criar: (body: Partial<Animal>) =>
     client.post<ApiResponse<Pick<Animal, "id" | "codigo" | "nome" | "status" | "created_at">>>("/animais", body).then((r) => r.data),
@@ -45,4 +38,16 @@ export const animaisApi = {
 
   listarRacas: (params?: { especie?: "BOVINO" | "OVINO" | "CAPRINO" }, signal?: AbortSignal) =>
     client.get<ApiResponse<Record<string, string[]>>>("/animais/racas", { params, ...(signal ? { signal } : {}) }).then((r) => r.data),
+
+  importarCsv: (arquivo: File, fazendaId: string) => {
+    const form = new FormData();
+    form.append("arquivo", arquivo);
+    form.append("fazenda_id", fazendaId);
+    return client.post<ApiResponse<{
+      total_linhas: number;
+      importados: number;
+      erros: number;
+      detalhes_erros: { linha: number; erro: string }[];
+    }>>("/animais/importar-csv", form, { headers: { "Content-Type": "multipart/form-data" } }).then((r) => r.data);
+  },
 };

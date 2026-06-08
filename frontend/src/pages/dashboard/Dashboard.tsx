@@ -26,7 +26,7 @@ function KPICard({
   value: string | number;
   meta?: string;
   badge?: "ok" | "warn" | "danger";
-  trend?: { pct: number; sentido: "up" | "down" };
+  trend?: { pct: number; sentido: "positivo" | "negativo" };
   onClick?: () => void;
 }) {
   const cls = onClick ? "cursor-pointer hover:border-green-200 transition-colors" : "";
@@ -45,8 +45,8 @@ function KPICard({
       </div>
       {meta && <p className="text-[13px] text-ink-3">{meta}</p>}
       {trend && (
-        <div className={`flex items-center gap-1 text-[13px] font-semibold ${trend.sentido === "up" ? "text-ok" : "text-danger"}`}>
-          {trend.sentido === "up" ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+        <div className={`flex items-center gap-1 text-[13px] font-semibold ${trend.sentido === "positivo" ? "text-ok" : "text-danger"}`}>
+          {trend.sentido === "positivo" ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
           {trend.pct}% vs mês anterior
         </div>
       )}
@@ -107,7 +107,13 @@ function ReproductiveChart() {
     queryFn: ({ signal }) => dashboardApi.grafico(undefined, meses, signal),
   });
   const theme = useChartTheme();
-  const points = data?.data ?? [];
+  const points = data?.data
+    ? data.data.labels.map((l, i) => ({
+        mes: l,
+        inseminacoes: data.data.inseminacoes[i] ?? 0,
+        taxa_prenhez: Math.round((data.data.taxa_prenhez[i] ?? 0) * 100),
+      }))
+    : [];
 
   return (
     <Card>
@@ -182,9 +188,9 @@ function TimelineSection({ items }: { items: TimelineItem[] }) {
           const colorCls = TIMELINE_COLORS[item.tipo] ?? "bg-beige text-ink-3";
           return (
             <button
-              key={item.id}
+              key={`${item.tipo}-${item.data}-${item.animal_id}`}
               className="flex gap-3 items-start text-left hover:bg-beige/50 rounded-[8px] p-1 -m-1 transition-colors"
-              onClick={() => void navigate(`/animais/${item.animal.id}`)}
+              onClick={() => item.animal_id && void navigate(`/animais/${item.animal_id}`)}
             >
               <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${colorCls}`}>
                 <Icon size={14} />
@@ -192,7 +198,7 @@ function TimelineSection({ items }: { items: TimelineItem[] }) {
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] text-ink leading-snug">{item.descricao}</p>
                 <p className="text-[11px] text-ink-4 mt-0.5 font-mono">
-                  {item.animal.codigo} · {formatRelativeTime(item.data)}
+                  {item.animal_codigo} · {item.data_relativa ?? formatRelativeTime(item.data)}
                 </p>
               </div>
             </button>

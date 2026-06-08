@@ -88,7 +88,7 @@ export function Modal03NewInseminacao({ open, onClose, preselectedAnimalId }: Pr
   const { data: preselectedData } = useQuery({
     queryKey: ["animais", "detail", preselectedAnimalId],
     queryFn: ({ signal }) => animaisApi.buscar(preselectedAnimalId!, signal),
-    enabled: !!preselectedAnimalId,
+    enabled: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(preselectedAnimalId ?? ""),
   });
   const preselectedAnimal = preselectedData?.data ?? null;
 

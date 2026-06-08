@@ -1,5 +1,5 @@
 import client from "../client";
-import type { ApiResponse, LoginResponse, Perfil } from "@/types";
+import type { ApiResponse, LoginResponse, Perfil, Usuario } from "@/types";
 
 export const authApi = {
   login: (email: string, senha: string) =>
@@ -8,11 +8,11 @@ export const authApi = {
   registro: (body: { nome: string; email: string; senha: string; perfil: Perfil; cpf: string; telefone?: string }) =>
     client.post<ApiResponse<{ id: string; mensagem: string }>>("/auth/registro", body).then((r) => r.data),
 
-  logout: () =>
-    client.post<ApiResponse<null>>("/auth/logout").then((r) => r.data),
+  logout: (refresh_token: string) =>
+    client.post<ApiResponse<{ mensagem: string }>>("/auth/logout", { refresh_token }).then((r) => r.data),
 
   me: (signal?: AbortSignal) =>
-    client.get<ApiResponse<{ id: string; nome: string; email: string; perfil: Perfil }>>("/usuarios/me", { ...(signal ? { signal } : {}) }).then((r) => r.data),
+    client.get<ApiResponse<Usuario>>("/usuarios/me", { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   recuperarSenha: (email: string) =>
     client.post<ApiResponse<{ mensagem: string }>>("/auth/recuperar-senha", { email }).then((r) => r.data),

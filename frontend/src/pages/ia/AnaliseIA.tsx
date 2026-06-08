@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isValidUUID = (v?: string | null) => !!v && UUID_RE.test(v);
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { Brain, TrendingUp, Dna, AlertTriangle, Syringe } from "lucide-react";
@@ -7,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { iaApi } from "@/lib/api/endpoints/ia";
 import { animaisApi } from "@/lib/api/endpoints/animais";
+import { useFazendaAtiva } from "@/hooks/useFazendaAtiva";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useChartTheme } from "@/hooks/useChartTheme";
@@ -95,7 +99,7 @@ function TabPredicao() {
   const { data: preselectedData } = useQuery({
     queryKey: ["animais", "detail", animalIdParam],
     queryFn: ({ signal }) => animaisApi.buscar(animalIdParam!, signal),
-    enabled: !!animalIdParam && !userSelectedAnimal,
+    enabled: isValidUUID(animalIdParam) && !userSelectedAnimal,
   });
 
   const selectedAnimal = userSelectedAnimal ?? preselectedData?.data ?? null;
@@ -108,7 +112,10 @@ function TabPredicao() {
   });
 
   const rodar = useMutation({
-    mutationFn: () => iaApi.predicao({ animal_id: selectedAnimal!.id }),
+    mutationFn: () => iaApi.predicao({
+      animal_id: selectedAnimal!.id,
+      condicao_corporal_atual: selectedAnimal!.condicao_corporal,
+    }),
     onSuccess: (data) => {
       setPredicao(data.data);
       void qc.invalidateQueries({ queryKey: ["alertas", "list"] });
@@ -347,13 +354,12 @@ function TabPredicao() {
                 </Card>
               )}
 
-              {/* Aviso clínico hardcoded — SEMPRE visível independente da API */}
               <div className="flex gap-3 p-4 rounded-[12px] bg-warn-bg border border-warn/30">
                 <AlertTriangle size={18} className="text-warn shrink-0 mt-0.5" />
                 <div>
                   <p className="text-[13px] font-semibold text-warn">Aviso Clínico Importante</p>
                   <p className="text-[12px] text-warn/90 mt-0.5">
-                    Este score não substitui o julgamento clínico veterinário. A decisão de inseminação deve sempre ser tomada por profissional habilitado, considerando o exame físico e o histórico completo do animal.
+                    {predicao.aviso_clinico ?? "Este score é uma estimativa probabilística e não substitui o julgamento clínico veterinário. A decisão de inseminação deve sempre ser tomada por profissional habilitado."}
                   </p>
                 </div>
               </div>
@@ -538,16 +544,16 @@ function TabPadroes() {
                   <tr key={i} className="border-b border-line last:border-0 hover:bg-beige/50 transition-colors">
                     <td className="px-3 py-2.5">
                       <Link
-                        to={`/reprodutores?q=${encodeURIComponent(r.reprodutor)}`}
+                        to={`/reprodutores?q=${encodeURIComponent(r.nome)}`}
                         className="text-[13px] font-medium text-green-700 hover:underline"
                       >
-                        {r.reprodutor}
+                        {r.nome}
                       </Link>
                     </td>
                     <td className="px-3 py-2.5 text-[13px] text-ink-2">{r.inseminacoes}</td>
                     <td className="px-3 py-2.5">
-                      <span className={`text-[13px] font-semibold ${r.taxa_prenhez >= 75 ? "text-ok" : r.taxa_prenhez >= 60 ? "text-warn" : "text-danger"}`}>
-                        {r.taxa_prenhez}%
+                      <span className={`text-[13px] font-semibold ${r.taxa_filhos >= 0.75 ? "text-ok" : r.taxa_filhos >= 0.60 ? "text-warn" : "text-danger"}`}>
+                        {(r.taxa_filhos * 100).toFixed(0)}%
                       </span>
                     </td>
                   </tr>
@@ -563,19 +569,33 @@ function TabPadroes() {
 
 /* ── Aba: Seleção Genética ─────────────────────────────────────── */
 const CRITERIOS = [
-  { id: "fertilidade", label: "Fertilidade (DEP)", icon: "🧬" },
-  { id: "peso_desmame", label: "Peso ao desmame", icon: "⚖️" },
-  { id: "heterose", label: "Heterose estimada", icon: "🔀" },
-  { id: "endogamia", label: "Risco de endogamia", icon: "⚠️" },
+  { id: "FERTILIDADE", label: "Fertilidade (DEP)", icon: "🧬" },
+  { id: "GANHO_PESO", label: "Ganho de peso ao desmame", icon: "⚖️" },
 ];
 
+type Recomendacao = {
+  matriz: { id: string; codigo: string; nome: string };
+  reprodutor: { id: string; nome: string };
+  score_genetico: number;
+  heterose_esperada_pct: number;
+  risco_endogamia_f: number;
+  alerta_consanguinidade: boolean;
+  justificativa: string;
+};
+
 function TabSelecao() {
-  const [criteriosSelecionados, setCriterios] = useState<string[]>(["fertilidade"]);
-  const [resultado, setResultado] = useState<{ recomendacoes: unknown[] } | null>(null);
+  const { fazendaId } = useFazendaAtiva();
+  const [criteriosSelecionados, setCriterios] = useState<string[]>(["FERTILIDADE"]);
+  const [resultado, setResultado] = useState<{ recomendacoes: Recomendacao[] } | null>(null);
 
   const rodar = useMutation({
-    mutationFn: () => iaApi.selecaoGenetica({ objetivos: criteriosSelecionados, matrizes_ids: [], reprodutores_ids: [] }),
-    onSuccess: (data) => setResultado(data.data),
+    mutationFn: () => iaApi.selecaoGenetica({
+      fazenda_id: fazendaId ?? undefined,
+      objetivos: criteriosSelecionados,
+      matrizes_ids: [],
+      reprodutores_ids: [],
+    }),
+    onSuccess: (data) => setResultado(data.data as { recomendacoes: Recomendacao[] }),
   });
 
   const toggleCriterio = (id: string) => {
@@ -584,15 +604,7 @@ function TabSelecao() {
     );
   };
 
-  type Recomendacao = {
-    matriz: string;
-    reprodutor: string;
-    score_genetico: number;
-    heterose_esperada: string;
-    risco_endogamia: string;
-  };
-
-  const recomendacoes = resultado?.recomendacoes as Recomendacao[] | undefined;
+  const recomendacoes = resultado?.recomendacoes;
 
   return (
     <div className="flex flex-col gap-5 max-w-2xl">
@@ -650,18 +662,19 @@ function TabSelecao() {
                 className="rounded-[12px] border border-line bg-beige p-3 flex flex-col gap-2"
               >
                 <div className="flex justify-between items-center">
-                  <p className="text-[13px] font-semibold text-ink">{r.matriz}</p>
-                  <span className="text-[14px] font-bold text-green-700">{r.score_genetico}</span>
+                  <p className="text-[13px] font-semibold text-ink">{r.matriz.nome}</p>
+                  <span className="text-[14px] font-bold text-green-700">{(r.score_genetico * 100).toFixed(0)}</span>
                 </div>
-                <p className="text-[12px] text-ink-3">{r.reprodutor}</p>
+                <p className="text-[12px] text-ink-3">{r.reprodutor.nome}</p>
                 <div className="flex gap-3 text-[12px]">
                   <span className="text-ink-4">
-                    Heterose: <strong className="text-ink-2">{r.heterose_esperada}</strong>
+                    Heterose: <strong className="text-ink-2">{r.heterose_esperada_pct.toFixed(1)}%</strong>
                   </span>
                   <span className="text-ink-4">
-                    Risco: <strong className="text-ink-2">{r.risco_endogamia}</strong>
+                    Risco: <strong className={r.alerta_consanguinidade ? "text-warn" : "text-ink-2"}>{(r.risco_endogamia_f * 100).toFixed(1)}%</strong>
                   </span>
                 </div>
+                {r.justificativa && <p className="text-[11px] text-ink-4 italic">{r.justificativa}</p>}
               </div>
             ))}
           </div>
@@ -686,20 +699,19 @@ function TabSelecao() {
               </thead>
               <tbody>
                 {recomendacoes.map((r, i) => {
-                  const fValue = parseFloat(r.risco_endogamia);
-                  const isHighEndogamia = !isNaN(fValue) && fValue > 0.0625;
+                  const isHighEndogamia = r.risco_endogamia_f > 0.0625 || r.alerta_consanguinidade;
                   return (
                     <tr key={i} className={`border-b border-line last:border-0 hover:bg-beige/50 transition-colors ${isHighEndogamia ? "bg-warn-bg/40" : ""}`}>
-                      <td className="px-3 py-2.5 text-[13px] font-medium text-ink">{r.matriz}</td>
-                      <td className="px-3 py-2.5 text-[13px] text-ink-2">{r.reprodutor}</td>
+                      <td className="px-3 py-2.5 text-[13px] font-medium text-ink">{r.matriz.nome}</td>
+                      <td className="px-3 py-2.5 text-[13px] text-ink-2">{r.reprodutor.nome}</td>
                       <td className="px-3 py-2.5">
-                        <span className="text-[14px] font-bold text-green-700">{r.score_genetico}</span>
+                        <span className="text-[14px] font-bold text-green-700">{(r.score_genetico * 100).toFixed(0)}</span>
                       </td>
-                      <td className="px-3 py-2.5 text-[13px] text-ink-3">{r.heterose_esperada}</td>
+                      <td className="px-3 py-2.5 text-[13px] text-ink-3">{r.heterose_esperada_pct.toFixed(1)}%</td>
                       <td className="px-3 py-2.5 text-[13px]">
                         <span className={isHighEndogamia ? "text-warn font-semibold flex items-center gap-1" : "text-ink-3"}>
                           {isHighEndogamia && <AlertTriangle size={12} />}
-                          {(fValue * 100).toFixed(1)}%
+                          {(r.risco_endogamia_f * 100).toFixed(1)}%
                           {isHighEndogamia && <span className="text-[10px] font-normal">— Risco elevado</span>}
                         </span>
                       </td>

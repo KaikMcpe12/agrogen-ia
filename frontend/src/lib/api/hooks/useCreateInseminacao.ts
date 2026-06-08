@@ -48,6 +48,7 @@ export function useCreateInseminacao() {
       }
       void queryClient.invalidateQueries({ queryKey: ["inseminacoes", "list"] });
       void queryClient.invalidateQueries({ queryKey: ["inseminacoes", "pendentes-diagnostico"] });
+      void queryClient.invalidateQueries({ queryKey: ["animais", "detail", input.animal_id] });
       void queryClient.invalidateQueries({ queryKey: ["dashboard", "kpis"] });
       void queryClient.invalidateQueries({ queryKey: ["alertas", "list"] });
       void queryClient.invalidateQueries({ queryKey: ["alertas", "contagem"] });

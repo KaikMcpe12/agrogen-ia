@@ -29,9 +29,10 @@ export function DiarioAnimalPage() {
   });
 
   useEffect(() => {
-    if (id) {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (id && UUID_RE.test(id)) {
       try {
-        const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.lastAnimaisIds) ?? "[]") as string[];
+        const stored = (JSON.parse(localStorage.getItem(STORAGE_KEYS.lastAnimaisIds) ?? "[]") as string[]).filter((x) => UUID_RE.test(x));
         const updated = [id, ...stored.filter((x) => x !== id)].slice(0, 5);
         localStorage.setItem(STORAGE_KEYS.lastAnimaisIds, JSON.stringify(updated));
       } catch { /* noop */ }

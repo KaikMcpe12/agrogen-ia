@@ -1,5 +1,5 @@
 import client from "../client";
-import type { Inseminacao, PaginatedResponse, ApiResponse, ResultadoInseminacao, TipoInseminacao } from "@/types";
+import type { Inseminacao, PaginatedResponse, ApiResponse, ResultadoInseminacao, TipoInseminacao, MetodoDiagnostico } from "@/types";
 
 export interface InseminacoesParams {
   fazenda_id?: string;
@@ -14,12 +14,23 @@ export interface InseminacoesParams {
   order?: "asc" | "desc";
 }
 
+export interface PendentesParams {
+  fazenda_id?: string;
+  dias_minimos?: number;
+}
+
+export interface PendentesResponse {
+  success: boolean;
+  data: Inseminacao[];
+  meta: { total: number; criticos: number; atencao: number };
+}
+
 export const inseminacoesApi = {
   listar: (params?: InseminacoesParams, signal?: AbortSignal) =>
     client.get<PaginatedResponse<Inseminacao>>("/inseminacoes", { params, ...(signal ? { signal } : {}) }).then((r) => r.data),
 
-  pendentes: (signal?: AbortSignal) =>
-    client.get<ApiResponse<Inseminacao[]>>("/inseminacoes/pendentes-diagnostico", { ...(signal ? { signal } : {}) }).then((r) => r.data),
+  pendentes: (params?: PendentesParams, signal?: AbortSignal) =>
+    client.get<PendentesResponse>("/inseminacoes/pendentes-diagnostico", { params, ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criar: (body: {
     animal_id: string;
@@ -34,8 +45,8 @@ export const inseminacoesApi = {
 
   registrarDiagnostico: (inseminacaoId: string, body: {
     data_diagnostico: string;
-    metodo: string;
-    resultado: "PRENHA" | "VAZIA" | "INCONCLUSIVO";
+    metodo: MetodoDiagnostico;
+    resultado: "PRENHA" | "VAZIA";
     data_parto_prevista?: string | undefined;
     veterinario_id?: string | undefined;
     observacoes?: string | undefined;

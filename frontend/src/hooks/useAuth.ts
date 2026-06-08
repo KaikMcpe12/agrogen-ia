@@ -39,7 +39,7 @@ export function useAuth() {
       localStorage.getItem(STORAGE_KEYS.refreshToken) ??
       sessionStorage.getItem(STORAGE_KEYS.refreshToken);
     if (refresh) {
-      await authApi.logout().catch(() => {});
+      await authApi.logout(refresh).catch(() => {});
     }
     localStorage.clear();
     sessionStorage.clear();

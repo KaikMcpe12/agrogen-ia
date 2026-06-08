@@ -8,15 +8,29 @@ interface PesagensResponse {
   meta: PaginatedResponse<Pesagem>["meta"];
 }
 
+interface PartosResponse {
+  success: boolean;
+  data: Parto[];
+  resumo: { total_partos: number; iep_medio_dias: number; prolificidade_media: number };
+  meta: PaginatedResponse<Parto>["meta"];
+}
+
+interface SanitarioResponse {
+  success: boolean;
+  data: EventoSanitario[];
+  alertas_proxima_dose: number;
+  meta: PaginatedResponse<EventoSanitario>["meta"];
+}
+
 export const diarioApi = {
   pesagens: (animalId: string, signal?: AbortSignal) =>
     client.get<PesagensResponse>(`/diario/${animalId}/pesagens`, { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criarPesagem: (animalId: string, body: { data: string; peso_kg: number; estagio: EstagioPesagem; observacao?: string | undefined }) =>
-    client.post<ApiResponse<{ id: string; gmd_calculado?: number }>>(`/diario/${animalId}/pesagens`, body).then((r) => r.data),
+    client.post<ApiResponse<{ id: string; peso_kg: number; gmd_calculado?: number; created_at: string }>>(`/diario/${animalId}/pesagens`, body).then((r) => r.data),
 
   partos: (animalId: string, signal?: AbortSignal) =>
-    client.get<PaginatedResponse<Parto>>(`/diario/${animalId}/partos`, { ...(signal ? { signal } : {}) }).then((r) => r.data),
+    client.get<PartosResponse>(`/diario/${animalId}/partos`, { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criarParto: (animalId: string, body: {
     data_parto: string;
@@ -31,7 +45,7 @@ export const diarioApi = {
     client.post<ApiResponse<{ id: string }>>(`/diario/${animalId}/partos`, body).then((r) => r.data),
 
   sanitario: (animalId: string, signal?: AbortSignal) =>
-    client.get<PaginatedResponse<EventoSanitario>>(`/diario/${animalId}/sanitario`, { ...(signal ? { signal } : {}) }).then((r) => r.data),
+    client.get<SanitarioResponse>(`/diario/${animalId}/sanitario`, { ...(signal ? { signal } : {}) }).then((r) => r.data),
 
   criarEventoSanitario: (animalId: string, body: {
     tipo: TipoSanitario;
@@ -56,4 +70,7 @@ export const diarioApi = {
     resolvida: boolean;
   }) =>
     client.post<ApiResponse<{ id: string }>>(`/diario/${animalId}/ocorrencias`, body).then((r) => r.data),
+
+  exportarPdf: (animalId: string) =>
+    client.get(`/diario/${animalId}/exportar-pdf`, { responseType: "blob" }).then((r) => r.data as Blob),
 };
