@@ -16,6 +16,8 @@ class AuthRepository:
     # ── Refresh Tokens ────────────────────────────────────────────────────────
 
     async def save_refresh_token(self, usuario_id: UUID, token: str, expires_at: datetime) -> RefreshTokenModel:
+        # ⚠️ expires_at deve ser naive UTC (coluna TIMESTAMP). Ex.:
+        #     datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(...)
         obj = RefreshTokenModel(usuario_id=usuario_id, token=token, expires_at=expires_at)
         self.session.add(obj)
         await self.session.commit()
@@ -46,6 +48,8 @@ class AuthRepository:
     # ── Password Resets ───────────────────────────────────────────────────────
 
     async def save_reset_token(self, usuario_id: UUID, token: str, expires_at: datetime) -> PasswordResetModel:
+        # ⚠️ expires_at deve ser naive UTC (coluna TIMESTAMP). Ex.:
+        #     datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(...)
         obj = PasswordResetModel(usuario_id=usuario_id, token=token, expires_at=expires_at)
         self.session.add(obj)
         await self.session.commit()

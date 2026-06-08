@@ -52,6 +52,8 @@ Key domain entities: `usuarios`, `fazendas`, `animais`, `inseminacoes`, `diagnos
 
 The `fn_set_updated_at()` trigger handles `updated_at` at the DB level for most tables; the ORM `onupdate=func.now()` is a fallback.
 
+**Timezone convention:** all date/time columns are `TIMESTAMP WITHOUT TIME ZONE` (naive), per the schema. Models use `DateTime` (never `DateTime(timezone=True)`), and the app treats all datetimes as **naive UTC**. When writing a datetime to the DB, normalize it: `datetime.now(timezone.utc).replace(tzinfo=None)`. Writing a tz-aware datetime to a `TIMESTAMP` column makes asyncpg raise. If a Supabase instance comes up with `timestamptz` columns, convert it with `endpoint/migration_timestamptz_to_timestamp.sql`. (`DATE`-only columns like `data_nascimento`, `data_parto` carry no time/zone and are unaffected.)
+
 ## Patterns
 
 **Adding a new domain**: create files in each of the 4 layers, then export the router from `routers/__init__.py` and register it in `api/index.py`.
