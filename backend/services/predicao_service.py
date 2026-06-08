@@ -114,9 +114,33 @@ class PredicaoService:
             "dep_acuracia_media":           dep_acc_rep,
         }
 
+        # Payload no contrato do microsserviço ML (PredicaoRequest). Campos ausentes recebem
+        # defaults neutros para não violar a validação estrita do microsserviço — quando o
+        # dado real falta, o resultado é best-effort (e o fallback de regras continua disponível).
+        protocolo = None
+        if ultima_ins and getattr(ultima_ins[0], "protocolo_descricao", None):
+            protocolo = ultima_ins[0].protocolo_descricao
+        ia_payload = {
+            "especie":                  features["especie"],
+            "raca_femea":               features["raca_femea"] or "INDEFINIDA",
+            "condicao_corporal":        features["condicao_corporal"],
+            "historico_taxa_prenhez":   hist_taxa if hist_taxa is not None else 0.5,
+            "intervalo_pos_parto_dias": dias_pos_parto if dias_pos_parto is not None else 60,
+            "num_partos_anteriores":    animal.num_partos or 0,
+            "dias_desde_ultima_ins":    dias_ultima_ins if dias_ultima_ins is not None else 0,
+            "dep_fertilidade_animal":   dep_fert_animal,
+            "protocolo_hormonal":       protocolo or "NENHUM",
+            "temperatura_ambiente_c":   features["temperatura_ambiente_c"] if features["temperatura_ambiente_c"] is not None else 25.0,
+            "dep_acuracia":             dep_acc_rep,
+            "coeficiente_endogamia":    features["coeficiente_endogamia"] if features["coeficiente_endogamia"] is not None else 0.0,
+            "ciclos_sem_concepcao":     features["ciclos_sem_concepcao"] or 0,
+            "dep_fertilidade_reprodutor": dep_fert_rep,
+            "heterose_esperada":        heterose,
+        }
+
         # Tenta microsserviço ML; fallback para motor local
-        ml_result = await self.ia_client.predict(features)
-        if ml_result:
+        ml_result = await self.ia_client.predict(ia_payload, features)
+        if ml_result and ml_result.get("score") is not None:
             score        = float(ml_result.get("score", 0.5))
             fatores      = ml_result.get("top_5_fatores", [])
             versao       = ml_result.get("modelo_versao", "ml_unknown")
