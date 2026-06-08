@@ -21,6 +21,12 @@ class PesagemCreate(BaseModel):
         return v
 
 
+class PesagemUpdate(BaseModel):
+    peso_kg:    Optional[Decimal]    = Field(None, gt=0, max_digits=6, decimal_places=2)
+    estagio:    Optional[EstagioPesagem] = None
+    observacao: Optional[str]        = Field(None, max_length=255)
+
+
 class PesagemResponse(BaseModel):
     id:            UUID = Field(..., validation_alias="pesagem_id")
     animal_id:     UUID
