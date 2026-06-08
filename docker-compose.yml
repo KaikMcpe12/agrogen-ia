@@ -1,10 +1,10 @@
-version: "3.9"
-
 # AgroGen IA — Docker Compose (com Nginx como proxy reverso)
 # Nginx unifica tudo em uma porta (80):
 #   /api/v1/* → backend:8000
-#   /*         → frontend:3000
+#   /*         → frontend:80
 # Benefício: sem CORS (tudo no mesmo domínio/porta)
+#
+# Serviços: postgres · backend (FastAPI) · ia (microsserviço ML) · frontend (React) · nginx
 
 services:
 
@@ -18,11 +18,37 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agrogen123}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Inicialização do schema + seed na PRIMEIRA subida (banco vazio).
+      # Rodam em ordem alfabética. As tabelas tb_refresh_tokens e tb_predicao_log
+      # são criadas depois pelo `alembic upgrade head` no boot do backend.
+      - ./backend/endpoint/agroGen_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./backend/endpoint/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agrogen}"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  ia:
+    build:
+      context: ./ia/agrogen-ia-ml
+      dockerfile: Dockerfile
+    container_name: agrogen_ia
+    restart: unless-stopped
+    environment:
+      # Vazio = microsserviço não exige auth. Se setado, o backend manda o mesmo Bearer.
+      BACKEND_AUTH_SECRET: ${BACKEND_AUTH_SECRET:-}
+      MODEL_PATH:          /app/models/rf_v1.0.pkl
+      PREPROCESSOR_PATH:   /app/models/rf_v1.0_preprocessor.pkl
+      MODEL_CARD_PATH:     /app/models/model_card.json
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    # Sem expose de porta — apenas o backend acessa via rede interna
 
   backend:
     build:
@@ -30,12 +56,19 @@ services:
       dockerfile: Dockerfile
     container_name: agrogen_backend
     restart: unless-stopped
+    # Aplica as migrações Alembic (tabelas fora do schema.sql) antes de subir a API
+    command: ["sh", "-c", "alembic upgrade head && uvicorn api.index:app --host 0.0.0.0 --port 8000"]
     environment:
-      DATABASE_URL:    postgresql+asyncpg://${POSTGRES_USER:-agrogen}:${POSTGRES_PASSWORD:-agrogen123}@postgres:5432/${POSTGRES_DB:-agrogen}
-      JWT_SECRET_KEY:  ${JWT_SECRET_KEY:-dev_secret_troque_em_producao}
-      APP_ENV:         ${APP_ENV:-development}
+      DATABASE_URL:        postgresql+asyncpg://${POSTGRES_USER:-agrogen}:${POSTGRES_PASSWORD:-agrogen123}@postgres:5432/${POSTGRES_DB:-agrogen}
+      SECRET_KEY:          ${SECRET_KEY:-dev_secret_troque_em_producao}
+      ENVIRONMENT:         ${ENVIRONMENT:-development}
+      IA_SERVICE_URL:      http://ia:8001
+      IA_SERVICE_TIMEOUT_MS: ${IA_SERVICE_TIMEOUT_MS:-800}
+      BACKEND_AUTH_SECRET: ${BACKEND_AUTH_SECRET:-}
     depends_on:
       postgres:
+        condition: service_healthy
+      ia:
         condition: service_healthy
     # Sem expose de porta — apenas o Nginx acessa
 
