@@ -1,12 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { inseminacoesApi } from "@/lib/api/endpoints/inseminacoes";
 import { showSuccessToast } from "@/components/ui/toast";
+import type { MetodoDiagnostico } from "@/types";
 
 type DiagnosticoInput = {
   inseminacaoId: string;
   animalId: string;
   data_diagnostico: string;
-  metodo: string;
+  metodo: MetodoDiagnostico;
   resultado: "PRENHA" | "VAZIA" | "INCONCLUSIVO";
   data_parto_prevista?: string;
   veterinario_id?: string;

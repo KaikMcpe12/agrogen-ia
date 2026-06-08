@@ -590,7 +590,7 @@ function TabSelecao() {
 
   const rodar = useMutation({
     mutationFn: () => iaApi.selecaoGenetica({
-      fazenda_id: fazendaId ?? undefined,
+      ...(fazendaId ? { fazenda_id: fazendaId } : {}),
       objetivos: criteriosSelecionados,
       matrizes_ids: [],
       reprodutores_ids: [],

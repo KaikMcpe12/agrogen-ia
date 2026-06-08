@@ -46,7 +46,7 @@ export const inseminacoesApi = {
   registrarDiagnostico: (inseminacaoId: string, body: {
     data_diagnostico: string;
     metodo: MetodoDiagnostico;
-    resultado: "PRENHA" | "VAZIA";
+    resultado: "PRENHA" | "VAZIA" | "INCONCLUSIVO";
     data_parto_prevista?: string | undefined;
     veterinario_id?: string | undefined;
     observacoes?: string | undefined;
