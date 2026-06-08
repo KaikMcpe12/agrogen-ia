@@ -88,13 +88,46 @@ async def create_inseminacao(
     }
 
 
-# INS-04a
+# INS-05
 @router.get("/{inseminacao_id}")
 async def get_inseminacao(
     inseminacao_id: UUID,
     service: InseminacaoService = Depends(get_service),
 ):
     return {"success": True, "data": await service.get_by_id_enriched(inseminacao_id)}
+
+
+# INS-06
+@router.patch("/{inseminacao_id}")
+async def update_inseminacao(
+    inseminacao_id: UUID,
+    data: InseminacaoUpdate,
+    current_user: User = Depends(get_current_user),
+    service: InseminacaoService = Depends(get_service),
+):
+    ins = await service.update(inseminacao_id, data)
+    return {"success": True, "data": InseminacaoResponse.model_validate(ins)}
+
+
+# INS-07
+@router.get("/{inseminacao_id}/diagnostico")
+async def get_diagnostico_inseminacao(
+    inseminacao_id: UUID,
+    service: InseminacaoService = Depends(get_service),
+):
+    result = await service.get_diagnostico(inseminacao_id)
+    return {"success": True, "data": result}
+
+
+# INS-08
+@router.delete("/{inseminacao_id}", status_code=status.HTTP_200_OK)
+async def cancelar_inseminacao(
+    inseminacao_id: UUID,
+    current_user: User = Depends(get_current_user),
+    service: InseminacaoService = Depends(get_service),
+):
+    await service.cancelar(inseminacao_id)
+    return {"success": True, "data": {"mensagem": "Inseminação cancelada."}}
 
 
 # INS-04b

@@ -170,6 +170,39 @@ class InseminacaoService:
     async def list_pendentes_diagnostico(self, **kwargs) -> list[InseminacaoModel]:
         return await self.repo.list_pendentes_diagnostico(**kwargs)
 
+    async def update(self, inseminacao_id: UUID, schema: InseminacaoUpdate) -> InseminacaoModel:
+        obj = await self.repo.update(inseminacao_id, schema.model_dump(exclude_unset=True))
+        if not obj:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inseminação não encontrada.")
+        return obj
+
+    async def get_diagnostico(self, inseminacao_id: UUID) -> Optional[dict]:
+        from repositories.diagnostico_repository import DiagnosticoRepository
+        await self.get_by_id(inseminacao_id)  # valida existência
+        diag_repo = DiagnosticoRepository(self.session)
+        diag = await diag_repo.get_by_inseminacao_id(inseminacao_id)
+        if not diag:
+            return None
+        return {
+            "diagnostico_id":    str(diag.diagnostico_id),
+            "inseminacao_id":    str(diag.inseminacao_id),
+            "animal_id":         str(diag.animal_id),
+            "data_diagnostico":  str(diag.data_diagnostico),
+            "metodo":            diag.metodo.value,
+            "resultado":         diag.resultado.value,
+            "dias_gestacao_est": diag.dias_gestacao_est,
+            "data_parto_prevista": str(diag.data_parto_prevista) if diag.data_parto_prevista else None,
+            "veterinario_id":    str(diag.veterinario_id) if diag.veterinario_id else None,
+            "observacoes":       diag.observacoes,
+        }
+
+    async def cancelar(self, inseminacao_id: UUID) -> InseminacaoModel:
+        """Soft-delete via resultado=CANCELADA (InseminacaoModel não tem campo ativo)."""
+        ins = await self.repo.update(inseminacao_id, {"resultado": ResultadoInseminacao.CANCELADA})
+        if not ins:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inseminação não encontrada.")
+        return ins
+
     async def registrar_diagnostico(
         self, inseminacao_id: UUID, schema: DiagnosticoViaInseminacaoCreate
     ) -> dict:
@@ -179,8 +212,8 @@ class InseminacaoService:
         ins = await self.get_by_id(inseminacao_id)
         diag_repo = DiagnosticoRepository(self.session)
 
-        # Verifica se já existe diagnóstico
-        existente = await diag_repo.get_by_id(inseminacao_id)
+        # Verifica se já existe diagnóstico para esta inseminação
+        existente = await diag_repo.get_by_inseminacao_id(inseminacao_id)
         if existente:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esta inseminação já possui diagnóstico registrado.")
 
