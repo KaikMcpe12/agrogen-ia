@@ -8,6 +8,20 @@ from core.config import settings
 
 
 class IAClient:
+    async def modelo_info(self) -> Optional[dict]:
+        """Chama GET {IA_SERVICE_URL}/model-info. Retorna dict de metadados ou None."""
+        if not settings.IA_SERVICE_URL:
+            return None
+        timeout = settings.IA_SERVICE_TIMEOUT_MS / 1000
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout)) as client:
+                resp = await client.get(f"{settings.IA_SERVICE_URL.rstrip('/')}/model-info")
+                if resp.status_code != 200:
+                    return None
+                return resp.json()
+        except (httpx.ConnectError, httpx.TimeoutException, httpx.HTTPError):
+            return None
+
     async def predict(self, features: dict) -> Optional[dict]:
         """
         Chama POST {IA_SERVICE_URL}/predict.
