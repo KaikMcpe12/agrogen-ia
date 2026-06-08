@@ -66,10 +66,17 @@ async def create_inseminacao(
     current_user: User = Depends(get_current_user),
     service: InseminacaoService = Depends(get_service),
 ):
-    ins, warnings = await service.create(data)
+    ins, warnings, alerta_dict, aviso_intervalo = await service.create(data, tecnico_id=current_user.usuario_id)
     response = InseminacaoResponse.model_validate(ins)
     response.warnings = warnings
-    return {"success": True, "data": response}
+    return {
+        "success": True,
+        "data": {
+            **response.model_dump(mode="json"),
+            "alerta_criado":   alerta_dict,
+            "aviso_intervalo": aviso_intervalo,
+        }
+    }
 
 
 # INS-04a

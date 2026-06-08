@@ -1,7 +1,7 @@
 from uuid import UUID
 from typing import Optional
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.protocolo_hormonal_model import ProtocoloHormonalModel
@@ -12,6 +12,15 @@ from repositories.base_repository import BaseRepository
 class ProtocoloHormonalRepository(BaseRepository[ProtocoloHormonalModel]):
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session, ProtocoloHormonalModel)
+
+    async def get_by_nome(self, nome: str, especie: Optional[EspecieAnimal] = None) -> Optional[ProtocoloHormonalModel]:
+        """Busca protocolo por nome (case-insensitive). Retorna o primeiro match."""
+        filtros = [func.lower(ProtocoloHormonalModel.nome) == nome.strip().lower()]
+        if especie:
+            filtros.append(ProtocoloHormonalModel.especie == especie)
+        stmt = select(ProtocoloHormonalModel).where(and_(*filtros)).limit(1)
+        result = await self.session.execute(stmt)
+        return result.scalars().first()
 
     async def create(self, data: dict) -> ProtocoloHormonalModel:
         obj = ProtocoloHormonalModel(**data)

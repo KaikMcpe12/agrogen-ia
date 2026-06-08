@@ -10,8 +10,8 @@ from models.enums import TipoInseminacao, ResultadoInseminacao
 class InseminacaoCreate(BaseModel):
     animal_id:                 UUID
     reprodutor_id:             UUID
-    tecnico_id:                UUID
     protocolo_id:              Optional[UUID]    = None
+    protocolo_descricao:       Optional[str]     = None
     data_inseminacao:          datetime
     tipo:                      TipoInseminacao
     condicao_corporal_momento: int               = Field(..., ge=1, le=5)
@@ -31,8 +31,8 @@ class InseminacaoCreate(BaseModel):
 
     @model_validator(mode="after")
     def iatf_requer_protocolo(self) -> "InseminacaoCreate":
-        if self.tipo == TipoInseminacao.IATF and not self.protocolo_id:
-            raise ValueError("protocolo_id é obrigatório para inseminações do tipo IATF.")
+        if self.tipo == TipoInseminacao.IATF and not self.protocolo_id and not self.protocolo_descricao:
+            raise ValueError("protocolo_id ou protocolo_descricao é obrigatório para inseminações do tipo IATF.")
         return self
 
 
