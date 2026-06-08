@@ -120,6 +120,12 @@ class PredicaoService:
         protocolo = None
         if ultima_ins and getattr(ultima_ins[0], "protocolo_descricao", None):
             protocolo = ultima_ins[0].protocolo_descricao
+        # tipo_inseminacao: o microsserviço só aceita IATF | IA_CONVENCIONAL.
+        # TRANSFERENCIA_EMBRIAO e ausência mapeiam para IA_CONVENCIONAL.
+        tipo_ins = "IATF" if features.get("tipo_inseminacao") == "IATF" else "IA_CONVENCIONAL"
+        # estacao: heurística pelo mês (semiárido nordestino — chuvas concentradas jan–maio),
+        # já que não há esse dado no domínio. Best-effort para a feature do modelo.
+        estacao = "CHUVOSA" if datetime.now(timezone.utc).month in (1, 2, 3, 4, 5) else "SECA"
         ia_payload = {
             "especie":                  features["especie"],
             "raca_femea":               features["raca_femea"] or "INDEFINIDA",
@@ -129,8 +135,10 @@ class PredicaoService:
             "num_partos_anteriores":    animal.num_partos or 0,
             "dias_desde_ultima_ins":    dias_ultima_ins if dias_ultima_ins is not None else 0,
             "dep_fertilidade_animal":   dep_fert_animal,
+            "tipo_inseminacao":         tipo_ins,
             "protocolo_hormonal":       protocolo or "NENHUM",
             "temperatura_ambiente_c":   features["temperatura_ambiente_c"] if features["temperatura_ambiente_c"] is not None else 25.0,
+            "estacao":                  estacao,
             "dep_acuracia":             dep_acc_rep,
             "coeficiente_endogamia":    features["coeficiente_endogamia"] if features["coeficiente_endogamia"] is not None else 0.0,
             "ciclos_sem_concepcao":     features["ciclos_sem_concepcao"] or 0,
