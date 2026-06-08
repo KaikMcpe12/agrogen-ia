@@ -675,6 +675,20 @@ em 2 models** divergiam, declarando `DateTime(timezone=True)` (= `TIMESTAMPTZ`):
 - **Recomendação:** ao habilitar o refresh token no banco, gravar `expires_at` como
   naive UTC (`.replace(tzinfo=None)`) para manter a consistência.
 
+### Decisão final (2026-06-08): fonte da verdade = documento (`TIMESTAMP` naive)
+O `agroGen_schema.sql` permanece como fonte da verdade — todas as colunas de hora são
+`TIMESTAMP WITHOUT TIME ZONE`. Models e código já estão alinhados a essa direção (naive UTC).
+
+**Banco Supabase precisava de conversão:** o banco real estava em `timestamptz`, divergindo
+do documento. Criado o script `endpoint/migration_timestamptz_to_timestamp.sql` que converte
+dinamicamente todas as colunas `timestamp with time zone` → `timestamp` preservando o
+instante em UTC (`coluna AT TIME ZONE 'UTC'`, com a sessão em UTC). Rodar com backup prévio.
+
+**Superfície real do problema** (apenas colunas `TIMESTAMP` escritas/comparadas por Python):
+`usuarios.bloqueado_ate`, `usuarios.ultimo_acesso` (auth) e `inseminacoes.data_inseminacao`
+(input). Colunas `DATE` (`data_nascimento`, `data_parto`, `data_diagnostico`, etc.) e os
+`created_at`/`updated_at` gerados server-side **não têm risco**.
+
 ---
 
 *Auditoria gerada em 2026-06-07; seção 10 (timestamps) e status de resolução adicionados em 2026-06-08.*
