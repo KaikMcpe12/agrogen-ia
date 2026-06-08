@@ -27,7 +27,13 @@ async def list_pendentes_diagnostico(
     service: InseminacaoService = Depends(get_service),
 ):
     items = await service.list_pendentes_diagnostico(animal_id=animal_id, dias_minimos=dias_minimos)
-    return {"success": True, "data": items}
+    criticos = sum(1 for i in items if i.get("urgencia") == "CRITICA")
+    atencao  = sum(1 for i in items if i.get("urgencia") == "ATENCAO")
+    return {
+        "success": True,
+        "data": items,
+        "meta": {"total": len(items), "criticos": criticos, "atencao": atencao},
+    }
 
 
 # INS-01
@@ -40,12 +46,15 @@ async def list_inseminacoes(
     data_fim:    Optional[date]                = None,
     page:        int                           = Query(1, ge=1),
     limit:       int                           = Query(20, ge=1, le=100),
+    sort:        str                           = Query("data_inseminacao", pattern="^(data_inseminacao|resultado)$"),
+    order:       str                           = Query("desc", pattern="^(asc|desc)$"),
     service: InseminacaoService = Depends(get_service),
 ):
     offset = (page - 1) * limit
     items, total = await service.list_all_enriched(
         animal_id=animal_id, tecnico_id=tecnico_id, resultado=resultado,
         data_inicio=data_inicio, data_fim=data_fim, limit=limit, offset=offset,
+        sort=sort, order=order,
     )
     total_pages = max(1, (total + limit - 1) // limit)
     return {

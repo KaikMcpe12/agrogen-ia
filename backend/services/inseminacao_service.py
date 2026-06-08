@@ -164,8 +164,8 @@ class InseminacaoService:
     async def list_all(self, **kwargs) -> tuple[list[InseminacaoModel], int]:
         return await self.repo.list_all(**kwargs)
 
-    async def list_all_enriched(self, **kwargs) -> tuple[list[dict], int]:
-        return await self.repo.list_all_enriched(**kwargs)
+    async def list_all_enriched(self, sort: str = "data_inseminacao", order: str = "desc", **kwargs) -> tuple[list[dict], int]:
+        return await self.repo.list_all_enriched(sort=sort, order=order, **kwargs)
 
     async def list_pendentes_diagnostico(self, **kwargs) -> list[InseminacaoModel]:
         return await self.repo.list_pendentes_diagnostico(**kwargs)

@@ -120,6 +120,8 @@ class InseminacaoRepository(BaseRepository[InseminacaoModel]):
         data_fim:    Optional[date]                = None,
         limit:       int                           = 20,
         offset:      int                           = 0,
+        sort:        str                           = "data_inseminacao",
+        order:       str                           = "desc",
     ) -> tuple[list[dict], int]:
         filtros = []
         if animal_id:
@@ -138,6 +140,11 @@ class InseminacaoRepository(BaseRepository[InseminacaoModel]):
         total = (await self.session.execute(
             select(func.count(InseminacaoModel.inseminacao_id)).where(where_clause)
         )).scalar_one()
+
+        _sort_col = {
+            "resultado": InseminacaoModel.resultado,
+        }.get(sort, InseminacaoModel.data_inseminacao)
+        _order_fn = _sort_col.desc() if order == "desc" else _sort_col.asc()
 
         stmt = (
             select(
@@ -159,7 +166,7 @@ class InseminacaoRepository(BaseRepository[InseminacaoModel]):
             .outerjoin(ProtocoloHormonalModel, ProtocoloHormonalModel.protocolo_id == InseminacaoModel.protocolo_id)
             .outerjoin(DiagnosticoModel, DiagnosticoModel.inseminacao_id == InseminacaoModel.inseminacao_id)
             .where(where_clause)
-            .order_by(InseminacaoModel.data_inseminacao.desc())
+            .order_by(_order_fn)
             .offset(offset)
             .limit(limit)
         )
@@ -230,6 +237,9 @@ class InseminacaoRepository(BaseRepository[InseminacaoModel]):
         for row in rows:
             ins = row.InseminacaoModel
             data_ins = ins.data_inseminacao.replace(tzinfo=None) if ins.data_inseminacao else agora
+            dias = (agora - data_ins).days
+            urgencia = "CRITICA" if dias >= 45 else ("ATENCAO" if dias >= 28 else "NORMAL")
+            data_esperada = (data_ins + timedelta(days=28)).date().isoformat()
             items.append({
                 "id":               str(ins.inseminacao_id),
                 "animal": {
@@ -241,7 +251,9 @@ class InseminacaoRepository(BaseRepository[InseminacaoModel]):
                 "data_inseminacao":          ins.data_inseminacao.isoformat(),
                 "tipo":                      ins.tipo.value,
                 "resultado":                 ins.resultado.value,
-                "dias_decorridos":           (agora - data_ins).days,
+                "dias_decorridos":           dias,
+                "urgencia":                  urgencia,
+                "data_esperada_diagnostico": data_esperada,
                 "condicao_corporal_momento": ins.condicao_corporal_momento,
                 "diagnostico":               None,
             })
