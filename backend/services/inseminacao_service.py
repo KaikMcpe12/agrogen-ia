@@ -75,7 +75,6 @@ class InseminacaoService:
 
         warnings: list[str] = []
         aviso_intervalo: Optional[dict] = None
-        now = datetime.now(timezone.utc)
         data_ins = schema.data_inseminacao
         if data_ins.tzinfo is None:
             data_ins = data_ins.replace(tzinfo=timezone.utc)
@@ -122,6 +121,10 @@ class InseminacaoService:
         )
 
         payload = schema.model_dump(exclude={"forcar_registro", "protocolo_descricao"})
+        # Coluna data_inseminacao é TIMESTAMP WITHOUT TIME ZONE — normaliza para naive UTC
+        di = payload.get("data_inseminacao")
+        if di is not None and di.tzinfo is not None:
+            payload["data_inseminacao"] = di.astimezone(timezone.utc).replace(tzinfo=None)
         payload["tecnico_id"]            = tecnico_id
         payload["protocolo_id"]          = protocolo_id
         payload["dias_desde_ultima_ins"] = dias_desde_ultima

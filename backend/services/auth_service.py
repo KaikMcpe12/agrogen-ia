@@ -47,9 +47,10 @@ class AuthService:
         if not user.ativo:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Usuário inativo.")
 
-        now = datetime.now(timezone.utc)
+        # Naive UTC: as colunas são TIMESTAMP WITHOUT TIME ZONE (ver agroGen_schema.sql)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
 
-        if user.bloqueado_ate and user.bloqueado_ate.replace(tzinfo=timezone.utc) > now:
+        if user.bloqueado_ate and user.bloqueado_ate > now:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail=f"Conta bloqueada por tentativas excessivas. Tente novamente após {user.bloqueado_ate.isoformat()}.",
