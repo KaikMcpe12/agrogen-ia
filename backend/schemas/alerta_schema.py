@@ -26,3 +26,7 @@ class AlertaBadgeResponse(BaseModel):
     total_nao_lidos: int
     criticos:        int
     altas:           int
+
+
+class AlertaResolverRequest(BaseModel):
+    resolvido: bool = True
