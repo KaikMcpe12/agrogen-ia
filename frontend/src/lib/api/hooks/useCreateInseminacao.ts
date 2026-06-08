@@ -41,7 +41,7 @@ export function useCreateInseminacao() {
       const resp = await inseminacoesApi.criar(input);
       return resp.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, input) => {
       if (String(data.id).startsWith("local:")) {
         showInfoToast("Inseminação salva localmente. Será enviada quando a conexão voltar.");
         return;

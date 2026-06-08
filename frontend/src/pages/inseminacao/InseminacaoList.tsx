@@ -169,7 +169,7 @@ export function InseminacaoListPage() {
 
   const { data: pendentes, isLoading: pendLoading } = useQuery({
     queryKey: ["inseminacoes", "pendentes-diagnostico"],
-    queryFn: ({ signal }) => inseminacoesApi.pendentes(signal),
+    queryFn: ({ signal }) => inseminacoesApi.pendentes(undefined, signal),
     staleTime: 1 * 60 * 1000,
     enabled: tab === "pendentes",
   });
