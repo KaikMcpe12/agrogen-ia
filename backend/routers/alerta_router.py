@@ -7,7 +7,7 @@ from core.database import get_db
 from core.deps import get_current_user
 from models.user_model import User
 from services.alerta_service import AlertaService
-from schemas.alerta_schema import AlertaBadgeResponse
+from schemas.alerta_schema import AlertaBadgeResponse, AlertaResolverRequest
 from models.enums import TipoAlerta, PrioridadeAlerta
 
 router = APIRouter(prefix="/alertas", tags=["Alertas"])
@@ -36,29 +36,29 @@ async def list_alertas(
     prioridade: Optional[PrioridadeAlerta] = None,
     lido:       Optional[bool]             = None,
     resolvido:  Optional[bool]             = None,
+    page:       int                        = Query(1, ge=1),
     limit:      int                        = Query(20, ge=1, le=100),
-    offset:     int                        = Query(0, ge=0),
     current_user: User = Depends(get_current_user),
     service: AlertaService = Depends(get_service),
 ):
+    offset = (page - 1) * limit
     items = await service.list_pendentes(
         animal_id=animal_id, fazenda_id=fazenda_id, tipo=tipo,
         prioridade=prioridade, lido=lido, resolvido=resolvido,
         limit=limit, offset=offset,
     )
-    total = len(items)
     return {
         "success": True,
         "data": items,
         "meta": {
-            "total": total,
+            "total":     len(items),
             "nao_lidos": sum(1 for a in items if not a.get("lido")),
-            "criticos": sum(1 for a in items if a.get("prioridade") == "CRITICA"),
+            "criticos":  sum(1 for a in items if a.get("prioridade") == "CRITICA"),
         },
     }
 
 
-# ALE-02b — alias /contagem para compatibilidade com o frontend (antes de /{alerta_id})
+# ALE-04 — alias /contagem
 @router.get("/contagem")
 async def contagem(
     current_user: User = Depends(get_current_user),
@@ -88,11 +88,15 @@ async def marcar_lido(
     return {"success": True, "data": await service.marcar_lido(alerta_id)}
 
 
-# ALE-04 — marcar como resolvido (ALE-03 no PDF)
+# ALE-03 — marcar como resolvido
 @router.patch("/{alerta_id}/resolver")
 async def marcar_resolvido(
     alerta_id: UUID,
+    body: AlertaResolverRequest = AlertaResolverRequest(),
     current_user: User = Depends(get_current_user),
     service: AlertaService = Depends(get_service),
 ):
-    return {"success": True, "data": await service.marcar_resolvido(alerta_id)}
+    result = await service.marcar_resolvido(alerta_id)
+    if isinstance(result, dict):
+        return {"success": True, "data": {**result, "lido": True}}
+    return {"success": True, "data": {"id": str(alerta_id), "resolvido": True, "lido": True}}

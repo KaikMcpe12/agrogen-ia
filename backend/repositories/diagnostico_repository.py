@@ -34,6 +34,12 @@ class DiagnosticoRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_by_inseminacao_id(self, inseminacao_id: UUID) -> Optional[DiagnosticoModel]:
+        result = await self.session.execute(
+            select(DiagnosticoModel).where(DiagnosticoModel.inseminacao_id == inseminacao_id)
+        )
+        return result.scalar_one_or_none()
+
     async def list_by_animal(
         self,
         animal_id: Optional[UUID] = None,

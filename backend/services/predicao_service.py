@@ -62,11 +62,15 @@ class PredicaoService:
             cc_atual = int(animal.condicao_corporal) if animal.condicao_corporal else 3
 
         gen = await self.gen_repo.get_by_animal_id(animal.animal_id)
-        ultima_ins, _ = await self.ins_repo.list_all(animal_id=animal.animal_id, limit=1)
+        ultima_ins, total_ins = await self.ins_repo.list_all(animal_id=animal.animal_id, limit=1)
 
-        # Calcula histórico de taxa de prenhez
-        todas_ins, total_ins = await self.ins_repo.list_all(animal_id=animal.animal_id, limit=500)
-        prenhezes = sum(1 for i in todas_ins if i.resultado.value == "PRENHA")
+        # Calcula histórico de taxa de prenhez via COUNT SQL (evita carregar todos os registros)
+        from models.enums import ResultadoInseminacao
+        _, prenhezes = await self.ins_repo.list_all(
+            animal_id=animal.animal_id,
+            resultado=ResultadoInseminacao.PRENHA,
+            limit=1,
+        )
         hist_taxa = (prenhezes / total_ins) if total_ins > 0 else None
 
         # Monta features
@@ -99,8 +103,9 @@ class PredicaoService:
             "intervalo_pos_parto_dias":     dias_pos_parto,
             "num_partos_anteriores":        animal.num_partos,
             "historico_taxa_prenhez":       hist_taxa,
-            "dias_desde_ultima_inseminacao": dias_ultima_ins,
-            "tipo_inseminacao":             ultima_ins[0].tipo.value if ultima_ins else None,
+            "ciclos_sem_concepcao":         ultima_ins[0].ciclos_sem_concepcao if ultima_ins else 0,
+            "dias_desde_ultima_ins":        dias_ultima_ins,
+            "tipo_inseminacao":             schema.tipo_inseminacao.value if schema.tipo_inseminacao else (ultima_ins[0].tipo.value if ultima_ins else None),
             "temperatura_ambiente_c":       float(schema.temperatura_ambiente_c) if schema.temperatura_ambiente_c else None,
             "raca_femea":                   animal.raca_principal,
             "heterose_esperada_pct":        heterose,
@@ -109,9 +114,33 @@ class PredicaoService:
             "dep_acuracia_media":           dep_acc_rep,
         }
 
+        # Payload no contrato do microsserviço ML (PredicaoRequest). Campos ausentes recebem
+        # defaults neutros para não violar a validação estrita do microsserviço — quando o
+        # dado real falta, o resultado é best-effort (e o fallback de regras continua disponível).
+        protocolo = None
+        if ultima_ins and getattr(ultima_ins[0], "protocolo_descricao", None):
+            protocolo = ultima_ins[0].protocolo_descricao
+        ia_payload = {
+            "especie":                  features["especie"],
+            "raca_femea":               features["raca_femea"] or "INDEFINIDA",
+            "condicao_corporal":        features["condicao_corporal"],
+            "historico_taxa_prenhez":   hist_taxa if hist_taxa is not None else 0.5,
+            "intervalo_pos_parto_dias": dias_pos_parto if dias_pos_parto is not None else 60,
+            "num_partos_anteriores":    animal.num_partos or 0,
+            "dias_desde_ultima_ins":    dias_ultima_ins if dias_ultima_ins is not None else 0,
+            "dep_fertilidade_animal":   dep_fert_animal,
+            "protocolo_hormonal":       protocolo or "NENHUM",
+            "temperatura_ambiente_c":   features["temperatura_ambiente_c"] if features["temperatura_ambiente_c"] is not None else 25.0,
+            "dep_acuracia":             dep_acc_rep,
+            "coeficiente_endogamia":    features["coeficiente_endogamia"] if features["coeficiente_endogamia"] is not None else 0.0,
+            "ciclos_sem_concepcao":     features["ciclos_sem_concepcao"] or 0,
+            "dep_fertilidade_reprodutor": dep_fert_rep,
+            "heterose_esperada":        heterose,
+        }
+
         # Tenta microsserviço ML; fallback para motor local
-        ml_result = await self.ia_client.predict(features)
-        if ml_result:
+        ml_result = await self.ia_client.predict(ia_payload, features)
+        if ml_result and ml_result.get("score") is not None:
             score        = float(ml_result.get("score", 0.5))
             fatores      = ml_result.get("top_5_fatores", [])
             versao       = ml_result.get("modelo_versao", "ml_unknown")

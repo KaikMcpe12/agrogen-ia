@@ -16,16 +16,18 @@ class DashboardRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def kpis(self, usuario_id: Optional[UUID] = None) -> dict:
+    async def kpis(self, usuario_id: Optional[UUID] = None, fazenda_id: Optional[UUID] = None) -> dict:
         now = datetime.now(timezone.utc)
         now_naive = now.replace(tzinfo=None)
         mes_ini = now_naive.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         mes_ant_ini = (mes_ini - timedelta(days=1)).replace(day=1)
 
-        # Filtro de fazendas do usuário
+        # Filtro de fazendas do usuário (ou de uma fazenda específica)
         from models.fazenda_model import FazendaModel
         fazenda_sub = None
-        if usuario_id:
+        if fazenda_id:
+            fazenda_sub = select(FazendaModel.fazenda_id).where(FazendaModel.fazenda_id == fazenda_id)
+        elif usuario_id:
             fazenda_sub = select(FazendaModel.fazenda_id).where(
                 FazendaModel.usuario_id == usuario_id, FazendaModel.ativo == True
             )

@@ -23,6 +23,9 @@ class FazendaService:
     async def list_all(self, **kwargs) -> list[FazendaModel]:
         return await self.repo.list_all(**kwargs)
 
+    async def count_animais(self, fazenda_id: UUID) -> int:
+        return await self.repo.count_animais_ativos(fazenda_id)
+
     async def update(self, fazenda_id: UUID, schema: FazendaUpdate) -> FazendaModel:
         fazenda = await self.repo.update(fazenda_id, schema)
         if not fazenda:

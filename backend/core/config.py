@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     IA_SERVICE_URL: str = ""           # vazio = usa motor local diretamente
     IA_SERVICE_TIMEOUT_MS: int = 800
+    BACKEND_AUTH_SECRET: str = ""      # Bearer estático para autenticar no microsserviço IA
 
     class Config:
         env_file = ".env"

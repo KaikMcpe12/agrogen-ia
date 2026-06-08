@@ -14,6 +14,7 @@ from models.enums import (
 from repositories.inseminacao_repository import InseminacaoRepository
 from repositories.animal_repository import AnimalRepository
 from repositories.alerta_repository import AlertaRepository
+from repositories.protocolo_hormonal_repository import ProtocoloHormonalRepository
 from schemas.inseminacao_schema import InseminacaoCreate, InseminacaoUpdate, DiagnosticoViaInseminacaoCreate
 
 _CICLO_DIAS: dict[EspecieAnimal, int] = {
@@ -36,12 +37,29 @@ _STATUS_BLOQUEADOS = {StatusAnimal.PRENHA, StatusAnimal.DESCARTADA}
 
 class InseminacaoService:
     def __init__(self, session: AsyncSession) -> None:
-        self.repo        = InseminacaoRepository(session)
-        self.animal_repo = AnimalRepository(session)
-        self.alerta_repo = AlertaRepository(session)
-        self.session     = session
+        self.repo            = InseminacaoRepository(session)
+        self.animal_repo     = AnimalRepository(session)
+        self.alerta_repo     = AlertaRepository(session)
+        self.protocolo_repo  = ProtocoloHormonalRepository(session)
+        self.session         = session
 
-    async def create(self, schema: InseminacaoCreate) -> tuple[InseminacaoModel, list[str]]:
+    async def _resolver_protocolo_id(self, schema: InseminacaoCreate, especie: EspecieAnimal) -> Optional[UUID]:
+        """Retorna protocolo_id: usa o fornecido, ou busca/cria pelo protocolo_descricao."""
+        if schema.protocolo_id:
+            return schema.protocolo_id
+        if schema.protocolo_descricao:
+            existente = await self.protocolo_repo.get_by_nome(schema.protocolo_descricao, especie)
+            if existente:
+                return existente.protocolo_id
+            novo = await self.protocolo_repo.create({
+                "nome": schema.protocolo_descricao.strip(),
+                "especie": especie,
+                "duracao_dias": 7,
+            })
+            return novo.protocolo_id
+        return None
+
+    async def create(self, schema: InseminacaoCreate, tecnico_id: UUID) -> tuple[InseminacaoModel, list[str], Optional[dict], Optional[dict]]:
         animal = await self.animal_repo.get_by_id(schema.animal_id)
         if not animal:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Animal não encontrado.")
@@ -56,10 +74,13 @@ class InseminacaoService:
             )
 
         warnings: list[str] = []
-        now = datetime.now(timezone.utc)
+        aviso_intervalo: Optional[dict] = None
         data_ins = schema.data_inseminacao
         if data_ins.tzinfo is None:
             data_ins = data_ins.replace(tzinfo=timezone.utc)
+
+        # Resolve protocolo_id via descrição se necessário
+        protocolo_id = await self._resolver_protocolo_id(schema, animal.especie)
 
         # Calcula dias_desde_ultima_ins
         dias_desde_ultima: Optional[int] = None
@@ -76,7 +97,9 @@ class InseminacaoService:
                         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                         detail=f"Intervalo de {dias_desde_ultima} dias abaixo do ciclo da espécie ({ciclo} dias). Use forcar_registro=true para confirmar.",
                     )
-                warnings.append(f"Intervalo curto: {dias_desde_ultima} dias (ciclo mínimo {ciclo} dias).")
+                msg = f"Intervalo curto: {dias_desde_ultima} dias (ciclo mínimo {ciclo} dias)."
+                warnings.append(msg)
+                aviso_intervalo = {"dias_decorridos": dias_desde_ultima, "mensagem": msg}
 
         # Calcula dias_pos_parto + aviso
         dias_pos_parto: Optional[int] = None
@@ -89,13 +112,21 @@ class InseminacaoService:
             if dias_pos_parto < minimo:
                 warnings.append(f"Dias pós-parto ({dias_pos_parto}) abaixo do recomendado ({minimo} dias).")
 
-        # Conta ciclos sem concepção (inseminações VAZIA antes desta)
-        from models.enums import ResultadoInseminacao
-        todos, _ = await self.repo.list_all(animal_id=animal.animal_id, limit=500)
-        ciclos_sem_concepcao = sum(1 for i in todos if i.resultado == ResultadoInseminacao.VAZIA)
-        historico_prenhez   = sum(1 for i in todos if i.resultado == ResultadoInseminacao.PRENHA)
+        # Conta ciclos sem concepção via COUNT SQL
+        _, ciclos_sem_concepcao = await self.repo.list_all(
+            animal_id=animal.animal_id, resultado=ResultadoInseminacao.VAZIA, limit=1
+        )
+        _, historico_prenhez = await self.repo.list_all(
+            animal_id=animal.animal_id, resultado=ResultadoInseminacao.PRENHA, limit=1
+        )
 
-        payload = schema.model_dump(exclude={"forcar_registro"})
+        payload = schema.model_dump(exclude={"forcar_registro", "protocolo_descricao"})
+        # Coluna data_inseminacao é TIMESTAMP WITHOUT TIME ZONE — normaliza para naive UTC
+        di = payload.get("data_inseminacao")
+        if di is not None and di.tzinfo is not None:
+            payload["data_inseminacao"] = di.astimezone(timezone.utc).replace(tzinfo=None)
+        payload["tecnico_id"]            = tecnico_id
+        payload["protocolo_id"]          = protocolo_id
         payload["dias_desde_ultima_ins"] = dias_desde_ultima
         payload["dias_pos_parto"]        = dias_pos_parto
         payload["ciclos_sem_concepcao"]  = ciclos_sem_concepcao
@@ -105,7 +136,7 @@ class InseminacaoService:
 
         # Alerta DIAGNOSTICO_PENDENTE — disparo em 30 dias
         data_disparo = (data_ins + timedelta(days=30)).date()
-        await self.alerta_repo.create({
+        alerta = await self.alerta_repo.create({
             "animal_id":      animal.animal_id,
             "inseminacao_id": ins.inseminacao_id,
             "tipo":           TipoAlerta.DIAGNOSTICO_PENDENTE,
@@ -113,8 +144,13 @@ class InseminacaoService:
             "data_disparo":   data_disparo,
             "prioridade":     PrioridadeAlerta.MEDIA,
         })
+        alerta_dict = {
+            "id":          str(alerta.alerta_id),
+            "data_disparo": str(data_disparo),
+            "mensagem":    f"Diagnóstico de gestação pendente para {animal.codigo} ({animal.nome}).",
+        }
 
-        return ins, warnings
+        return ins, warnings, alerta_dict, aviso_intervalo
 
     async def get_by_id(self, inseminacao_id: UUID) -> InseminacaoModel:
         obj = await self.repo.get_by_id(inseminacao_id)
@@ -131,11 +167,44 @@ class InseminacaoService:
     async def list_all(self, **kwargs) -> tuple[list[InseminacaoModel], int]:
         return await self.repo.list_all(**kwargs)
 
-    async def list_all_enriched(self, **kwargs) -> tuple[list[dict], int]:
-        return await self.repo.list_all_enriched(**kwargs)
+    async def list_all_enriched(self, sort: str = "data_inseminacao", order: str = "desc", **kwargs) -> tuple[list[dict], int]:
+        return await self.repo.list_all_enriched(sort=sort, order=order, **kwargs)
 
     async def list_pendentes_diagnostico(self, **kwargs) -> list[InseminacaoModel]:
         return await self.repo.list_pendentes_diagnostico(**kwargs)
+
+    async def update(self, inseminacao_id: UUID, schema: InseminacaoUpdate) -> InseminacaoModel:
+        obj = await self.repo.update(inseminacao_id, schema.model_dump(exclude_unset=True))
+        if not obj:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inseminação não encontrada.")
+        return obj
+
+    async def get_diagnostico(self, inseminacao_id: UUID) -> Optional[dict]:
+        from repositories.diagnostico_repository import DiagnosticoRepository
+        await self.get_by_id(inseminacao_id)  # valida existência
+        diag_repo = DiagnosticoRepository(self.session)
+        diag = await diag_repo.get_by_inseminacao_id(inseminacao_id)
+        if not diag:
+            return None
+        return {
+            "diagnostico_id":    str(diag.diagnostico_id),
+            "inseminacao_id":    str(diag.inseminacao_id),
+            "animal_id":         str(diag.animal_id),
+            "data_diagnostico":  str(diag.data_diagnostico),
+            "metodo":            diag.metodo.value,
+            "resultado":         diag.resultado.value,
+            "dias_gestacao_est": diag.dias_gestacao_est,
+            "data_parto_prevista": str(diag.data_parto_prevista) if diag.data_parto_prevista else None,
+            "veterinario_id":    str(diag.veterinario_id) if diag.veterinario_id else None,
+            "observacoes":       diag.observacoes,
+        }
+
+    async def cancelar(self, inseminacao_id: UUID) -> InseminacaoModel:
+        """Soft-delete via resultado=CANCELADA (InseminacaoModel não tem campo ativo)."""
+        ins = await self.repo.update(inseminacao_id, {"resultado": ResultadoInseminacao.CANCELADA})
+        if not ins:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inseminação não encontrada.")
+        return ins
 
     async def registrar_diagnostico(
         self, inseminacao_id: UUID, schema: DiagnosticoViaInseminacaoCreate
@@ -146,8 +215,8 @@ class InseminacaoService:
         ins = await self.get_by_id(inseminacao_id)
         diag_repo = DiagnosticoRepository(self.session)
 
-        # Verifica se já existe diagnóstico
-        existente = await diag_repo.get_by_id(inseminacao_id)
+        # Verifica se já existe diagnóstico para esta inseminação
+        existente = await diag_repo.get_by_inseminacao_id(inseminacao_id)
         if existente:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esta inseminação já possui diagnóstico registrado.")
 

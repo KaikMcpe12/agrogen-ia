@@ -4,13 +4,16 @@ from uuid import UUID
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
+from models.enums import TipoInseminacao
+
 
 class PredicaoRequest(BaseModel):
     animal_id:               UUID
-    condicao_corporal_atual: Optional[int]     = Field(None, ge=1, le=5)
-    temperatura_ambiente_c:  Optional[Decimal] = None
-    reprodutor_candidato_id: Optional[UUID]    = None
-    tecnico_id:              Optional[UUID]    = None
+    condicao_corporal_atual: Optional[int]            = Field(None, ge=1, le=5)
+    temperatura_ambiente_c:  Optional[Decimal]        = None
+    reprodutor_candidato_id: Optional[UUID]           = None
+    tecnico_id:              Optional[UUID]           = None
+    tipo_inseminacao:        Optional[TipoInseminacao] = None
 
 
 class FatorDeterminante(BaseModel):

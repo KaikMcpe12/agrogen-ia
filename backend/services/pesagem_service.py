@@ -8,7 +8,7 @@ from models.pesagem_model import PesagemModel
 from models.enums import EspecieAnimal
 from repositories.pesagem_repository import PesagemRepository
 from repositories.animal_repository import AnimalRepository
-from schemas.pesagem_schema import PesagemCreate
+from schemas.pesagem_schema import PesagemCreate, PesagemUpdate
 
 _FAIXAS: dict[EspecieAnimal, tuple[float, float]] = {
     EspecieAnimal.BOVINO:  (50, 900),
@@ -69,6 +69,16 @@ class PesagemService:
         obj = await self.repo.get_by_id(pesagem_id)
         if not obj:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pesagem não encontrada.")
+        return obj
+
+    async def update(self, pesagem_id: UUID, schema: PesagemUpdate) -> PesagemModel:
+        obj = await self.repo.get_by_id(pesagem_id)
+        if not obj:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pesagem não encontrada.")
+        for field, value in schema.model_dump(exclude_unset=True).items():
+            setattr(obj, field, value)
+        await self.repo.session.commit()
+        await self.repo.session.refresh(obj)
         return obj
 
     async def delete(self, pesagem_id: UUID) -> None:

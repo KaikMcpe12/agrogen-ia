@@ -1,3 +1,5 @@
+from typing import Optional
+from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,10 +17,11 @@ def _repo(session: AsyncSession = Depends(get_db)) -> DashboardRepository:
 
 @router.get("/kpis")
 async def kpis(
+    fazenda_id: Optional[UUID] = None,
     current_user: User = Depends(get_current_user),
     repo: DashboardRepository = Depends(_repo),
 ):
-    data = await repo.kpis(usuario_id=current_user.usuario_id)
+    data = await repo.kpis(usuario_id=current_user.usuario_id, fazenda_id=fazenda_id)
     return {"success": True, "data": data}
 
 

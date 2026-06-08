@@ -27,7 +27,13 @@ async def list_pendentes_diagnostico(
     service: InseminacaoService = Depends(get_service),
 ):
     items = await service.list_pendentes_diagnostico(animal_id=animal_id, dias_minimos=dias_minimos)
-    return {"success": True, "data": items}
+    criticos = sum(1 for i in items if i.get("urgencia") == "CRITICA")
+    atencao  = sum(1 for i in items if i.get("urgencia") == "ATENCAO")
+    return {
+        "success": True,
+        "data": items,
+        "meta": {"total": len(items), "criticos": criticos, "atencao": atencao},
+    }
 
 
 # INS-01
@@ -40,12 +46,15 @@ async def list_inseminacoes(
     data_fim:    Optional[date]                = None,
     page:        int                           = Query(1, ge=1),
     limit:       int                           = Query(20, ge=1, le=100),
+    sort:        str                           = Query("data_inseminacao", pattern="^(data_inseminacao|resultado)$"),
+    order:       str                           = Query("desc", pattern="^(asc|desc)$"),
     service: InseminacaoService = Depends(get_service),
 ):
     offset = (page - 1) * limit
     items, total = await service.list_all_enriched(
         animal_id=animal_id, tecnico_id=tecnico_id, resultado=resultado,
         data_inicio=data_inicio, data_fim=data_fim, limit=limit, offset=offset,
+        sort=sort, order=order,
     )
     total_pages = max(1, (total + limit - 1) // limit)
     return {
@@ -66,19 +75,59 @@ async def create_inseminacao(
     current_user: User = Depends(get_current_user),
     service: InseminacaoService = Depends(get_service),
 ):
-    ins, warnings = await service.create(data)
+    ins, warnings, alerta_dict, aviso_intervalo = await service.create(data, tecnico_id=current_user.usuario_id)
     response = InseminacaoResponse.model_validate(ins)
     response.warnings = warnings
-    return {"success": True, "data": response}
+    return {
+        "success": True,
+        "data": {
+            **response.model_dump(mode="json"),
+            "alerta_criado":   alerta_dict,
+            "aviso_intervalo": aviso_intervalo,
+        }
+    }
 
 
-# INS-04a
+# INS-05
 @router.get("/{inseminacao_id}")
 async def get_inseminacao(
     inseminacao_id: UUID,
     service: InseminacaoService = Depends(get_service),
 ):
     return {"success": True, "data": await service.get_by_id_enriched(inseminacao_id)}
+
+
+# INS-06
+@router.patch("/{inseminacao_id}")
+async def update_inseminacao(
+    inseminacao_id: UUID,
+    data: InseminacaoUpdate,
+    current_user: User = Depends(get_current_user),
+    service: InseminacaoService = Depends(get_service),
+):
+    ins = await service.update(inseminacao_id, data)
+    return {"success": True, "data": InseminacaoResponse.model_validate(ins)}
+
+
+# INS-07
+@router.get("/{inseminacao_id}/diagnostico")
+async def get_diagnostico_inseminacao(
+    inseminacao_id: UUID,
+    service: InseminacaoService = Depends(get_service),
+):
+    result = await service.get_diagnostico(inseminacao_id)
+    return {"success": True, "data": result}
+
+
+# INS-08
+@router.delete("/{inseminacao_id}", status_code=status.HTTP_200_OK)
+async def cancelar_inseminacao(
+    inseminacao_id: UUID,
+    current_user: User = Depends(get_current_user),
+    service: InseminacaoService = Depends(get_service),
+):
+    await service.cancelar(inseminacao_id)
+    return {"success": True, "data": {"mensagem": "Inseminação cancelada."}}
 
 
 # INS-04b

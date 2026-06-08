@@ -26,6 +26,13 @@ _BLOQUEIO_MINUTOS = 15
 #
 # Enquanto isso, /refresh e /logout respondem com 503 explicativo,
 # e /login funciona normalmente (retorna access_token válido).
+#
+# ⚠️ TIMEZONE — As colunas de hora são TIMESTAMP WITHOUT TIME ZONE (ver
+# agroGen_schema.sql; o banco Supabase deve ser convertido via
+# endpoint/migration_timestamptz_to_timestamp.sql). Ao calcular `expires_at`
+# para refresh_token/password_reset, use SEMPRE naive UTC:
+#     expira = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(...)
+# Gravar datetime AWARE numa coluna TIMESTAMP faz o asyncpg lançar erro.
 # ---------------------------------------------------------------------------
 
 _REFRESH_DB_ENABLED = False
@@ -47,9 +54,10 @@ class AuthService:
         if not user.ativo:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Usuário inativo.")
 
-        now = datetime.now(timezone.utc)
+        # Naive UTC: as colunas são TIMESTAMP WITHOUT TIME ZONE (ver agroGen_schema.sql)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
 
-        if user.bloqueado_ate and user.bloqueado_ate.replace(tzinfo=timezone.utc) > now:
+        if user.bloqueado_ate and user.bloqueado_ate > now:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail=f"Conta bloqueada por tentativas excessivas. Tente novamente após {user.bloqueado_ate.isoformat()}.",

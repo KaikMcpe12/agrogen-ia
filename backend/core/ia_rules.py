@@ -28,10 +28,10 @@ def calcular_score(features: dict) -> tuple[float, list[dict]]:
     Recebe dict de features e retorna (score_0_a_1, fatores_lista).
     Features esperadas (todas opcionais, defaults conservadores):
       especie, condicao_corporal, intervalo_pos_parto_dias,
-      num_partos_anteriores, historico_taxa_prenhez,
-      dias_desde_ultima_inseminacao, tipo_inseminacao,
-      temperatura_ambiente_c, raca_femea, heterose_esperada_pct,
-      coeficiente_endogamia, dep_fertilidade_somada, dep_acuracia_media
+      num_partos_anteriores, historico_taxa_prenhez, ciclos_sem_concepcao,
+      dias_desde_ultima_ins, tipo_inseminacao, temperatura_ambiente_c,
+      raca_femea, heterose_esperada_pct, coeficiente_endogamia,
+      dep_fertilidade_somada, dep_acuracia_media
     """
     especie = features.get("especie", EspecieAnimal.BOVINO.value)
     base = PROB_BASE.get(especie, 0.60)
@@ -82,10 +82,15 @@ def calcular_score(features: dict) -> tuple[float, list[dict]]:
             total_delta += _delta("historico_taxa_prenhez", htp, -0.07, "negativo")
 
     # 5. Dias desde última inseminação
-    ddui = features.get("dias_desde_ultima_inseminacao")
+    ddui = features.get("dias_desde_ultima_ins")
     ciclo = CICLO_DIAS.get(especie, 21)
     if ddui is not None and ddui < ciclo:
-        total_delta += _delta("dias_desde_ultima_inseminacao", ddui, -0.10, "negativo")
+        total_delta += _delta("dias_desde_ultima_ins", ddui, -0.10, "negativo")
+
+    # 5b. Ciclos consecutivos sem concepção
+    ciclos = features.get("ciclos_sem_concepcao")
+    if ciclos is not None and ciclos > 2:
+        total_delta += _delta("ciclos_sem_concepcao", ciclos, -0.08, "negativo")
 
     # 6. Tipo de inseminação
     tipo = features.get("tipo_inseminacao", "")

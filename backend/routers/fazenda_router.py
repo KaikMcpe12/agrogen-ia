@@ -60,7 +60,8 @@ async def list_fazendas(
         limit=limit,
         offset=offset,
     )
-    return {"success": True, "data": [_serialize(f) for f in items]}
+    data = [_serialize(f, await service.count_animais(f.fazenda_id)) for f in items]
+    return {"success": True, "data": data}
 
 
 @router.get("/{fazenda_id}")
@@ -69,7 +70,8 @@ async def get_fazenda(
     service: FazendaService = Depends(get_service),
 ):
     f = await service.get_by_id(fazenda_id)
-    return {"success": True, "data": _serialize(f)}
+    total = await service.count_animais(f.fazenda_id)
+    return {"success": True, "data": _serialize(f, total)}
 
 
 @router.put("/{fazenda_id}")
