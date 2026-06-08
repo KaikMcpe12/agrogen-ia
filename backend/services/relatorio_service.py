@@ -133,3 +133,75 @@ class RelatorioService:
             for r in rows
         ]
         return {"linhas": linhas, "total": len(linhas)}
+
+    async def ponderal(
+        self,
+        data_inicio: date,
+        data_fim:    date,
+        especie:     Optional[EspecieAnimal] = None,
+        fazenda_id:  Optional[UUID]          = None,
+        page:        int                     = 1,
+        limit:       int                     = 50,
+    ) -> dict:
+        from sqlalchemy import func, desc
+        filtros = [
+            PesagemModel.data >= data_inicio,
+            PesagemModel.data <= data_fim,
+        ]
+        if especie:
+            filtros.append(AnimalModel.especie == especie)
+        if fazenda_id:
+            filtros.append(AnimalModel.fazenda_id == fazenda_id)
+
+        # Última pesagem por animal no período + GMD médio
+        sub = (
+            select(
+                PesagemModel.animal_id,
+                func.max(PesagemModel.data).label("ultima_data"),
+                func.count(PesagemModel.pesagem_id).label("num_pesagens"),
+                func.avg(PesagemModel.gmd_calculado).label("gmd_medio"),
+            )
+            .join(AnimalModel, AnimalModel.animal_id == PesagemModel.animal_id)
+            .where(and_(*filtros))
+            .group_by(PesagemModel.animal_id)
+            .subquery()
+        )
+
+        count_stmt = select(func.count()).select_from(sub)
+        total = (await self.session.execute(count_stmt)).scalar_one()
+
+        stmt = (
+            select(
+                AnimalModel.animal_id,
+                AnimalModel.codigo.label("animal_codigo"),
+                AnimalModel.nome,
+                PesagemModel.peso_kg.label("ultima_pesagem_kg"),
+                sub.c.num_pesagens,
+                sub.c.gmd_medio,
+            )
+            .select_from(sub)
+            .join(AnimalModel, AnimalModel.animal_id == sub.c.animal_id)
+            .join(
+                PesagemModel,
+                and_(
+                    PesagemModel.animal_id == sub.c.animal_id,
+                    PesagemModel.data == sub.c.ultima_data,
+                ),
+            )
+            .order_by(AnimalModel.codigo)
+            .offset((page - 1) * limit)
+            .limit(limit)
+        )
+        rows = (await self.session.execute(stmt)).all()
+
+        linhas = [
+            {
+                "animal_codigo":    r.animal_codigo,
+                "nome":             r.nome,
+                "ultima_pesagem_kg": float(r.ultima_pesagem_kg),
+                "gmd_periodo":      round(float(r.gmd_medio), 3) if r.gmd_medio else None,
+                "num_pesagens":     r.num_pesagens,
+            }
+            for r in rows
+        ]
+        return {"linhas": linhas, "total": total}
