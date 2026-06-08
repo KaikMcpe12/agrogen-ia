@@ -2,9 +2,24 @@ from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
-from typing import Optional
+from typing import Optional, Any
 
 from models.enums import EspecieAnimal, SexoAnimal, StatusAnimal
+
+
+class DadosGeneticosInput(BaseModel):
+    raca_pai:            Optional[str]     = Field(None, max_length=80)
+    raca_mae:            Optional[str]     = Field(None, max_length=80)
+    percentual_sangue:   Optional[str]     = Field(None, max_length=60)
+    dep_peso_desmame:    Optional[Decimal] = None
+    dep_fertilidade:     Optional[Decimal] = None
+    dep_acuracia:        Optional[Decimal] = Field(None, ge=0, le=1)
+    coeficiente_endogamia: Optional[Decimal] = Field(None, ge=0, le=1)
+    heterose_esperada:   Optional[Decimal] = None
+
+
+class DadosGeneticosOutput(DadosGeneticosInput):
+    model_config = ConfigDict(from_attributes=True)
 
 class AnimalBase(BaseModel):
     fazenda_id: UUID
@@ -47,7 +62,8 @@ class AnimalBase(BaseModel):
         return self
 
 class AnimalCreate(AnimalBase):
-    codigo: Optional[str] = Field(None, max_length=20, min_length=1)
+    codigo:          Optional[str]                 = Field(None, max_length=20, min_length=1)
+    dados_geneticos: Optional[DadosGeneticosInput] = None
 
 class AnimalUpdate(BaseModel):
     codigo: Optional[str] = Field(None, max_length=20)
@@ -71,9 +87,12 @@ class AnimalUpdate(BaseModel):
         return self
 
 class AnimalResponse(AnimalBase):
-    id: UUID = Field(..., validation_alias="animal_id")
-    ativo: bool
-    created_at: datetime
-    updated_at: datetime
+    id:              UUID                          = Field(..., validation_alias="animal_id")
+    ativo:           bool
+    created_at:      datetime
+    updated_at:      datetime
+    idade_meses:     Optional[int]                 = None
+    dados_geneticos: Optional[DadosGeneticosOutput] = None
+    ultimo_evento:   Optional[dict[str, Any]]      = None
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)

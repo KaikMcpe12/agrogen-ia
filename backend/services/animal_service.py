@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import UUID
 from typing import Optional
 from fastapi import HTTPException, status
@@ -5,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import AnimalModel
 from schemas import AnimalCreate, AnimalUpdate
+from schemas.animal_schema import AnimalResponse, DadosGeneticosOutput
 from repositories.animal_repository import AnimalRepository
+from repositories.dados_geneticos_repository import DadosGeneticosRepository
 from models.enums import EspecieAnimal, SexoAnimal, StatusAnimal
 
 # Máquina de estados — definida no Commit 3, validada no update
@@ -21,22 +24,70 @@ VALID_TRANSITIONS: dict[StatusAnimal, set[StatusAnimal]] = {
 
 class AnimalService:
     def __init__(self, session: AsyncSession):
-        self.repo = AnimalRepository(session)
+        self.repo     = AnimalRepository(session)
+        self.gen_repo = DadosGeneticosRepository(session)
+
+    def _calcular_idade_meses(self, data_nascimento: Optional[date]) -> Optional[int]:
+        if not data_nascimento:
+            return None
+        hoje = date.today()
+        return (hoje.year - data_nascimento.year) * 12 + (hoje.month - data_nascimento.month)
+
+    async def _buscar_ultimo_evento(self, animal_id: UUID) -> Optional[dict]:
+        from sqlalchemy import select, union_all, literal
+        from models.inseminacao_model import InseminacaoModel
+        from models.diagnostico_model import DiagnosticoModel
+
+        # Última inseminação
+        stmt_ins = (
+            select(
+                InseminacaoModel.data_inseminacao.label("data"),
+                literal("INSEMINACAO").label("tipo"),
+                InseminacaoModel.resultado.label("resultado_raw"),
+            )
+            .where(InseminacaoModel.animal_id == animal_id)
+            .order_by(InseminacaoModel.data_inseminacao.desc())
+            .limit(1)
+        )
+        row = (await self.repo.session.execute(stmt_ins)).first()
+        if row:
+            return {
+                "tipo":      row.tipo,
+                "data":      row.data.isoformat() if row.data else None,
+                "resultado": row.resultado_raw.value if row.resultado_raw else None,
+            }
+        return None
 
     async def create(self, schema: AnimalCreate) -> AnimalModel:
         if not schema.codigo:
             codigo = await self.repo.next_codigo(schema.fazenda_id, schema.especie)
             schema = schema.model_copy(update={"codigo": codigo})
-        return await self.repo.create(schema)
+        animal = await self.repo.create(schema)
+        if schema.dados_geneticos:
+            await self.gen_repo.upsert(animal.animal_id, schema.dados_geneticos.model_dump(exclude_none=True))
+        return animal
 
-    async def get_by_id(self, animal_id: UUID) -> AnimalModel:
+    async def get_by_id(self, animal_id: UUID) -> dict:
         animal = await self.repo.get_by_id(animal_id)
         if not animal:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Animal não encontrado.")
-        return animal
+        gen = await self.gen_repo.get_by_animal_id(animal_id)
+        ultimo_evento = await self._buscar_ultimo_evento(animal_id)
+        resp = AnimalResponse.model_validate(animal)
+        resp.idade_meses     = self._calcular_idade_meses(animal.data_nascimento)
+        resp.dados_geneticos = DadosGeneticosOutput.model_validate(gen) if gen else None
+        resp.ultimo_evento   = ultimo_evento
+        return resp.model_dump(mode="json")
 
-    async def list_all(self, **kwargs) -> tuple[list[AnimalModel], int]:
-        return await self.repo.list_all(**kwargs)
+    async def list_all(self, **kwargs) -> tuple[list[dict], int]:
+        items, total = await self.repo.list_all(**kwargs)
+        hoje = date.today()
+        result = []
+        for animal in items:
+            resp = AnimalResponse.model_validate(animal)
+            resp.idade_meses = self._calcular_idade_meses(animal.data_nascimento)
+            result.append(resp.model_dump(mode="json"))
+        return result, total
 
     async def update(self, animal_id: UUID, schema: AnimalUpdate) -> AnimalModel:
         animal = await self.repo.get_by_id(animal_id)

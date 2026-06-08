@@ -70,7 +70,7 @@ async def list_racas(especie: Optional[EspecieAnimal] = None):
 
 # ── ANI-01: listagem com filtros avançados e paginação ────────────────────────
 
-@router.get("", response_model=PaginatedEnvelope[AnimalResponse])
+@router.get("")
 async def list_animals(
     fazenda_id:       Optional[UUID]         = None,
     especie:          Optional[EspecieAnimal] = None,
@@ -100,14 +100,15 @@ async def list_animals(
         incluir_inativos=incluir_inativos,
     )
     total_pages = max(1, (total + limit - 1) // limit)
-    return PaginatedEnvelope(
-        data=items,
-        meta=PaginatedMeta(
+    return {
+        "success": True,
+        "data": items,
+        "meta": PaginatedMeta(
             total=total, page=page, limit=limit, total_pages=total_pages,
             has_next=page < total_pages,
             has_prev=page > 1,
-        ),
-    )
+        ).model_dump(),
+    }
 
 
 # ── ANI-02: criação ───────────────────────────────────────────────────────────
