@@ -494,14 +494,8 @@ export function setupMocks(client: AxiosInstance): void {
     await delay();
     const params = config.params as Record<string, string> | undefined;
     const meses = Number(params?.["meses"] ?? 6);
-    const total = graficoReproductivo.labels.length;
-    const start = Math.max(0, total - meses);
-    return [200, { success: true, data: {
-      labels: graficoReproductivo.labels.slice(start),
-      inseminacoes: graficoReproductivo.inseminacoes.slice(start),
-      taxa_prenhez: graficoReproductivo.taxa_prenhez.slice(start),
-      periodo: graficoReproductivo.periodo,
-    } }];
+    const start = Math.max(0, graficoReproductivo.length - meses);
+    return [200, { success: true, data: graficoReproductivo.slice(start) }];
   });
 
   mock.onGet("/dashboard/timeline").reply(async () => {

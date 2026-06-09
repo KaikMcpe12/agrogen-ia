@@ -256,27 +256,25 @@ export interface DashboardKPI {
     por_especie: { bovino: number; ovino: number; caprino: number };
   };
   inseminacoes_mes: { total: number; delta_pct: number; sentido: "positivo" | "negativo" };
-  taxa_prenhez: { valor: number; percentual: number; badge: "POSITIVO" | "NEGATIVO"; periodo: string };
-  alertas_ativos: { total: number; criticos: number; altos: number };
+  taxa_prenhez: { valor: number; percentual: number; badge?: "POSITIVO" | "NEGATIVO"; periodo: string };
+  alertas_ativos: { total: number; criticos: number; altas: number };
   calculado_em: string;
 }
 
+// O backend retorna um array de pontos (uma linha por mês), com taxa_prenhez já em percentual.
 export interface GraficoReprodutivoData {
-  labels: string[];
-  inseminacoes: number[];
-  taxa_prenhez: number[];
-  periodo: { inicio: string; fim: string };
+  mes: string;
+  inseminacoes: number;
+  taxa_prenhez: number;
 }
 
 export interface TimelineItem {
+  id?: string;
   tipo: TipoEvento | "ALERTA";
-  animal_id: string;
-  animal_codigo: string;
-  animal_nome: string;
+  animal?: { id: string; codigo: string; nome: string };
+  usuario?: string;
   descricao: string;
-  usuario_nome?: string;
   data: string;
-  data_relativa?: string;
 }
 
 /* ── IA ──────────────────────────────────────────────────────── */
