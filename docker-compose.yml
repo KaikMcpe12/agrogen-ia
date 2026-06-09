@@ -65,6 +65,9 @@ services:
       IA_SERVICE_URL:      http://ia:8001
       IA_SERVICE_TIMEOUT_MS: ${IA_SERVICE_TIMEOUT_MS:-800}
       BACKEND_AUTH_SECRET: ${BACKEND_AUTH_SECRET:-}
+      # CORS: origens liberadas (lista JSON). Inclui o dev server do Vite e o Nginx.
+      # Pelo Nginx tudo é mesma origem (sem CORS); isto cobre acesso direto/dev cross-origin.
+      ALLOWED_ORIGINS:     ${ALLOWED_ORIGINS:-["http://localhost:5173","http://localhost","http://localhost:80"]}
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,8 +80,10 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        # URL relativa — o Nginx roteia para o backend
-        VITE_API_BASE_URL: /api/v1
+        # URL relativa — o Nginx roteia para o backend (mesma origem, sem CORS)
+        VITE_API_URL: /api/v1
+        # Desliga os mocks: o frontend consome o backend real
+        VITE_USE_REAL_API: "true"
     container_name: agrogen_frontend
     restart: unless-stopped
     depends_on:
