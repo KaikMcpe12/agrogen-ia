@@ -67,15 +67,19 @@ Desenvolvido para o **Hackathon Expoagro Crateús 2026**, promovido pela Prefeit
 
 ```
 agrogen-ia/
-├── frontend/          # React 18 + Vite + TypeScript
+├── frontend/          # React + Vite + TypeScript
 ├── backend/           # Python + FastAPI (API principal)
+│   └── endpoint/      # agroGen_schema.sql + seed.sql (init automático do banco)
 ├── ia/                # Python + FastAPI (microsserviço ML)
-├── docker-compose.yml          # Produção (sem Nginx)
-├── docker-compose.nginx.yml    # Produção (com Nginx)
-├── nginx.conf                  # Configuração do proxy reverso
-├── .env.example                # Template de variáveis de ambiente
+├── docker-compose.yml          # Stack completo: postgres · backend · ia · frontend · nginx
+├── nginx.conf                  # Proxy reverso (porta 80 → frontend + /api/v1 → backend)
+├── .env.example                # Template das variáveis de ambiente (raiz)
 └── README.md
 ```
+
+> O `docker-compose.yml` único já sobe **todos** os serviços com o Nginx como proxy reverso
+> (tudo na porta 80, sem CORS). O banco é inicializado automaticamente na primeira subida
+> (`agroGen_schema.sql` + `seed.sql`), e as migrações Alembic rodam no boot do backend.
 
 ---
 
@@ -100,54 +104,92 @@ cd agrogen-ia
 cp .env.example .env
 ```
 
-Edite o `.env` com suas configurações:
+O `.env` da raiz é consumido pelo `docker-compose.yml`. Para **testar localmente**, estes
+valores funcionam direto (gere segredos próprios em produção):
 
 ```env
-POSTGRES_PASSWORD=sua_senha_forte_aqui
-JWT_SECRET_KEY=gere_com_python_secrets_token_hex_32
+# Banco de dados
+POSTGRES_DB=agrogen
+POSTGRES_USER=agrogen
+POSTGRES_PASSWORD=agrogen123
+
+# Segredo do JWT — gere com: python -c "import secrets; print(secrets.token_hex(32))"
+SECRET_KEY=troque_por_um_token_hex_de_32_bytes
+ENVIRONMENT=development
+
+# Auth estática backend ↔ microsserviço de IA (mesmo valor nos dois; vazio = sem auth)
+# Gere com: python -c "import secrets; print(secrets.token_hex(24))"
+BACKEND_AUTH_SECRET=troque_por_um_token_aleatorio
+
+# Timeout (ms) das chamadas de inferência ao microsserviço de IA
+IA_SERVICE_TIMEOUT_MS=800
 ```
 
-Para gerar o `JWT_SECRET_KEY`:
-```bash
-python -c "import secrets; print(secrets.token_hex(32))"
-```
+> Todas as variáveis têm default no compose, então o stack sobe mesmo sem `.env` —
+> mas crie um e defina ao menos `SECRET_KEY`/`BACKEND_AUTH_SECRET` para um teste realista.
 
 ### 3. Subir com Docker
 
-**Versão simples (cada serviço em sua porta):**
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
+
+> ⚠️ A primeira execução demora alguns minutos: a imagem do microsserviço de IA **treina o
+> modelo Random Forest durante o build**, e o frontend é compilado pelo Vite.
 
 | Serviço | URL |
 |---------|-----|
-| Frontend | http://localhost:80 |
-| Backend (API) | http://localhost:8000 |
-| API Docs (Swagger) | http://localhost:8000/docs |
+| Aplicação (frontend) | http://localhost |
+| API (via proxy) | http://localhost/api/v1 |
 
-**Versão com Nginx (tudo na porta 80, sem CORS):**
-```bash
-docker compose -f docker-compose.nginx.yml up -d
-```
-
-| Serviço | URL |
-|---------|-----|
-| Aplicação | http://localhost |
-| API | http://localhost/api/v1 |
-| API Docs | http://localhost:8000/docs |
+Apenas o Nginx expõe porta (80). `backend` (8000) e `ia` (8001) ficam na rede interna do
+Compose e são acessados pelo Nginx/backend — não há portas publicadas para eles.
 
 ### 4. Verificar se está rodando
 
 ```bash
-docker compose ps
-# Todos os serviços devem estar com status "healthy"
+docker compose ps           # todos "Up"; postgres e ia devem ficar "healthy"
 ```
+
+Faça login na aplicação com um usuário do seed (todos com a senha **`agrogen123`**):
+
+| E-mail | Perfil |
+|--------|--------|
+| `agrogen@gmail.com` | ADMIN |
+| `joao.bezerra@rural.com` | PRODUTOR |
+| `paulo.mendes@agrogen.com` | TÉCNICO |
+
+> Para resetar o banco e repopular o seed do zero: `docker compose down -v && docker compose up -d --build`.
 
 ---
 
-## 💻 Rodando Localmente (sem Docker)
+## 💻 Desenvolvimento (frontend com hot-reload sobre a API real)
 
-Consulte os READMEs específicos de cada serviço:
+Com o stack Docker no ar, você pode rodar o frontend em modo dev (Vite + HMR) consumindo a
+API real — sem CORS, pois o `vite.config.ts` faz proxy de `/api/v1` para o Nginx:
+
+```bash
+cd frontend
+cp .env.example .env.local      # define VITE_USE_REAL_API=true (desliga os mocks)
+npm install
+npm run dev                     # http://localhost:5173
+```
+
+Variáveis do frontend (`frontend/.env.local`):
+
+```env
+# Consome o backend real; sem isso, o app usa mocks em memória (sem backend)
+VITE_USE_REAL_API=true
+# baseURL do axios (padrão /api/v1, roteado pelo proxy do Vite / Nginx)
+VITE_API_URL=/api/v1
+# Opcional: alvo do proxy de dev, caso a API não esteja em http://localhost
+# VITE_DEV_API_PROXY=http://localhost
+```
+
+> Sem `VITE_USE_REAL_API=true`, o frontend roda 100% com **mocks** em memória (útil para
+> desenvolver UI sem backend). No build Docker essa flag já vem ligada.
+
+Para rodar cada serviço isoladamente, consulte os READMEs específicos:
 
 - [`frontend/README.md`](./frontend/README.md) — React + Vite
 - [`backend/README.md`](./backend/README.md) — Python + FastAPI
