@@ -2,8 +2,13 @@
 # Stage 1: build do React com Vite
 FROM node:20-alpine AS builder
 
-ARG VITE_API_BASE_URL=/api/v1
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+# Vars lidas pelo código em runtime de build (src/lib/api/client.ts):
+#   VITE_API_URL       — baseURL do axios (default /api/v1, roteado pelo Nginx)
+#   VITE_USE_REAL_API  — "true" desliga os mocks e consome o backend real
+ARG VITE_API_URL=/api/v1
+ARG VITE_USE_REAL_API=true
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_USE_REAL_API=$VITE_USE_REAL_API
 
 WORKDIR /app
 
