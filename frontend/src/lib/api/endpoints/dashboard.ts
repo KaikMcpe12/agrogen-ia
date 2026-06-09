@@ -12,7 +12,7 @@ export const dashboardApi = {
 
   grafico: (fazendaId?: string, meses?: number, signal?: AbortSignal) =>
     client
-      .get<ApiResponse<GraficoReprodutivoData>>("/dashboard/grafico-reprodutivo", {
+      .get<ApiResponse<GraficoReprodutivoData[]>>("/dashboard/grafico-reprodutivo", {
         params: {
           ...(fazendaId ? { fazenda_id: fazendaId } : {}),
           ...(meses ? { meses } : {}),

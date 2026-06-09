@@ -27,16 +27,8 @@ export function ReproductiveChartImpl({ height = 260 }: { height?: number }) {
     queryFn: ({ signal }) => dashboardApi.grafico(undefined, meses, signal),
   });
   const theme = useChartTheme();
-  // A API devolve dados colunares (labels/inseminacoes/taxa_prenhez); o gráfico precisa de
-  // um array de linhas { mes, inseminacoes, taxa_prenhez }.
-  const grafico = data?.data;
-  const points = grafico
-    ? grafico.labels.map((mes, i) => ({
-        mes,
-        inseminacoes: grafico.inseminacoes[i] ?? 0,
-        taxa_prenhez: grafico.taxa_prenhez[i] ?? 0,
-      }))
-    : [];
+  // O backend já devolve um array de pontos {mes, inseminacoes, taxa_prenhez(%)}.
+  const points = data?.data ?? [];
 
   return (
     <div>
