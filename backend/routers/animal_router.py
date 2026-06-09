@@ -163,15 +163,17 @@ async def get_historico(
     service: AnimalService = Depends(get_service),
     session: AsyncSession = Depends(get_db),
 ):
-    animal = await service.get_by_id(animal_id)
+    # Valida existência (lança 404 se não houver). get_by_id retorna dict serializado,
+    # então usamos o próprio animal_id do path nas consultas dos repositórios.
+    await service.get_by_id(animal_id)
 
     from repositories.inseminacao_repository import InseminacaoRepository
     from repositories.pesagem_repository import PesagemRepository
     from repositories.parto_repository import PartoRepository
 
-    inseminacoes = await InseminacaoRepository(session).list_all(animal_id=animal.animal_id, limit=limit)
-    pesagens     = await PesagemRepository(session).list_by_animal(animal_id=animal.animal_id, limit=limit)
-    partos       = await PartoRepository(session).list_by_animal(animal_id=animal.animal_id, limit=limit)
+    inseminacoes, _ = await InseminacaoRepository(session).list_all(animal_id=animal_id, limit=limit)
+    pesagens        = await PesagemRepository(session).list_by_animal(animal_id=animal_id, limit=limit)
+    partos          = await PartoRepository(session).list_by_animal(animal_id=animal_id, limit=limit)
 
     def _serialize(obj):
         from sqlalchemy.orm import DeclarativeBase

@@ -55,6 +55,8 @@ CREATE TYPE via_administracao    AS ENUM ('SC', 'IM', 'IV', 'ORAL', 'TOPICA');
 CREATE TYPE tipo_alerta          AS ENUM ('DIAGNOSTICO_PENDENTE', 'PROXIMA_DOSE', 'JANELA_IATF', 'OCORRENCIA_CRITICA', 'OUTRO');
 CREATE TYPE prioridade_alerta    AS ENUM ('BAIXA', 'MEDIA', 'ALTA', 'CRITICA');
 CREATE TYPE tipo_alimentacao     AS ENUM ('PASTO', 'CONFINAMENTO', 'SUPLEMENTACAO', 'MISTO');
+CREATE TYPE categoria_ocorrencia  AS ENUM ('SAUDE', 'MANEJO', 'COMPORTAMENTO', 'REPRODUCAO', 'OUTRO');
+CREATE TYPE gravidade_ocorrencia  AS ENUM ('BAIXA', 'MEDIA', 'ALTA', 'CRITICA');
 
 
 -- ============================================================
@@ -420,6 +422,26 @@ CREATE TABLE partos (
 
 CREATE INDEX idx_partos_animal_id ON partos(animal_id);
 CREATE INDEX idx_partos_data      ON partos(data_parto DESC);
+
+-- Ocorrências do diário de bordo (registros livres por animal)
+CREATE TABLE ocorrencias (
+    ocorrencia_id UUID                  DEFAULT gen_random_uuid(),
+    animal_id     UUID                  NOT NULL,
+    data          DATE                  NOT NULL,
+    categoria     categoria_ocorrencia  NOT NULL,
+    titulo        VARCHAR(150)          NOT NULL,
+    descricao     TEXT                  NOT NULL,
+    gravidade     gravidade_ocorrencia,
+    resolvida     BOOLEAN               NOT NULL DEFAULT FALSE,
+    created_at    TIMESTAMP             NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_ocorrencia PRIMARY KEY (ocorrencia_id),
+    CONSTRAINT fk_ocorrencia_animal
+        FOREIGN KEY (animal_id) REFERENCES animais (animal_id) ON DELETE RESTRICT
+);
+
+CREATE INDEX idx_ocorrencias_animal_id ON ocorrencias(animal_id);
+CREATE INDEX idx_ocorrencias_data      ON ocorrencias(data DESC);
 
 CREATE OR REPLACE FUNCTION fn_pos_parto()
 RETURNS TRIGGER AS $$
