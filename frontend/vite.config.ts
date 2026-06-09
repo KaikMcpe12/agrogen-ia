@@ -75,4 +75,15 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Dev server: faz proxy de /api/v1 para o stack Docker (Nginx na porta 80),
+  // assim o navegador enxerga tudo na mesma origem (localhost:5173) e não há CORS.
+  // Sobrescreva o alvo com VITE_DEV_API_PROXY se a API estiver em outro host/porta.
+  server: {
+    proxy: {
+      "/api/v1": {
+        target: process.env["VITE_DEV_API_PROXY"] ?? "http://localhost",
+        changeOrigin: true,
+      },
+    },
+  },
 });
